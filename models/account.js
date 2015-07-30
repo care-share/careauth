@@ -1,12 +1,11 @@
 var mongoose = require('mongoose'),
-    _ = require('underscore')._,
     Schema = mongoose.Schema,
     path = require('path'),
     config = require(path.join(__dirname, '..', '/config/config.js')),
     passportLocalMongoose = require('passport-local-mongoose'),
     crypto = require('crypto'),
     jwt = require('jwt-simple'),
-    tokenSecret = 'put-a-$Ecr3t-h3re';
+    tokenSecret = config.tokenSecret;
 
 var Token = new Schema({
     token: {type: String},
@@ -20,10 +19,10 @@ Token.statics.hasExpired= function(created) {
 var TokenModel = mongoose.model('Token', Token);
 
 var Account = new Schema({
-    //TODO: fname, lname, phone, notifications, friends, etc.
-    birthdate: Date,
     email: { type: String, required: true, lowercase:true, index: { unique: true } },
-    full_name: {type: String, required: true},//TODO: break out first / last names
+    name_first: {type: String, required: true},
+    name_last: {type: String, required: true},
+    role: {type: String, default: "user"},
     date_created: {type: Date, default: Date.now},
     token: {type: Object},
     //For reset we use a reset token with an expiry (which must be checked)
@@ -45,7 +44,7 @@ Account.statics.findUser = function(email, token, cb) {
         if(err || !usr) {
             cb(err, null);
         } else if (usr.token && usr.token.token && token === usr.token.token) {
-            cb(false, {email: usr.email, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
+            cb(false, {email: usr.email, token: usr.token, date_created: usr.date_created, name_first: usr.name_first, name_last: usr.name_last, role: usr.role});
         } else {
             cb(new Error('Token does not exist or does not match.'), null);
         }

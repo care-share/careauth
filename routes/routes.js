@@ -11,84 +11,58 @@ var flash = require(path.join(__dirname, '..', '/include/utils')).flash;
 */
 
 module.exports = function (app, passport) {
-    /**
-    * Default route for app, currently displays signup form.
-    *
-    * @param {Object} req the request object
-    * @param {Object} res the response object
-    */
+
     app.get('/', function (req, res) {
-        res.render('register', {info: null, err: null});
+        res.send('Go away');
     });
 
-
-    /**
-    * Post method to register a new user
-    *
-    * @param {Object} req the request object
-    * @param {Object} res the response object
-    */
     app.post('/register', function(req, res) {
-        var name = req.body.fullname;
+        var name_first = req.body.name_first;
+        var name_last = req.body.name_last;
         var email = req.body.email;
         var password = req.body.password;
-        var user = new Account({full_name: name,email: email});
-        var message;
+        if (!name_first || !name_last || !email || !password) {
+            res.send(400).json({message: 'Bad request'});
+        }
 
-        Account.register(user, password, function(error, account) {
-            if (error) {
-                if (error.name === 'BadRequesterroror' && error.message && error.message.indexOf('exists') > -1) {
-                    message = flash(null, 'Sorry. That email already exists. Try again.');
+        var user = new Account({name_first: name_first, name_last: name_last, email: email});
+        Account.register(user, password, function(err, account) {
+            if (err) {
+                if (err.name === 'BadRequesterror' && err.message && err.message.indexOf('exists') > -1) {
+                    // user already exists
+                    res.send(409).json({message: 'Conflict'});
                 }
-                else if (error.name === 'BadRequesterroror' && error.message && error.message.indexOf('argument not set')) {
-                    message =  flash (null, 'It looks like you\'re missing a required argument. Try again.');
+                else if (err.name === 'BadRequesterror' && err.message && err.message.indexOf('argument not set')) {
+                    res.send(400).json({message: 'Bad Request'});
                 }
                 else {
-                    message = flash(null, 'Sorry. There was an error processing your request. Please try again or contact technical support.');
+                    res.send(201).json({message: 'Internal Server Error'});
                 }
 
-                res.render('register', message);
-            }
-            else {
-                //Successfully registered user
-                res.redirect('login?registered=1');
+                res.send(code).json(message);
+            } else {
+                res.send(201).json({message: 'Created'});
             }
         });
     });
 
-    /**
-    * Login method
-    *
-    * @param {Object} req the request object
-    * @param {Object} res the response object
-    */
-    app.get('/login', function(req, res) {
-        var messages = flash(null, null);
-
-        if (req.param('registered') === '1') {
-            messages = flash('Congratulations, your account was created!', null);
-        }
-
-        res.render('login', messages);
-    });
-
-    app.post('/token/', passport.authenticate('local', {session: false}), function(req, res) {
+    app.post('/login', passport.authenticate('local', {session: false}), function(req, res) {
         if (req.user) {
             Account.createUserToken(req.user.email, function(err, usersToken) {
-                // console.log('token generated: ' +usersToken);
-                // console.log(err);
                 if (err) {
-                    res.json({error: 'Issue generating token'});
+                    // couldn't generate token
+                    res.send(500).json({message: 'Internal Server Error'});
                 } else {
                     res.json({token : usersToken});
                 }
             });
         } else {
-            res.json({error: 'AuthError'});
+            res.send(401).json({message: 'Unauthorized'});
         }
     });
 
-    app.get('/apitest/', function(req, res) {
+/*
+    app.get('/apitest', function(req, res) {
         var incomingToken = req.headers.token;
         console.log('incomingToken: ' + incomingToken);
         var decoded = Account.decode(incomingToken);
@@ -97,7 +71,7 @@ module.exports = function (app, passport) {
             Account.findUser(decoded.email, incomingToken, function(err, user) {
                 if (err) {
                     console.log(err);
-                    res.json({error: 'Issue finding user.'});
+                    res.send(404).json({error: 'Issue finding user.'});
                 } else {
                     if (Token.hasExpired(user.token.date_created)) {
                         console.log("Token expired...TODO: Add renew token funcitionality.");
@@ -116,39 +90,35 @@ module.exports = function (app, passport) {
             });
         } else {
             console.log('Whoa! Couldn\'t even decode incoming token!');
-            res.json({error: 'Issue decoding incoming token.'});
+            res.send(400).json({error: 'Issue decoding incoming token.'});
         }
     });
+*/
+
     app.get('/logout(\\?)?', function(req, res) {
-        var messages = flash('Logged out', null);
         var incomingToken = req.headers.token;
-        console.log('LOGOUT: incomingToken: ' + incomingToken);
+        if (!incomingToken) {
+            res.send(400).json({message: 'Bad Request'});
+        }
+
         if (incomingToken) {
             var decoded = Account.decode(incomingToken);
             if (decoded && decoded.email) {
-                console.log("past first check...invalidating next...")
                 Account.invalidateUserToken(decoded.email, function(err, user) {
-                    console.log('Err: ', err);
-                    console.log('user: ', user);
                     if (err) {
-                        console.log(err);
-                        res.json({error: 'Issue finding user (in unsuccessful attempt to invalidate token).'});
+                        res.send(404).json({error: 'Not Found'});
                     } else {
-                        console.log("sending 200")
-                        res.json({message: 'logged out'});
+                        res.json({message: 'OK'});
                     }
                 });
             } else {
-                console.log('Whoa! Couldn\'t even decode incoming token!');
-                res.json({error: 'Issue decoding incoming token.'});
+                // couldn't decode token
+                res.send(400).json({message: 'Bad Request'});
             }
         }
     });
 
-    app.get('/forgot', function(req, res) {
-        res.render('forgot');
-    });
-
+/*
     app.post('/forgot', function(req, res) {
 
         Account.generateResetToken(req.body.email, function(err, user) {
@@ -241,5 +211,6 @@ module.exports = function (app, passport) {
             res.json({error: 'Missing email, current, new, or confirmation password, OR, the confirmation does not match.'});
         }
     });
+*/
 
 };

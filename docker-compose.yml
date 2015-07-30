@@ -1,0 +1,5 @@
+careauth:
+  build: .
+  ports:
+    - "3000:1337"
+
