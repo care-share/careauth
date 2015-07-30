@@ -1,0 +1,69 @@
+@import 'options';
+
+//////////////////////////////////////////////////////////
+// GENERAL HELPERS  //////////////////////////////////////
+//////////////////////////////////////////////////////////
+
+
+//CREATE A COMMA SEPERATED LIST CLASSES FOR LENGTH OF GRID
+//RETURNS: .c1, .c2, .c3, .c4, .c5, etc...
+@function create-list-names($length, $class-name) {
+    $list: '';
+
+    @for $i from 1 through $length {
+
+        //For the first item don't include the comma or concat
+        @if $i == 1 {
+            $list: #{$class-name}$i;
+        }
+        @else {
+            $list: #{$list}, #{$class-name}$i;
+        }
+    }
+
+    @return $list;
+}
+
+
+
+//////////////////////////////////////////////////////////
+// FLUID CALCULATIONS  ///////////////////////////////////
+//////////////////////////////////////////////////////////
+
+//FLUID COLUMN CALCULATOR
+@function calculate-fluid-column($i, $fluid-unit) {
+    $multiplier: $i - 1;
+    $column-size: $unicorn-grid-fluid-gutter;
+
+    @return ($column-size + (($column-size + 2) * $multiplier)) * $fluid-unit;
+}
+
+//FLUID COLUMN SPACER
+@function calculate-fluid-spacer($i, $fluid-unit) {
+    $multiplier: $i - 1;
+    $column-size: $unicorn-grid-fluid-gutter;
+
+    @return ($column-size + (($column-size + 2) * $multiplier)) * $fluid-unit + ($fluid-unit * 4);
+}
+
+
+
+//////////////////////////////////////////////////////////
+// FIXED CALCULATIONS  ///////////////////////////////////
+//////////////////////////////////////////////////////////
+
+//FIXED COLUMN CALCULATOR
+@function calculate-fixed-column($i, $column-width) {
+    $num_of_margins: ($i - 1) * 2;
+
+    //MULTI WIDTH OF COLUMNS BY NUMBER OF MARGINS SWALLOWED BY COLUMN
+    @return ($column-width *  $i) + ($unicorn-grid-fixed-margin * $num_of_margins);
+}
+
+//FIXED COLUMN SPACER
+@function calculate-fixed-spacer($i, $column-width) {
+    $num_of_margins: $i * 2;
+
+    //MULTI WIDTH OF COLUMNS BY NUMBER OF MARGINS SWALLOWED BY COLUMN
+    @return ($column-width *  $i) + ($unicorn-grid-fixed-margin * $num_of_margins) + $unicorn-grid-fixed-margin;
+}
