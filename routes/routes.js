@@ -1,10 +1,11 @@
 'use strict';
 
 var path = require('path');
-var config = require(path.join(__dirname, '..', '/config/config.js'));
+var Q = require('q');
 var Account = require(path.join(__dirname, '..', '/models/account'));
 var Token = require(path.join(__dirname, '..', '/models/account')).Token;
-var flash = require(path.join(__dirname, '..', '/include/utils')).flash;
+var utils = require(path.join(__dirname, '..', '/include/utils'));
+var respond = utils.respond;
 
 /**
 * @module Routes
@@ -16,201 +17,145 @@ module.exports = function (app, passport) {
         res.send('Go away');
     });
 
-    app.post('/register', function(req, res) {
+    app.post('/auth/register', function(req, res) {
         var name_first = req.body.name_first;
         var name_last = req.body.name_last;
         var email = req.body.email;
         var password = req.body.password;
         if (!name_first || !name_last || !email || !password) {
-            res.send(400).json({message: 'Bad request'});
+            respond(res, 400);
+            return;
         }
 
         var user = new Account({name_first: name_first, name_last: name_last, email: email});
         Account.register(user, password, function(err, account) {
             if (err) {
-                if (err.name === 'BadRequesterror' && err.message && err.message.indexOf('exists') > -1) {
+                if (err.name === 'BadRequestError' && err.message && err.message.indexOf('exists') > -1) {
                     // user already exists
-                    res.send(409).json({message: 'Conflict'});
+                    respond(res, 409);
                 }
-                else if (err.name === 'BadRequesterror' && err.message && err.message.indexOf('argument not set')) {
-                    res.send(400).json({message: 'Bad Request'});
+                else if (err.name === 'BadRequestError' && err.message && err.message.indexOf('argument not set')) {
+                    respond(res, 400);
                 }
                 else {
-                    res.send(201).json({message: 'Internal Server Error'});
+                    respond(res, 500);
                 }
-
-                res.send(code).json(message);
             } else {
-                res.send(201).json({message: 'Created'});
+                respond(res, 201);
             }
         });
     });
 
-    app.post('/login', passport.authenticate('local', {session: false}), function(req, res) {
-        if (req.user) {
-            Account.createUserToken(req.user.email, function(err, usersToken) {
-                if (err) {
-                    // couldn't generate token
-                    res.send(500).json({message: 'Internal Server Error'});
-                } else {
-                    res.json({token : usersToken});
-                }
-            });
-        } else {
-            res.send(401).json({message: 'Unauthorized'});
+    app.post('/auth/login', passport.authenticate('local', {session: false}), function(req, res) {
+        if (!req.user) {
+            respond(res, 401);
+            return;
         }
+
+        Account.createUserToken(req.user.email, function(err, usersToken) {
+            if (err) {
+                // couldn't generate token
+                respond(res, 500);
+            } else {
+                respond(res, 200, {token : usersToken});
+            }
+        });
     });
 
-/*
-    app.get('/apitest', function(req, res) {
-        var incomingToken = req.headers.token;
-        console.log('incomingToken: ' + incomingToken);
-        var decoded = Account.decode(incomingToken);
-        //Now do a lookup on that email in mongodb ... if exists it's a real user
-        if (decoded && decoded.email) {
-            Account.findUser(decoded.email, incomingToken, function(err, user) {
-                if (err) {
-                    console.log(err);
-                    res.send(404).json({error: 'Issue finding user.'});
-                } else {
-                    if (Token.hasExpired(user.token.date_created)) {
-                        console.log("Token expired...TODO: Add renew token funcitionality.");
-                        res.json({error: 'Token expired. You need to log in again.'});
-                    } else {
-                        res.json({
-                            user: {
-                                email: user.email,
-                                full_name: user.full_name,
-                                token: user.token.token,
-                                message: "This is just a simulation of an API endpoint; and we wouldn't normally return the token in the http response...doing so for test purposes only :)"
-                            }
-                        });
-                    }
-                }
-            });
-        } else {
-            console.log('Whoa! Couldn\'t even decode incoming token!');
-            res.send(400).json({error: 'Issue decoding incoming token.'});
+    // gets list of user accounts to approve
+    // params:
+    //  * token: token of an admin user
+    app.get('/users/:approval', function(req, res) {
+        var token = req.query.token;
+        var approval = req.params.approval;
+        if (!approval || (approval !== 'approved' && approval !== 'unapproved')) {
+            respond(res, 404);
+            return;
         }
+        if (!token) {
+            respond(res, 400);
+            return;
+        }
+
+        Q.fcall(function() {
+            return Account.decode(token);
+        }).then(function (result) {
+            if (result.role && result.role === 'admin') {
+                var query = {approved: approval === 'approved'};
+                return Q.ninvoke(Account, 'find', query, 'email name_first name_last role')
+                    .then(function (result) {
+                        respond(res, 200, result);
+                    }).catch(function (err) {
+                        console.error('Failed to update user:', err);
+                        respond(res, 500);
+                    });
+            } else {
+                respond(res, 401);
+            }
+        }).catch(function (err) {
+            console.error('Failed to decode token:', err);
+            respond(res, 400);
+        }).done();
     });
-*/
 
-    app.get('/logout(\\?)?', function(req, res) {
-        var incomingToken = req.headers.token;
-        if (!incomingToken) {
-            res.send(400).json({message: 'Bad Request'});
+    // approves a user account
+    // params:
+    //  * token: token of an admin user
+    //  * email: email of user to approve
+    app.post('/users/:email/approve', function(req, res) {
+        var token = req.body.token;
+        var email = req.params.email;
+        if (!token || !email) {
+            respond(res, 400);
+            return;
         }
 
-        if (incomingToken) {
-            var decoded = Account.decode(incomingToken);
-            if (decoded && decoded.email) {
-                Account.invalidateUserToken(decoded.email, function(err, user) {
-                    if (err) {
-                        res.send(404).json({error: 'Not Found'});
+        Q.fcall(function() {
+            return Account.decode(token);
+        }).then(function (result) {
+            if (result && result.role === 'admin') {
+                var query = {email: email};
+                var update = {approved: true};
+                return Q.ninvoke(Account, 'findOneAndUpdate', query, update)
+                .then(function (result) {
+                    if (result) {
+                        respond(res, 200);
                     } else {
-                        res.json({message: 'OK'});
+                        respond(res, 404);
                     }
+                }).catch(function (err) {
+                    console.error('Failed to update user:', err);
+                    respond(res, 500);
                 });
             } else {
-                // couldn't decode token
-                res.send(400).json({message: 'Bad Request'});
+                respond(res, 401);
             }
-        }
+        }).catch(function (err) {
+            console.error('Failed to decode token:', err);
+            respond(res, 400);
+        }).done();
     });
 
-/*
-    app.post('/forgot', function(req, res) {
+    app.get('/auth/logout(\\?)?', function(req, res) {
+        var incomingToken = req.body.token; //req.headers.token;
+        if (!incomingToken) {
+            respond(res, 400);
+            return;
+        }
 
-        Account.generateResetToken(req.body.email, function(err, user) {
+        var decoded = Account.decode(incomingToken);
+        if (!decoded || !decoded.email) {
+            // couldn't decode token
+            respond(res, 400);
+            return;
+        }
+
+        Account.invalidateUserToken(decoded.email, function(err, user) {
             if (err) {
-                res.json({error: 'Issue finding user.'});
+                respond(res, 500);
             } else {
-                var token = user.reset_token;
-                var resetLink = 'http://localhost:1337/reset/'+ token + '/' + user.email ;
-
-                //TODO: This is all temporary hackish. When we have email configured
-                //properly, all this will be stuffed within that email instead :)
-                res.send('<h2>Reset Email (simulation)</h2><br><p>To reset your password click the URL below.</p><br>' +
-                '<a href=' + resetLink + '>' + resetLink + '</a><br>' +
-                'If you did not request your password to be reset please ignore this email and your password will stay as it is.');
+                respond(res, 200);
             }
         });
     });
-
-    app.get('/reset/:id/:email', function(req, res) {
-        console.log('GOT IN /reset/:id...');
-        var token = req.params.id,
-            email = req.params.email,
-            messages = flash(null, null);
-
-        if (!token) {
-            console.log('Issue getting reset :id');
-            //TODO: Error response...
-        }
-        else {
-            console.log('In ELSE ... good to go.');
-            //TODO
-            //
-            //1. find user with reset_token == token .. no match THEN error
-            //2. check now.getTime() < reset_link_expires_millis
-            //3. if not expired, present reset password page/form
-            res.render('resetpass', {email: email});
-        }
-    });
-
-
-    app.post('/reset/password', function(req, res) {
-        console.log("GOT IN")
-        var email = req.body.email;
-        var currentPassword = req.body.current_password;
-        var newPassword = req.body.new_password;
-        var confirmationPassword = req.body.confirm_new_password;
-        // console.log("email: ", email);
-        // console.log("currentPassword: ", currentPassword);
-        // console.log("newPassword: ", newPassword);
-        // console.log("confirmationPassword: ", confirmationPassword);
-
-        if (email && currentPassword && newPassword && confirmationPassword && (newPassword === confirmationPassword)) {
-
-            Account.findUserByEmailOnly(email, function(err, user) {
-                if (err) {
-                    console.log("error: ", err);
-                    res.json({err: 'Issue while finding user.'});
-                } else if (!user) {
-                    console.log("Unknown user");
-                    res.json({err: 'Unknown user email: ' + email});
-                } else if (user) {
-                    console.log("FOUND USER .. now going call Account.authenticate...");
-                    Account.authenticate()(email, currentPassword, function (err, isMatch, options) {
-                        if (err) {
-                            console.log("error: ", err);
-                            res.json({err: 'Error while verifying current password.'});
-                        } else if (!isMatch) {
-                            res.json({err: 'Current password does not match'});
-                        } else {
-                            user.setPassword(newPassword, function(err, user) {
-                                if (err) {
-                                    console.log("error: ", err);
-                                    res.json({err: 'Issue while setting new password.'});
-                                }
-                                user.save(function(err, usr) {
-                                    if (err) {
-                                        cb(err, null);
-                                    } else {
-                                        //TODO, client will redirect to Login page (they won't have a current token)
-                                        res.json({message: 'Password updated.'});
-                                    }
-                                });
-                            });
-                        }
-                    });
-                }
-            });
-        } else {
-            //TODO Better error message,etc.
-            res.json({error: 'Missing email, current, new, or confirmation password, OR, the confirmation does not match.'});
-        }
-    });
-*/
-
 };

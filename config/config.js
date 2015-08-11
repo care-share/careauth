@@ -10,9 +10,11 @@ module.exports = {
      * 24 hours: 86400000
      * 1 week: 604800000
      */
-    'port': 3000,
-    'ttl': 3600000, // 1 hour
-    'resetTokenExpiresMinutes': 20, // 20 minutes later
-    'tokenSecret': 'TOKENsecretHERE',
-    'mongoUrl': 'mongodb://localhost/passport_local_jwt_mongoose'
+    port: 3000,
+    ttl: 3600000, // 1 hour
+    resetTokenExpiresMinutes: 20, // 20 minutes later
+    tokenSecret: 'TOKENsecretHERE',
+    mongoUrl: 'mongodb://localhost/careauth',
+    adminUser: 'admin@mitre.org',
+    adminPassword: undefined // leaving this undefined will generate a random password
 };

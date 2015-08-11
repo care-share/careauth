@@ -3,13 +3,12 @@ var mongoose = require('mongoose'),
     path = require('path'),
     config = require(path.join(__dirname, '..', '/config/config.js')),
     passportLocalMongoose = require('passport-local-mongoose'),
-    crypto = require('crypto'),
     jwt = require('jwt-simple'),
     tokenSecret = config.tokenSecret;
 
 var Token = new Schema({
     token: {type: String},
-    date_created: {type: Date, default: Date.now},
+    date_created: {type: Date, default: Date.now}
 });
 Token.statics.hasExpired= function(created) {
     var now = new Date();
@@ -23,6 +22,7 @@ var Account = new Schema({
     name_first: {type: String, required: true},
     name_last: {type: String, required: true},
     role: {type: String, default: "user"},
+    approved: {type: Boolean, default: false},
     date_created: {type: Date, default: Date.now},
     token: {type: Object},
     //For reset we use a reset token with an expiry (which must be checked)
@@ -68,7 +68,7 @@ Account.statics.createUserToken = function(email, cb) {
             console.log('err');
         }
         //Create a token and add to user and save
-        var token = self.encode({email: email});
+        var token = self.encode({email: email, role: usr.role});
         usr.token = new TokenModel({token:token});
         usr.save(function(err, usr) {
             if (err) {
@@ -97,6 +97,8 @@ Account.statics.invalidateUserToken = function(email, cb) {
         });
     });
 };
+
+/*
 Account.statics.generateResetToken = function(email, cb) {
     console.log("in generateResetToken....");
     this.findUserByEmailOnly(email, function(err, user) {
@@ -116,6 +118,7 @@ Account.statics.generateResetToken = function(email, cb) {
         }
     });
 };
+*/
 
 module.exports = mongoose.model('Account', Account);
 module.exports.Token = TokenModel;

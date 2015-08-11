@@ -1,10 +1,7 @@
-var path = require('path');
 var express = require('express');
-var http = require('http');
 var mongoose = require('mongoose');
 var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
-var config = require(__dirname + '/config/config.js');
+var config = require(__dirname + '/../config/config.js');
 
 var app = express();
 app.set('port', config.port);
@@ -21,7 +18,7 @@ app.configure('production', function() {
     app.use(express.errorHandler());
 });
 
-var Account = require(__dirname +'/models/account');
+var Account = require(__dirname + '/../models/account');
 
 //NOTE: createStrategy: Sets up passport-local LocalStrategy with correct options.
 //When using usernameField option to specify alternative usernameField e.g. "email"
@@ -31,7 +28,7 @@ var Account = require(__dirname +'/models/account');
 passport.use(Account.createStrategy());
 
 mongoose.connect(config.mongoUrl);
-require(__dirname +'/routes/routes')(app, passport);
+require(__dirname + '/../routes/routes')(app, passport);
 app.listen(app.get('port'), function() {
     console.log(("Express server listening on port " + app.get('port')));
 });
