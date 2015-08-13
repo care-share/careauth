@@ -136,7 +136,7 @@ module.exports = function (app, passport) {
         }).done();
     });
 
-    app.get('/auth/logout(\\?)?', function(req, res) {
+    app.post('/auth/logout(\\?)?', function(req, res) {
         var incomingToken = req.body.token; //req.headers.token;
         if (!incomingToken) {
             respond(res, 400);
