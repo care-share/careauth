@@ -47,7 +47,7 @@ module.exports = function (app, passport) {
     });
 
     app.post('/auth/login', passport.authenticate('local', {session: false}), function(req, res) {
-        if (!req.user) {
+        if (!req.user || !req.user.approved) {
             respond(res, 401);
             return;
         }

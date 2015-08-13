@@ -5,7 +5,8 @@
   "main": "bin/server.js",
   "scripts": {
     "start": "node bin/server.js",
-    "create-admin": "node bin/create-admin.js"
+    "create-admin": "node bin/create-admin.js",
+    "delete-admin": "node bin/delete-admin.js"
   },
   "dependencies": {
     "crypto": "0.0.3",
