@@ -5,6 +5,15 @@ var config = require(__dirname + '/../config/config.js');
 
 var app = express();
 app.set('port', config.port);
+
+// allow CORS
+// TODO: edit to limit domains instead of using a wildcard
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 app.use(express.logger());
 app.use(express.bodyParser());
 app.use(express.methodOverride());
