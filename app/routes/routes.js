@@ -1,23 +1,22 @@
 'use strict';
 
-var path = require('path');
 var Q = require('q');
-var Account = require(path.join(__dirname, '..', '/models/account'));
-var Token = require(path.join(__dirname, '..', '/models/account')).Token;
-var utils = require(path.join(__dirname, '..', '/include/utils'));
-var respond = utils.respond;
+
+var app = require('../../lib/app'),
+    respond = require('../../lib/utils').respond;
 
 /**
 * @module Routes
 */
 
-module.exports = function (app, passport) {
+module.exports = function (server, passport) {
+    var Account = app.Account;
 
-    app.get('/', function (req, res) {
+    server.get('/', function (req, res) {
         res.send('Go away');
     });
 
-    app.post('/auth/register', function(req, res) {
+    server.post('/auth/register', function(req, res) {
         var name_first = req.body.name_first;
         var name_last = req.body.name_last;
         var email = req.body.email;
@@ -46,7 +45,7 @@ module.exports = function (app, passport) {
         });
     });
 
-    app.post('/auth/login', passport.authenticate('local', {session: false}), function(req, res) {
+    server.post('/auth/login', passport.authenticate('local', {session: false}), function(req, res) {
         if (!req.user || !req.user.approved) {
             respond(res, 401);
             return;
@@ -57,7 +56,13 @@ module.exports = function (app, passport) {
                 // couldn't generate token
                 respond(res, 500);
             } else {
-                respond(res, 200, {token : usersToken});
+                var obj = {
+                    email: req.user.email,
+                    name_first: req.user.name_first,
+                    name_last: req.user.name_last,
+                    token: usersToken
+                };
+                respond(res, 200, obj);
             }
         });
     });
@@ -65,7 +70,7 @@ module.exports = function (app, passport) {
     // gets list of user accounts to approve
     // params:
     //  * token: token of an admin user
-    app.get('/users/:approval', function(req, res) {
+    server.get('/users/:approval', function(req, res) {
         var token = req.query.token;
         var approval = req.params.approval;
         if (!approval || (approval !== 'approved' && approval !== 'unapproved')) {
@@ -102,7 +107,7 @@ module.exports = function (app, passport) {
     // params:
     //  * token: token of an admin user
     //  * email: email of user to approve
-    app.post('/users/:email/approve', function(req, res) {
+    server.post('/users/:email/approve', function(req, res) {
         var token = req.body.token;
         var email = req.params.email;
         if (!token || !email) {
@@ -136,26 +141,27 @@ module.exports = function (app, passport) {
         }).done();
     });
 
-    app.post('/auth/logout(\\?)?', function(req, res) {
-        var incomingToken = req.body.token; //req.headers.token;
-        if (!incomingToken) {
+    server.post('/auth/logout', function(req, res) {
+        var token = req.body.token;
+        if (!token) {
             respond(res, 400);
             return;
         }
 
-        var decoded = Account.decode(incomingToken);
-        if (!decoded || !decoded.email) {
-            // couldn't decode token
-            respond(res, 400);
-            return;
-        }
-
-        Account.invalidateUserToken(decoded.email, function(err, user) {
-            if (err) {
-                respond(res, 500);
-            } else {
+        // FIXME: "invalidating" this token actually doesn't do anything... i.e. the token is still valid
+        Q.fcall(function() {
+            return Account.decode(token);
+        }).then(function (result) {
+            return Q.ninvoke(Account, 'invalidateUserToken', result.email)
+            .then(function () {
                 respond(res, 200);
-            }
-        });
+            }).catch(function (err) {
+                console.error('Failed to update user:', err);
+                respond(res, 500);
+            });
+        }).catch(function (err) {
+            console.error('Failed to decode token:', err);
+            respond(res, 400);
+        }).done();
     });
 };

@@ -1,9 +1,5 @@
-/log/*.log
-/tmp
-.DS_Store
 .idea/
 *.iml
-.sass-cache
-*~
 node_modules
-*.out
+config/config-local.yml
+*.log

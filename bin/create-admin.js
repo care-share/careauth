@@ -1,30 +1,24 @@
-var crypto = require('crypto');
-var mongoose = require('mongoose');
-var passport = require('passport');
+// import external modules
 var xkcdPassword = require('xkcd-password');
-var config = require(__dirname + '/../config/config.js');
 
-var Account = require(__dirname + '/../models/account');
+// import internal modules
+var app = require('../lib/app');
 
-//NOTE: createStrategy: Sets up passport-local LocalStrategy with correct options.
-//When using usernameField option to specify alternative usernameField e.g. "email'
-//passport-local still expects your frontend login form to contain an input with
-//name "username" instead of email
-//https://github.com/saintedlama/passport-local-mongoose
-passport.use(Account.createStrategy());
-
-mongoose.connect(config.mongoUrl);
+// initialize the app object
+app.init();
+var Account = app.Account;
 
 var user = new Account({
     name_first: 'firstname',
     name_last: 'lastname',
-    email: config.adminUser,
+    email: app.config.get('admin_user'),
     role: 'admin',
     approved: true
 });
 
-if (config.adminPassword) {
-    createUser(config.adminPassword);
+var adminPassword = app.config.get('admin_password');
+if (adminPassword) {
+    createUser(adminPassword);
 } else {
     var pw = new xkcdPassword();
     var options = {
@@ -34,7 +28,7 @@ if (config.adminPassword) {
     };
     pw.generate(options, function (err, result) {
         if (err) {
-            console.error('Unable to generate password!', err);
+            app.logger.error('Unable to generate password!', err);
         } else {
             var password = result[0] + ' ' + result[1] + ' ' + result[2] + ' ' + result[3];
             createUser(password);
@@ -49,16 +43,18 @@ function createUser(password) {
         if (err) {
             if (err.name === 'BadRequestError' && err.message && err.message.indexOf('exists') > -1) {
                 // user already exists
-                console.error('Failed to create admin user: User already exists');
+                app.logger.error('Failed to create admin user: User already exists');
             }
             else if (err.name === 'BadRequestError' && err.message && err.message.indexOf('argument not set')) {
-                console.error('Failed to create admin user: Missing argument');
+                app.logger.error('Failed to create admin user: Missing argument');
             }
             else {
-                console.error('Failed to create admin user:', err);
+                app.logger.error('Failed to create admin user:', err);
             }
+            process.exit(1);
         } else {
-            console.log('Created user: {email: "%s", password: "%s"}', user.email, password);
+            app.logger.info('Created user: {email: "%s", password: "%s"}', user.email, password);
+            process.exit(0);
         }
     });
 }

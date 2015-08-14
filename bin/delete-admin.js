@@ -1,22 +1,19 @@
-var mongoose = require('mongoose');
-var config = require(__dirname + '/../config/config.js');
+// import internal modules
+var app = require('../lib/app');
 
-var Account = require(__dirname + '/../models/account');
+// initialize the app object
+app.init();
+var Account = app.Account;
 
-//NOTE: createStrategy: Sets up passport-local LocalStrategy with correct options.
-//When using usernameField option to specify alternative usernameField e.g. "email"
-//passport-local still expects your frontend login form to contain an input with
-//name "username" instead of email
-//https://github.com/saintedlama/passport-local-mongoose
-
-mongoose.connect(config.mongoUrl);
-
-Account.findOneAndRemove({email: config.adminUser}, function(err, user) {
+Account.findOneAndRemove({email: app.config.get('admin_user')}, function(err, user) {
     if (err) {
-        console.error('Failed to delete admin user:', err);
+        app.logger.error('Failed to delete admin user:', err);
+        process.exit(1);
     } else if (!user) {
-        console.error('Failed to delete admin user: User not found');
+        app.logger.error('Failed to delete admin user: User not found');
+        process.exit(1);
     } else {
-        console.log('Deleted user: {email: "%s"}', user.email);
+        app.logger.info('Deleted user: {email: "%s"}', user.email);
+        process.exit(0);
     }
 });

@@ -1,43 +1,46 @@
-var express = require('express');
-var mongoose = require('mongoose');
-var passport = require('passport');
-var config = require(__dirname + '/../config/config.js');
+// import external modules
+var express = require('express'),
+    passport = require('passport');
 
-var app = express();
-app.set('port', config.port);
+// import internal modules
+var app = require('../lib/app'),
+    routes = require('../app/routes/routes');
+
+// initialize the app object
+app.init();
+
+var server = express();
+var port = app.config.get('port');
 
 // allow CORS
 // TODO: edit to limit domains instead of using a wildcard
-app.use(function(req, res, next) {
+server.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
 
-app.use(express.logger());
-app.use(express.bodyParser());
-app.use(express.methodOverride());
-app.use(passport.initialize());
-app.use(app.router);
+server.use(express.logger());
+server.use(express.bodyParser());
+server.use(express.methodOverride());
+server.use(passport.initialize());
+server.use(server.router);
 
-app.configure('development', function() {
-    app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+server.configure('development', function() {
+    server.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
-app.configure('production', function() {
-    app.use(express.errorHandler());
+server.configure('production', function() {
+    server.use(express.errorHandler());
 });
-
-var Account = require(__dirname + '/../models/account');
 
 //NOTE: createStrategy: Sets up passport-local LocalStrategy with correct options.
 //When using usernameField option to specify alternative usernameField e.g. "email"
 //passport-local still expects your frontend login form to contain an input with
 //name "username" instead of email
 //https://github.com/saintedlama/passport-local-mongoose
-passport.use(Account.createStrategy());
+passport.use(app.Account.createStrategy());
 
-mongoose.connect(config.mongoUrl);
-require(__dirname + '/../routes/routes')(app, passport);
-app.listen(app.get('port'), function() {
-    console.log(("Express server listening on port " + app.get('port')));
+routes(server, passport);
+server.listen(port, function() {
+    app.logger.info("Express server listening on port %d", port);
 });
