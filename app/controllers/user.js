@@ -29,12 +29,48 @@ exports.approveUser = function (req, res) {
         return;
     }
 
-    var query = {email: email};
-    var update = {approved: true};
-    Account.findOneAndUpdateQ(query, update)
+    updateUser(res, {email: email}, {approved: true});
+};
+
+exports.changeUserRole = function (req, res) {
+    var email = req.params.email;
+    var role = req.params.role;
+    if (!email || !role) {
+        respond(res, 400);
+        return;
+    } else if (role !== 'admin' && role !== 'user') {
+        respond(res, 400);
+        return;
+    }
+
+    updateUser(res, {email: email}, {role: role});
+};
+
+exports.deleteUser = function (req, res) {
+    var email = req.params.email;
+    if (!email) {
+        respond(res, 400);
+        return;
+    }
+
+    Account.findOneAndRemoveQ({email: email})
     .then(function (result) {
         if (result) {
-            // TODO: send an email to the user informing them that their account has been approved
+            respond(res, 200);
+        } else {
+            respond(res, 404);
+        }
+    }).catch(function (err) {
+        app.logger.error('Failed to delete user:', err);
+        respond(res, 500);
+    }).done();
+};
+
+// local methods
+function updateUser(res, query, update) {
+    return Account.findOneAndUpdateQ(query, update)
+    .then(function (result) {
+        if (result) {
             respond(res, 200);
         } else {
             respond(res, 404);
@@ -43,4 +79,4 @@ exports.approveUser = function (req, res) {
         app.logger.error('Failed to update user:', err);
         respond(res, 500);
     }).done();
-};
+}

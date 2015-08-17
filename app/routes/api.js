@@ -43,4 +43,18 @@ module.exports = function (server, passport) {
     //  * email: email of user to approve
     server.route('/users/:email/approve')
         .post(auth.checkAdminToken, user.approveUser);
+
+    // changes a user's role
+    // params:
+    //  * email: email of user to change
+    //  * role: new role for user
+    server.route('/users/:email/role/:role')
+        .post(auth.checkAdminToken, user.changeUserRole);
+
+    // changes a user's role
+    // params:
+    //  * email: email of user to change
+    //  * role: new role for user
+    server.route('/users/:email')
+        .delete(auth.checkAdminToken, user.deleteUser);
 };
