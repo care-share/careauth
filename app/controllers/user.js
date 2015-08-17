@@ -1,8 +1,5 @@
 'use strict';
 
-// import external modules
-var Q = require('q');
-
 // import internal modules
 var app = require('../../lib/app');
 var Account = app.Account;
@@ -16,7 +13,7 @@ exports.findUsersByApproval = function (req, res) {
     }
 
     var query = {approved: approval === 'approved'};
-    return Q.ninvoke(Account, 'find', query, 'email name_first name_last role')
+    Account.findQ(query, 'email name_first name_last role')
     .then(function (result) {
         respond(res, 200, result);
     }).catch(function (err) {
@@ -34,9 +31,10 @@ exports.approveUser = function (req, res) {
 
     var query = {email: email};
     var update = {approved: true};
-    return Q.ninvoke(Account, 'findOneAndUpdate', query, update)
+    Account.findOneAndUpdateQ(query, update)
     .then(function (result) {
         if (result) {
+            // TODO: send an email to the user informing them that their account has been approved
             respond(res, 200);
         } else {
             respond(res, 404);

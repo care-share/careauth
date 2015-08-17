@@ -1,3 +1,5 @@
+'use strict';
+
 // import internal modules
 var app = require('../lib/app');
 

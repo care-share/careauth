@@ -1,3 +1,5 @@
+'use strict';
+
 // import external modules
 var xkcdPassword = require('xkcd-password');
 

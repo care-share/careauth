@@ -1,6 +1,7 @@
-.git
+.idea/
+.git/
 .gitignore
 Dockerfile
 .dockerignore
 node_modules
-
+*.log
