@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
     "required": true,
     "type": "object",

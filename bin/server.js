@@ -1,10 +1,11 @@
 // import external modules
-var express = require('express'),
-    passport = require('passport');
+var bodyParser = require('body-parser');
+var express = require('express');
+var passport = require('passport');
 
 // import internal modules
-var app = require('../lib/app'),
-    routes = require('../app/routes/routes');
+var app = require('../lib/app');
+var routes = require('../app/routes/api');
 
 // initialize the app object
 app.init();
@@ -20,18 +21,22 @@ server.use(function(req, res, next) {
   next();
 });
 
-server.use(express.logger());
-server.use(express.bodyParser());
-server.use(express.methodOverride());
-server.use(passport.initialize());
-server.use(server.router);
+server.use(bodyParser.json());
+server.use(bodyParser.urlencoded({ extended: true }));
 
-server.configure('development', function() {
-    server.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+// debug logger
+var morgan = require('morgan');
+morgan.token('remote-user', function(req, res){
+    if (req.user)
+        return req.user.email;
+    return 'null';
 });
-server.configure('production', function() {
-    server.use(express.errorHandler());
+morgan.token('message', function(req, res) {
+    return res.logMessage;
 });
+server.use(morgan(':remote-addr - :remote-user ":method :url" :status ":message"', { "stream": app.logger.stream }));
+
+server.use(passport.initialize());
 
 //NOTE: createStrategy: Sets up passport-local LocalStrategy with correct options.
 //When using usernameField option to specify alternative usernameField e.g. "email"
