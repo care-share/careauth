@@ -1,5 +1,8 @@
 'use strict';
 
+// import external modules
+var Q = require('q');
+
 // import internal modules
 var app = require('../../lib/app');
 var Account = app.Account;
