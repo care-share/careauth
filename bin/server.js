@@ -19,7 +19,8 @@ var port = app.config.get('port');
 // TODO: edit to limit domains instead of using a wildcard
 server.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Auth-Token, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Auth-Token, X-Requested-With, Content-Type, Accept,Destroy');
+  res.header('Access-Control-Allow-Methods', 'DELETE, GET, POST, PUT'); // don't need HEAD, OPTIONS, or TRACE 
   next();
 });
 
