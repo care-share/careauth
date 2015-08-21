@@ -1,5 +1,10 @@
 careauth:
   build: .
   ports:
-    - "3000:1337"
+    - "3000:3000"
+  links:
+    - mongo
+
+mongo:
+  image: mongo:3
 

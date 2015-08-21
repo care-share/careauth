@@ -1,7 +1,7 @@
 FROM node:0.12.7
 
 # install build essentials (allows for native node modules)
-RUN apt-get update && apt-get install -y build-essential && apt-get install -y mongodb-server
+RUN apt-get update && apt-get install -y build-essential
 
 # use HTTPS instead of GIT protocol (avoid firewall issues)
 RUN git config --global url."https://".insteadOf git://
@@ -10,22 +10,15 @@ RUN git config --global url."https://".insteadOf git://
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-# install node (server-side) dependencies
+# install node dependencies
 COPY package.json /usr/src/app/
 RUN npm install
-
-# install bower (client-side) dependencies
-COPY bower.json /usr/src/app/
-RUN bower install --allow-root
 
 # copy the rest of the application over
 COPY . /usr/src/app
 
-# build the server
-RUN ember build
-
 # binary to execute
-ENTRYPOINT ["/usr/local/bin/node"]
+ENTRYPOINT ["/usr/local/bin/npm"]
 
 # default command: start the server
-CMD ["app"]
+CMD ["start"]
