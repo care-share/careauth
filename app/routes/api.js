@@ -27,6 +27,9 @@ module.exports = function (server, passport) {
     server.route('/auth/login')
         .post(passport.authenticate('local', {session: false}), account.login);
 
+    server.route('/auth/openid')
+        .get(passport.authenticate('openidconnect'), account.login);
+
     server.route('/auth/logout')
         .post(auth.checkToken, account.logout);
 

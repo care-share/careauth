@@ -44,6 +44,36 @@ jwt_secret: 'TOKENsecretHERE'
 jwt_signing_alg: "ES512"
 
 ################################################################################
+# OpenID Connect settings
+################################################################################
+
+# Client ID; this website must be registered with the OpenID Connect provider
+# Example: 'f5068d45-c3d2-4ed2-91cf-cbfcfd79ba81'
+openid_client_id: 'client'
+
+# Client Secret; this website must be registered with the OpenID Connect provider
+# Example: 'AIet9EHpSGRAhhhIElxrJRPXLCGOKN2viG1EwB6jxTKuQeCbLpxX95jAFtILqNPIkgIt29Q4Xgqthq9K8mXJpPo'
+openid_client_secret: 'mv42@C0n?'
+
+# Base URL (address and port) of the OpenID Connect provider
+# Note: MUST end with a "/"
+openid_url_base: 'http://localhost:8888/'
+
+# Authorization URL of the OpenID Connect provider
+openid_url_authorization: '/openid/authorize'
+
+# Token URL of the OpenID Connect provider
+openid_url_token: '/openid/token'
+
+# User Info URL of the OpenID Connect provider
+openid_url_user_info: '/openid/userinfo'
+
+# Base URL (address and port) of the CareShare server
+# This is used as the callback URL for the OpenID Connect handshake
+# Note: MUST end with a "/"
+careshare_url_base: 'http://localhost:4200/'
+
+################################################################################
 # Logging options
 ################################################################################
 

@@ -41,7 +41,7 @@ exports.login = function (req, res) {
     // we only get to this point if the user has successfully authenticated through Passport
     // however, we don't want to authenticate any users who haven't yet been approved; check for that here
     if (!req.user.approved) {
-        respond(res, 401);
+        respond(res, 403);
         return;
     }
 

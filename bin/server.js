@@ -4,6 +4,7 @@
 var bodyParser = require('body-parser');
 var express = require('express');
 var passport = require('passport');
+var passportOpenID = require('openidconnect-for-passport');
 
 // import internal modules
 var app = require('../lib/app');
@@ -41,14 +42,25 @@ server.use(morgan(':remote-addr - :remote-user ":method :url" :status ":message"
 
 server.use(passport.initialize());
 
-//NOTE: createStrategy: Sets up passport-local LocalStrategy with correct options.
-//When using usernameField option to specify alternative usernameField e.g. "email"
-//passport-local still expects your frontend login form to contain an input with
-//name "username" instead of email
-//https://github.com/saintedlama/passport-local-mongoose
+// plug in Passport local strategy
 passport.use(app.Account.createStrategy());
 
+// plug in Passport OpenID Connect strategy
+var options = app.config.openidParameters();
+var verify = require('../lib/auth').openid;
+passport.use(new passportOpenID.Strategy(options, verify));
+
+// make sure passport doesn't blow up
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
+passport.deserializeUser(function(obj, done) {
+    done(null, obj);
+});
+
+// add routes (API endpoints)
 routes(server, passport);
+
 server.listen(port, function() {
     app.logger.info('Express server listening on port %d', port);
 });
