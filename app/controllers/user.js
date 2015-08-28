@@ -13,7 +13,7 @@ exports.findUsersByApproval = function (req, res) {
     }
 
     var query = {approved: approval === 'approved'};
-    Account.findQ(query, '-_id email name_first name_last role')
+    Account.findQ(query, '-_id email name_first name_last role origin')
     .then(function (result) {
         respond(res, 200, result);
     }).catch(function (err) {
