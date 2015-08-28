@@ -52,6 +52,7 @@ exports.login = function (req, res) {
             name_first: result.name_first,
             name_last: result.name_last,
             role: result.role,
+            origin: result.origin,
             token: result.token.token
         };
         respond(res, 200, obj);
