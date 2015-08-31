@@ -4,9 +4,25 @@
 # Web settings
 ################################################################################
 
-# External TCP port to listen on for client connections
+# External TCP port for proxy to listen on for client connections
 # default = 3000
 port: 3000
+
+# Domain for the site (used for subdomains such as openid.domain and fhir.domain)
+domain: 'localhost'
+
+# Whether or not to use TLS encryption ('false' for http, 'true' for https)
+# default = false
+enable_tls: false
+
+# Targets to proxy connections for the server's subdomains
+# If these are empty, the targets will be auto-generated based on the
+#   domain and port that those services listen on by default
+# If these are non-empty, they MUST be formatted as a valid URL,
+#   e.g. 'http://example.com/route'
+proxy_careshare: '' # domain, www.domain
+proxy_fhir:      '' # fhir.domain
+proxy_openid:    '' # openid.domain
 
 ################################################################################
 # Database settings
@@ -55,10 +71,6 @@ openid_client_id: 'client'
 # Example: 'AIet9EHpSGRAhhhIElxrJRPXLCGOKN2viG1EwB6jxTKuQeCbLpxX95jAFtILqNPIkgIt29Q4Xgqthq9K8mXJpPo'
 openid_client_secret: 'mv42@C0n?'
 
-# Base URL (address and port) of the OpenID Connect provider
-# Note: MUST end with a "/"
-openid_url_base: 'http://localhost:8888/'
-
 # Authorization URL of the OpenID Connect provider
 openid_url_authorization: '/openid/authorize'
 
@@ -67,11 +79,6 @@ openid_url_token: '/openid/token'
 
 # User Info URL of the OpenID Connect provider
 openid_url_user_info: '/openid/userinfo'
-
-# Base URL (address and port) of the CareShare server
-# This is used as the callback URL for the OpenID Connect handshake
-# Note: MUST end with a "/"
-careshare_url_base: 'http://localhost:4200/'
 
 ################################################################################
 # Logging options

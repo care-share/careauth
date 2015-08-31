@@ -10,6 +10,26 @@ module.exports = {
             "maximum": 65535,
             "type": "number"
         },
+        "domain": {
+            "required": true,
+            "type": "string"
+        },
+        "enable_tls": {
+            "required": true,
+            "type": "boolean"
+        },
+        "proxy_careshare": {
+            "type": "string"
+//            "format": "url"
+        },
+        "proxy_fhir": {
+            "type": "string"
+//            "format": "url"
+        },
+        "proxy_openid": {
+            "type": "string"
+//            "format": "url"
+        },
 
         // Database settings
         "db": {
@@ -53,11 +73,6 @@ module.exports = {
             "required": true,
             "type": "string"
         },
-        "openid_url_base": {
-            "required": true,
-            "type": "string"
-//            "format": "url"
-        },
         "openid_url_authorization": {
             "required": true,
             "type": "string"
@@ -69,11 +84,6 @@ module.exports = {
         "openid_url_user_info": {
             "required": true,
             "type": "string"
-        },
-        "careshare_url_base": {
-            "required": true,
-            "type": "string"
-//            "format": "url"
         },
 
         // Logging settings

@@ -8,13 +8,13 @@ var passportOpenID = require('openidconnect-for-passport');
 
 // import internal modules
 var app = require('../lib/app');
+var proxy = require('../lib/proxy');
 var routes = require('../app/routes/api');
 
 // initialize the app object
 app.init();
 
 var server = express();
-var port = app.config.get('port');
 
 // allow CORS
 // TODO: edit to limit domains instead of using a wildcard
@@ -61,6 +61,10 @@ passport.deserializeUser(function(obj, done) {
 // add routes (API endpoints)
 routes(server, passport);
 
+var port = 3001;
 server.listen(port, function() {
     app.logger.info('Express server listening on port %d', port);
 });
+
+// start up the proxy
+proxy.init(app);
