@@ -14,7 +14,7 @@ module.exports = {
             "required": true,
             "type": "string"
         },
-        "enable_tls": {
+        "use_tls": {
             "required": true,
             "type": "boolean"
         },

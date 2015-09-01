@@ -13,7 +13,7 @@ domain: 'localhost'
 
 # Whether or not to use TLS encryption ('false' for http, 'true' for https)
 # default = false
-enable_tls: false
+use_tls: false
 
 # Targets to proxy connections for the server's subdomains
 # If these are empty, the targets will be auto-generated based on the
@@ -29,6 +29,8 @@ proxy_openid:    '' # openid.domain
 ################################################################################
 
 # MongoDB database url
+# These values can also be controlled by the "db_production" and "db_test"
+# environment variables
 db:
     production: "mongodb://localhost/careauth_production_db"
     test: "mongodb://localhost/careauth_test_db"
