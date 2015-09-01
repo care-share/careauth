@@ -30,6 +30,10 @@ module.exports = {
             "type": "string"
 //            "format": "url"
         },
+        "proxy_api": {
+            "type": "string"
+//            "format": "url"
+        },
 
         // Database settings
         "db": {

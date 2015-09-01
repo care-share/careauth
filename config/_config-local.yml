@@ -23,6 +23,7 @@ use_tls: false
 proxy_careshare: '' # domain, www.domain
 proxy_fhir:      '' # fhir.domain
 proxy_openid:    '' # openid.domain
+proxy_api:       '' # api.domain
 
 ################################################################################
 # Database settings
@@ -32,8 +33,8 @@ proxy_openid:    '' # openid.domain
 # These values can also be controlled by the "db_production" and "db_test"
 # environment variables
 db:
-    production: "mongodb://localhost/careauth_production_db"
-    test: "mongodb://localhost/careauth_test_db"
+    production: 'mongodb://localhost/careauth_production_db'
+    test: 'mongodb://localhost/careauth_test_db'
 
 ################################################################################
 # Authentication settings
@@ -59,7 +60,7 @@ jwt_secret: 'TOKENsecretHERE'
 # Signing algorithm for login tokens
 # Must be one of the RSA or ECDSA options listed here:
 # https://github.com/auth0/node-jsonwebtoken#algorithms-supported
-jwt_signing_alg: "ES512"
+jwt_signing_alg: 'ES512'
 
 ################################################################################
 # OpenID Connect settings
