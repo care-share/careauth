@@ -75,13 +75,13 @@ openid_client_id: 'client'
 openid_client_secret: 'mv42@C0n?'
 
 # Authorization URL of the OpenID Connect provider
-openid_url_authorization: '/openid/authorize'
+openid_url_authorization: '/authorize'
 
 # Token URL of the OpenID Connect provider
-openid_url_token: '/openid/token'
+openid_url_token: '/token'
 
 # User Info URL of the OpenID Connect provider
-openid_url_user_info: '/openid/userinfo'
+openid_url_user_info: '/userinfo'
 
 ################################################################################
 # Logging options
