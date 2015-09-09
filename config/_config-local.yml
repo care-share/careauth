@@ -20,10 +20,11 @@ use_tls: false
 #   domain and port that those services listen on by default
 # If these are non-empty, they MUST be formatted as a valid URL,
 #   e.g. 'http://example.com/route'
-proxy_careshare: '' # domain, www.domain
-proxy_fhir:      '' # fhir.domain
-proxy_openid:    '' # openid.domain
-proxy_api:       '' # api.domain
+proxy_careshare:        '' # domain, www.domain
+proxy_careshare_remote: '' # remote.domain
+proxy_fhir:             '' # fhir.domain
+proxy_openid:           '' # openid.domain
+proxy_api:              '' # api.domain
 
 ################################################################################
 # Database settings
