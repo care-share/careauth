@@ -15,6 +15,10 @@ domain: 'localhost'
 # default = false
 use_tls: false
 
+# The TLS key/certificate file and password (needed if use_tls is set to 'true')
+tls_keystore_file=tls/key-and-cert.pfx
+tls_keystore_password=password
+
 # Targets to proxy connections for the server's subdomains
 # If these are empty, the targets will be auto-generated based on the
 #   domain and port that those services listen on by default

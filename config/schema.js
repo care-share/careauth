@@ -18,6 +18,12 @@ module.exports = {
             "required": true,
             "type": "boolean"
         },
+        "tls_keystore_file": {
+            "type": "string"
+        },
+        "tls_keystore_password": {
+            "type": "string"
+        },
         "proxy_careshare": {
             "type": "string"
 //            "format": "url"
