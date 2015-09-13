@@ -21,7 +21,7 @@ module.exports = {
         "tls_keystore_file": {
             "type": "string"
         },
-        "tls_keystore_password": {
+        "tls_keystore_pass": {
             "type": "string"
         },
         "proxy_careshare": {
