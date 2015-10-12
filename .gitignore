@@ -5,3 +5,7 @@ config/config-local.yml
 *.log
 *.pfx
 *.p12
+*.pem
+*.crt
+*.csr
+*.txt

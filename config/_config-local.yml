@@ -15,6 +15,13 @@ domain: 'localhost'
 # default = false
 use_tls: false
 
+# Whether or not to adhere to more stringent, more secure NSA Suite B encryption
+# This limits connections to using TLS v1.2 and specific Suite B-compliant ciphers
+# This only has an effect if 'use_tls' is set to 'true'
+# WARNING! This will only work if you have a certificate with an ECDSA key!
+# default = false
+use_suite_b: false
+
 # The TLS key/certificate file and password (needed if use_tls is set to 'true')
 tls_keystore_file: tls/key-and-cert.pfx
 tls_keystore_pass: password

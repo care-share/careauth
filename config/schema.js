@@ -18,6 +18,10 @@ module.exports = {
             "required": true,
             "type": "boolean"
         },
+        "use_suite_b": {
+            "default": true,
+            "type": "boolean"
+        },
         "tls_keystore_file": {
             "type": "string"
         },
