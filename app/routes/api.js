@@ -37,6 +37,10 @@ module.exports = function (server, passport) {
     // USER CONTROLLER
     ///////////////////////////////////////////////////////////////////////////
 
+    // gets list of valid user roles
+    server.route('/users/roles')
+        .get(auth.checkAdminToken, user.listUserRoles);
+
     // gets list of user accounts to approve
     server.route('/users/:approval')
         .get(auth.checkAdminToken, user.findUsersByApproval);
@@ -47,17 +51,17 @@ module.exports = function (server, passport) {
     server.route('/users/:email/approve')
         .post(auth.checkAdminToken, user.approveUser);
 
-    // changes a user's role
+    // adds or removes a role from a user
     // params:
     //  * email: email of user to change
     //  * role: new role for user
-    server.route('/users/:email/role/:role')
-        .post(auth.checkAdminToken, user.changeUserRole);
+    server.route('/users/:email/roles/:role')
+        .put(auth.checkAdminToken, user.addUserRole)
+        .delete(auth.checkAdminToken, user.removeUserRole);
 
-    // changes a user's role
+    // deletes a user
     // params:
-    //  * email: email of user to change
-    //  * role: new role for user
+    //  * email: email of user to delete
     server.route('/users/:email')
         .delete(auth.checkAdminToken, user.deleteUser);
 };

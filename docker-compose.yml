@@ -1,4 +1,5 @@
 careauth:
+  env_file: ./common.env
   build: .
   ports:
     - "3000:3000"
@@ -7,4 +8,6 @@ careauth:
 
 mongo:
   image: mongo:3
+  ports:
+    - "27017:27017"
 

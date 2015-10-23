@@ -14,7 +14,7 @@ var user = new Account({
     name_first: 'firstname',
     name_last: 'lastname',
     email: app.config.get('admin_user'),
-    role: 'admin',
+    roles: ['user', 'admin'],
     approved: true
 });
 

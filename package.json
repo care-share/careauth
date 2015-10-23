@@ -7,6 +7,7 @@
     "start": "node bin/server.js"
   },
   "dependencies": {
+    "acl": "^0.4.9",
     "body-parser": "^1.13.3",
     "crypto": "0.0.3",
     "express": "^4.13.3",
