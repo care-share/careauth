@@ -13,7 +13,7 @@ exports.findUsersByApproval = function (req, res) {
     }
 
     var query = {approved: approval === 'approved'};
-    Account.find(query, '-_id email name_first name_last roles origin')
+    Account.find(query, '-_id email name_first name_last roles origin fhir_id')
     .lean()
     .execQ()
     .then(function (result) {
@@ -57,6 +57,18 @@ exports.addUserRole = function (req, res) {
 
 exports.removeUserRole = function (req, res) {
     changeUserRole(req, res, false);
+};
+
+exports.changeUserFhirId = function (req, res) {
+    var email = req.params.email;
+    var fhir_id = req.params.fhir_id;
+    if (!email) {
+        respond(res, 400);
+        return;
+    }
+    // intentionally allow user to set FHIR ID to blank
+
+    updateUser(res, {email: email}, {fhir_id: fhir_id});
 };
 
 function changeUserRole (req, res, add) {

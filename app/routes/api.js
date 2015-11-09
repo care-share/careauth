@@ -54,10 +54,19 @@ module.exports = function (server, passport) {
     // adds or removes a role from a user
     // params:
     //  * email: email of user to change
-    //  * role: new role for user
+    //  * role: role to change for user
     server.route('/users/:email/roles/:role')
         .put(auth.checkAdminToken, user.addUserRole)
         .delete(auth.checkAdminToken, user.removeUserRole);
+
+    // changes a user's FHIR ID (can be undefined)
+    // params:
+    //  * email: email of user to change
+    //  * fhir_id: new FHIR ID for user
+    server.route('/users/:email/fhir_id/')
+        .put(auth.checkAdminToken, user.changeUserFhirId);
+    server.route('/users/:email/fhir_id/:fhir_id')
+        .put(auth.checkAdminToken, user.changeUserFhirId);
 
     // deletes a user
     // params:
