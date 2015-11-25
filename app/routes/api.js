@@ -68,6 +68,11 @@ module.exports = function (server, passport) {
     server.route('/users/:email/fhir_id/:fhir_id')
         .put(auth.checkAdminToken, user.changeUserFhirId);
 
+    server.route('/users/:email/foo')
+        .get(auth.checkAdminOrOwnerToken, function(req, res) {
+            res.status(200).json({bar: 'baz'});
+        });
+
     // deletes a user
     // params:
     //  * email: email of user to delete
