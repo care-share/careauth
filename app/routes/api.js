@@ -59,23 +59,62 @@ module.exports = function (server, passport) {
         .put(auth.checkAdminToken, user.addUserRole)
         .delete(auth.checkAdminToken, user.removeUserRole);
 
-    // changes a user's FHIR ID (can be undefined)
+    // changes a user's email
+    // params:
+    // * email: email of user to change
+    // * new_email: new email for user
+    server.route('/users/:email/email/:new_email')
+        .put(auth.checkAdminOrOwnerToken,user.changeUserEmail);
+
+    // changes a user's first name
+    // params:
+    // * email: email of user to change
+    // * first_name: new first name for user
+    server.route('/users/:email/name_first/:name_first')
+        .put(auth.checkAdminOrOwnerToken,user.changeUserFirstName);
+
+    // removes a user's first name
+    // params:
+    // * email: email of user to change
+    server.route('/users/:email/name_first')
+        .delete(auth.checkAdminOrOwnerToken,user.removeUserFirstName);
+
+    // changes a user's last name
+    // params:
+    // * email: email of user to change
+    // * name_last: new last name of user
+    server.route('/users/:email/name_last/:name_last')
+        .put(auth.checkAdminOrOwnerToken,user.changeUserLastName);
+
+    // removes a user's last name
+    // params:
+    // * email: email of user to change
+    server.route('/users/:email/name_last')
+        .delete(auth.checkAdminOrOwnerToken,user.removeUserLastName);
+
+    // changes a user's FHIR ID
     // params:
     //  * email: email of user to change
     //  * fhir_id: new FHIR ID for user
-    server.route('/users/:email/fhir_id/')
-        .put(auth.checkAdminToken, user.changeUserFhirId);
     server.route('/users/:email/fhir_id/:fhir_id')
         .put(auth.checkAdminToken, user.changeUserFhirId);
 
-    server.route('/users/:email/foo')
-        .get(auth.checkAdminOrOwnerToken, function(req, res) {
-            res.status(200).json({bar: 'baz'});
-        });
+    // removes a user's FHIR ID
+    // params:
+    // * email: email of user to change
+    server.route('/users/:email/fhir_id')
+        .delete(auth.checkAdminToken,user.removeUserFhirId);
 
     // deletes a user
     // params:
     //  * email: email of user to delete
     server.route('/users/:email')
         .delete(auth.checkAdminToken, user.deleteUser);
+
+    // updates the user's password
+    // params:
+    // * email: email of user to change
+    // * newPassword: new password for user
+    server.route('/users/:email/password/:newPassword')
+        .put(auth.checkAdminOrOwnerToken, user.changeUserPassword);
 };

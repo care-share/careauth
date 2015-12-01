@@ -37,13 +37,7 @@ exports.findUsersByApproval = function (req, res) {
 };
 
 exports.approveUser = function (req, res) {
-    var email = req.params.email;
-    if (!email) {
-        respond(res, 400);
-        return;
-    }
-
-    updateUser(res, {email: email}, {approved: true});
+    updateUser(res, {email: req.params.email}, {approved: true});
 };
 
 exports.listUserRoles = function (req, res) {
@@ -59,16 +53,66 @@ exports.removeUserRole = function (req, res) {
     changeUserRole(req, res, false);
 };
 
-exports.changeUserFhirId = function (req, res) {
-    var email = req.params.email;
-    var fhir_id = req.params.fhir_id;
-    if (!email) {
-        respond(res, 400);
-        return;
-    }
-    // intentionally allow user to set FHIR ID to blank
+exports.changeUserEmail = function (req, res) {
+    updateUser(res, {email: req.params.email}, {email: req.params.new_email});
+};
 
-    updateUser(res, {email: email}, {fhir_id: fhir_id});
+exports.changeUserFirstName = function (req, res) {
+    updateUser(res, {email: req.params.email}, {name_first: req.params.name_first});
+};
+
+exports.removeUserFirstName = function (req, res) {
+    updateUser(res, {email: req.params.email}, {name_first: undefined});
+};
+
+exports.changeUserLastName = function (req, res) {
+    updateUser(res, {email: req.params.email}, {name_last: req.params.name_last});
+};
+
+exports.removeUserLastName = function (req, res) {
+    updateUser(res, {email: req.params.email}, {name_last: undefined});
+};
+
+exports.changeUserFhirId = function (req, res) {
+    updateUser(res, {email: req.params.email}, {fhir_id: req.params.fhir_id});
+};
+
+exports.removeUserFhirId = function (req, res){
+    updateUser(res, {email: req.params.email}, {fhir_id: undefined});
+};
+
+exports.changeUserPassword = function (req, res){
+    //Search for user
+    //Once user object == email param
+    //setPassword (use callback function)
+    var newPassword = req.params.newPassword;
+    return Account.findOneQ({email : req.params.email})
+        .then(function (result) {
+            if (result){
+                result.setPassword(newPassword,
+                    function (err,thisModel,passwordErr){
+                        if(err) {
+                            respond(res,500);
+                        }
+                        if (passwordErr){
+                            respond(res,400); //Bad Request response
+                        }
+                        if(thisModel){
+                            thisModel.save();
+                            respond(res,200);
+                        }
+                    })
+            } else {
+                respond(res,400);
+            }
+        })
+        .catch(function (err) {
+            app.logger.error('Failed to change password for user:',err);
+            respond(res,500);
+        })
+        .done();
+
+    //Res = response from
 };
 
 function changeUserRole (req, res, add) {
@@ -97,13 +141,7 @@ function getUserRoles() {
 }
 
 exports.deleteUser = function (req, res) {
-    var email = req.params.email;
-    if (!email) {
-        respond(res, 400);
-        return;
-    }
-
-    Account.findOneAndRemoveQ({email: email})
+    Account.findOneAndRemoveQ({email: req.params.email})
     .then(function (result) {
         if (result) {
             respond(res, 200);
