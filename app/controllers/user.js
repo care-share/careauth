@@ -140,10 +140,7 @@ function changeUserRole(req, res, add) {
     var id = req.params.id;
     var role = req.params.role;
     var validRoles = getUserRoles();
-    if (!email || !role) {
-        respond(res, 400);
-        return;
-    } else if (validRoles.indexOf(role) == -1) {
+    if (validRoles.indexOf(role) == -1) {
         respond(res, 400);
         return;
     }
