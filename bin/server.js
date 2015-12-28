@@ -32,7 +32,7 @@ server.use(bodyParser.urlencoded({ extended: true }));
 var morgan = require('morgan');
 morgan.token('remote-user', function(req, res){
     if (req.user)
-        return req.user.email;
+        return req.user.id;
     return 'null';
 });
 morgan.token('message', function(req, res) {

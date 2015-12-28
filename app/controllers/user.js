@@ -5,15 +5,17 @@ var app = require('../../lib/app');
 var Account = app.Account;
 var respond = require('../../lib/utils').respond;
 
-exports.findUsersByApproval = function (req, res) {
-    var approval = req.params.approval;
-    if (!approval || (approval !== 'approved' && approval !== 'unapproved')) {
-        respond(res, 404);
-        return;
-    }
+exports.findUsersApproved = function (req, res) {
+    findUsers(req, res, {approved: true});
+};
 
-    var query = {approved: approval === 'approved'};
-    Account.find(query, '-_id email name_first name_last roles origin fhir_id')
+exports.findUsersUnapproved = function (req, res) {
+    findUsers(req, res, {approved: false});
+};
+
+function findUsers (req, res, query) {
+    var filter = app.config.get('user_filter');
+    Account.find(query, filter)
     .lean()
     .execQ()
     .then(function (result) {
@@ -34,10 +36,34 @@ exports.findUsersByApproval = function (req, res) {
         app.logger.error('Failed to update user:', err);
         respond(res, 500);
     }).done();
+}
+
+exports.findUserSelf = function (req, res) {
+    findUser(req, res, req.user.id);
 };
 
+exports.findUserById = function (req, res) {
+    findUser(req, res, req.params.id);
+};
+
+function findUser (req, res, id) {
+    var query = {_id : id};
+    var filter = app.config.get('user_filter');
+    Account.findOneQ(query, filter)
+        .then(function (result) {
+            if (result){
+                respond(res, 200, result);
+            } else {
+                respond(res, 404);
+            }
+        }).catch(function (err) {
+            app.logger.error('Failed to find user:',err);
+            respond(res, 500);
+        }).done();
+}
+
 exports.approveUser = function (req, res) {
-    updateUser(res, {email: req.params.email}, {approved: true});
+    updateUser(res, {_id: req.params.id}, {approved: true});
 };
 
 exports.listUserRoles = function (req, res) {
@@ -54,39 +80,36 @@ exports.removeUserRole = function (req, res) {
 };
 
 exports.changeUserEmail = function (req, res) {
-    updateUser(res, {email: req.params.email}, {email: req.params.new_email});
+    // TODO: first find user and check to make sure their origin is NOT 'openid' (they cannot change their email)
+    // TODO: validate email
+    updateUser(res, {_id: req.params.id}, {email: req.params.email});
 };
 
 exports.changeUserFirstName = function (req, res) {
-    updateUser(res, {email: req.params.email}, {name_first: req.params.name_first});
-};
-
-exports.removeUserFirstName = function (req, res) {
-    updateUser(res, {email: req.params.email}, {name_first: undefined});
+    // TODO: validate (make sure it's not empty?)
+    updateUser(res, {_id: req.params.id}, {name_first: req.params.name_first});
 };
 
 exports.changeUserLastName = function (req, res) {
-    updateUser(res, {email: req.params.email}, {name_last: req.params.name_last});
-};
-
-exports.removeUserLastName = function (req, res) {
-    updateUser(res, {email: req.params.email}, {name_last: undefined});
+    // TODO: validate (make sure it's not empty?)
+    updateUser(res, {_id: req.params.id}, {name_last: req.params.name_last});
 };
 
 exports.changeUserFhirId = function (req, res) {
-    updateUser(res, {email: req.params.email}, {fhir_id: req.params.fhir_id});
+    updateUser(res, {_id: req.params.id}, {fhir_id: req.params.fhir_id});
 };
 
 exports.removeUserFhirId = function (req, res){
-    updateUser(res, {email: req.params.email}, {fhir_id: undefined});
+    updateUser(res, {_id: req.params.id}, {fhir_id: undefined});
 };
 
 exports.changeUserPassword = function (req, res){
+    // TODO: validate
     //Search for user
     //Once user object == email param
     //setPassword (use callback function)
-    var newPassword = req.params.newPassword;
-    return Account.findOneQ({email : req.params.email})
+    var newPassword = req.params.password;
+    return Account.findOneQ({id : req.params.id})
         .then(function (result) {
             if (result){
                 result.setPassword(newPassword,
@@ -116,7 +139,7 @@ exports.changeUserPassword = function (req, res){
 };
 
 function changeUserRole (req, res, add) {
-    var email = req.params.email;
+    var id = req.params.id;
     var role = req.params.role;
     var validRoles = getUserRoles();
     if (!email || !role) {
@@ -129,10 +152,10 @@ function changeUserRole (req, res, add) {
 
     if (add) {
         // add this role to the user, only if the user does not already have this role
-        updateUser(res, {email: email}, {$addToSet: {roles: role}});
+        updateUser(res, {_id: id}, {$addToSet: {roles: role}});
     } else {
         // remove this role from the user, only if the user currently has the role
-        updateUser(res, {email: email}, {$pullAll: {roles: [role]}});
+        updateUser(res, {_id: id}, {$pullAll: {roles: [role]}});
     }
 }
 
@@ -141,7 +164,7 @@ function getUserRoles() {
 }
 
 exports.deleteUser = function (req, res) {
-    Account.findOneAndRemoveQ({email: req.params.email})
+    Account.findOneAndRemoveQ({_id: req.params.id})
     .then(function (result) {
         if (result) {
             respond(res, 200);

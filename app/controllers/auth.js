@@ -16,5 +16,5 @@ exports.checkAdminToken = function (req, res, next) {
 
 // makes sure a user is an admin, or is the owner of this resource
 exports.checkAdminOrOwnerToken = function (req, res, next) {
-    auth.checkTokenWeb(req, res, next, true, req.params.email);
+    auth.checkTokenWeb(req, res, next, true, req.params.id);
 };
