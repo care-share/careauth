@@ -41,7 +41,7 @@ if (adminPassword) {
 // called once we determine the password to use for the new account
 function createUser(password) {
 
-    Account.register(user, password, function(err, account) {
+    Account.register(user, password, function (err, account) {
         if (err) {
             if (err.name === 'BadRequestError' && err.message && err.message.indexOf('exists') > -1) {
                 // user already exists

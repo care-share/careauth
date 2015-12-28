@@ -4,8 +4,8 @@
 var app = require('../../lib/app');
 
 /**
-* @module Routes
-*/
+ * @module Routes
+ */
 
 module.exports = function (server, passport) {
     // import controllers
@@ -76,21 +76,21 @@ module.exports = function (server, passport) {
     // * email: email of user to change
     // * new_email: new email for user
     server.route('/users/:id/email/:email')
-        .put(auth.checkAdminOrOwnerToken,user.changeUserEmail);
+        .put(auth.checkAdminOrOwnerToken, user.changeUserEmail);
 
     // changes a user's first name
     // params:
     // * email: email of user to change
     // * first_name: new first name for user
     server.route('/users/:id/name_first/:name_first')
-        .put(auth.checkAdminOrOwnerToken,user.changeUserFirstName);
+        .put(auth.checkAdminOrOwnerToken, user.changeUserFirstName);
 
     // changes a user's last name
     // params:
     // * email: email of user to change
     // * name_last: new last name of user
     server.route('/users/:id/name_last/:name_last')
-        .put(auth.checkAdminOrOwnerToken,user.changeUserLastName);
+        .put(auth.checkAdminOrOwnerToken, user.changeUserLastName);
 
     // changes a user's FHIR ID
     // params:
@@ -103,7 +103,7 @@ module.exports = function (server, passport) {
     // params:
     // * email: email of user to change
     server.route('/users/:id/fhir_id')
-        .delete(auth.checkAdminToken,user.removeUserFhirId);
+        .delete(auth.checkAdminToken, user.removeUserFhirId);
 
     // deletes a user
     // params:

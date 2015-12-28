@@ -75,7 +75,7 @@ module.exports = {
         "jwt_signing_alg": {
             "required": true,
             "type": "string",
-            "enum": [ 'RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512' ]
+            "enum": ['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512']
         },
 
         // OpenID Connect settings

@@ -7,7 +7,7 @@ var app = require('../lib/app');
 app.init();
 var Account = app.Account;
 
-Account.findOneAndRemove({email: app.config.get('admin_user')}, function(err, user) {
+Account.findOneAndRemove({email: app.config.get('admin_user')}, function (err, user) {
     if (err) {
         app.logger.error('Failed to delete admin user:', err);
         process.exit(1);

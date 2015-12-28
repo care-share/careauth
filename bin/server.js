@@ -18,24 +18,24 @@ var server = express();
 
 // allow CORS
 // TODO: edit to limit domains instead of using a wildcard
-server.use(function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Auth-Token, X-Requested-With, Content-Type, Accept,Destroy');
-  res.header('Access-Control-Allow-Methods', 'DELETE, GET, POST, PUT'); // don't need HEAD, OPTIONS, or TRACE 
-  next();
+server.use(function (req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Auth-Token, X-Requested-With, Content-Type, Accept,Destroy');
+    res.header('Access-Control-Allow-Methods', 'DELETE, GET, POST, PUT'); // don't need HEAD, OPTIONS, or TRACE
+    next();
 });
 
 server.use(bodyParser.json());
-server.use(bodyParser.urlencoded({ extended: true }));
+server.use(bodyParser.urlencoded({extended: true}));
 
 // debug logger
 var morgan = require('morgan');
-morgan.token('remote-user', function(req, res){
+morgan.token('remote-user', function (req, res) {
     if (req.user)
         return req.user.id;
     return 'null';
 });
-morgan.token('message', function(req, res) {
+morgan.token('message', function (req, res) {
     return res.logMessage;
 });
 server.use(morgan(':remote-addr - :remote-user ":method :url" :status ":message"', {stream: app.logger.stream}));
@@ -51,10 +51,10 @@ var verify = require('../lib/auth').openid;
 passport.use(new passportOpenID.Strategy(options, verify));
 
 // make sure passport doesn't blow up
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
     done(null, user);
 });
-passport.deserializeUser(function(obj, done) {
+passport.deserializeUser(function (obj, done) {
     done(null, obj);
 });
 
@@ -62,7 +62,7 @@ passport.deserializeUser(function(obj, done) {
 routes(server, passport);
 
 var port = 3001;
-server.listen(port, function() {
+server.listen(port, function () {
     app.logger.info('Express server listening on port %d', port);
 });
 
