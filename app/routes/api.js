@@ -13,10 +13,6 @@ module.exports = function (server, passport) {
     var auth = require('../controllers/auth');
     var user = require('../controllers/user');
 
-    server.get('/', function (req, res) {
-        res.send('Go away');
-    });
-
     ///////////////////////////////////////////////////////////////////////////
     // ACCOUNT CONTROLLER
     ///////////////////////////////////////////////////////////////////////////
@@ -117,4 +113,43 @@ module.exports = function (server, passport) {
     // * newPassword: new password for user
     server.route('/users/:id/password/:password')
         .put(auth.checkAdminOrOwnerToken, user.changeUserPassword);
+
+    // updates a user's phone number
+    // params:
+    // * email: email of user to change
+    // * phoneNum: new phone number for user
+    server.route('/users/:email/phone/:newPhone')
+        .put(auth.checkAdminOrOwnerToken, user.changeUserPhone);
+
+    // deletes a user's phone number
+    // params:
+    // * email: email of user to change
+    server.route('/users/:email/phone')
+        .delete(auth.checkAdminOrOwnerToken, user.removeUserPhone);
+
+    // updates a user's contact preference
+    // params:
+    // * email: email of user to change
+    // * pref: new contact preference for user
+    server.route('/users/:email/contact_pref/:pref')
+        .put(auth.checkAdminOrOwnerToken, user.changeUserPref);
+
+    // deletes a user's contact preference
+    // params:
+    // * email: email of user to change
+    server.route('/users/:email/contact_pref')
+        .delete(auth.checkAdminOrOwnerToken, user.removeUserPref);
+
+    // updates a user's profile picture
+    // params:
+    // * email: email of user to change
+    // * pictureLocation:location of new profile picture
+    server.route('/users/:email/picture/:pictureLocation')
+        .put(auth.checkAdminOrOwnerToken, user.changeUserPicture);
+
+    // deletes a user's profile picture
+    // params:
+    // * email: email of user to change
+    server.route('/users/:email/picture')
+        .delete(auth.checkAdminOrOwnerToken, user.removeUserPicture);
 };

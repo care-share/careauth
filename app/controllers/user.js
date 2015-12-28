@@ -103,6 +103,50 @@ exports.removeUserFhirId = function (req, res) {
     updateUser(res, {_id: req.params.id}, {fhir_id: undefined});
 };
 
+exports.changeUserPhone = function (req, res) {
+    updateUser(res, {email: req.params.email}, {phone: req.params.newPhone});
+};
+
+exports.removeUserPhone = function (req, res) {
+    updateUser(res, {email: req.params.email}, {phone: undefined});
+};
+
+exports.changeUserPref = function (req, res) {
+    updateUser(res, {email: req.params.email}, {contact_pref: req.params.pref});
+};
+
+exports.removeUserPref = function (req, res) {
+    updateUser(res, {email: req.params.email}, {contact_pref: undefined});
+};
+
+exports.changeUserPicture = function (req, res) {
+    var fs = require('fs');
+
+    //TODO: Need to implement way to write file at "public/avatars"
+    //TODO: Need to implement generation of GUID, assign to avatar
+    //TODO: GUID is what is referenced in user model
+
+    //1) Define path
+    var path = "../../public/avatars";
+
+    //2) Generate name for file
+    var fileName ="pictureName.jpg";
+
+    //3) Write file to location
+    var f = fs.createWriteStream(path+fileName,req.params.data, function (err){
+        if (err) throw err
+        console.log('Wrote ' + fileName + 'at path ' + path);
+    });
+
+    //4) Replace picture String in user model
+
+    updateUser(res, {email: req.params.email}, {picture: fileName});
+};
+
+exports.removeUserPicture = function (req, res) {
+    updateUser(res, {email: req.params.email}, {picture: 'default_picture.jpg'});
+};
+
 exports.changeUserPassword = function (req, res) {
     // TODO: validate
     //Search for user

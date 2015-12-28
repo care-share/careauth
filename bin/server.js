@@ -61,6 +61,9 @@ passport.deserializeUser(function (obj, done) {
 // add routes (API endpoints)
 routes(server, passport);
 
+// serve static webpage files
+server.use(express.static('public'));
+
 var port = 3001;
 server.listen(port, function () {
     app.logger.info('Express server listening on port %d', port);
