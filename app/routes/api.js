@@ -12,6 +12,18 @@ module.exports = function (server, passport) {
     var account = require('../controllers/account');
     var auth = require('../controllers/auth');
     var user = require('../controllers/user');
+    var multer = require('multer');
+    var upload = multer({ dest: './public/avatars'});
+    //var storage = multer.diskStorage({
+    //    destination: function (req, file, cb) {
+    //        cb(null, './public/avatars')
+    //    },
+    //    filename: function (req, file, cb) {
+    //        cb(null, req.body.userid+'.jpg')
+    //    }
+    //});
+    //var upload = multer({ storage: storage});
+
 
     ///////////////////////////////////////////////////////////////////////////
     // ACCOUNT CONTROLLER
@@ -118,38 +130,39 @@ module.exports = function (server, passport) {
     // params:
     // * email: email of user to change
     // * phoneNum: new phone number for user
-    server.route('/users/:email/phone/:newPhone')
+    server.route('/users/:id/phone/:newPhone')
         .put(auth.checkAdminOrOwnerToken, user.changeUserPhone);
 
     // deletes a user's phone number
     // params:
     // * email: email of user to change
-    server.route('/users/:email/phone')
+    server.route('/users/:id/phone')
         .delete(auth.checkAdminOrOwnerToken, user.removeUserPhone);
 
     // updates a user's contact preference
     // params:
     // * email: email of user to change
     // * pref: new contact preference for user
-    server.route('/users/:email/contact_pref/:pref')
+    server.route('/users/:id/contact_pref/:pref')
         .put(auth.checkAdminOrOwnerToken, user.changeUserPref);
 
     // deletes a user's contact preference
     // params:
     // * email: email of user to change
-    server.route('/users/:email/contact_pref')
+    server.route('/users/:id/contact_pref')
         .delete(auth.checkAdminOrOwnerToken, user.removeUserPref);
 
     // updates a user's profile picture
     // params:
     // * email: email of user to change
     // * pictureLocation:location of new profile picture
-    server.route('/users/:email/picture/:pictureLocation')
-        .put(auth.checkAdminOrOwnerToken, user.changeUserPicture);
+    server.route('/users/:id/picture')
+        //.post(auth.checkAdminOrOwnerToken, user.changeUserPicture);
+    .post(upload.single('image'),user.changeUserPicture);
 
     // deletes a user's profile picture
     // params:
     // * email: email of user to change
-    server.route('/users/:email/picture')
+    server.route('/users/:id/picture')
         .delete(auth.checkAdminOrOwnerToken, user.removeUserPicture);
 };

@@ -30,20 +30,19 @@ var ViewPage = React.createClass({
         this.setState({
             editHidden: !this.state.editHidden
         });
-        for(var obj in this.state.diffMap){
-            //TODO: if you change the email do you need to update the URL?
-            var email = this.getUrlParameter('email');
-            var token = this.getUrlParameter('token');
-            var url = '/users/' + email + '/' + obj + '/' + this.state.diffMap[obj];
-            console.log('PUTTING ' + url);
-            (function(copy_obj) {
+        var token = this.getUrlParameter('token');
+        //From token I need to get ID
+        var decoded = jwt_decode(token);
+        var userid = decoded.sub;
+        for (var obj in this.state.diffMap) {
+            var url = '/users/' + userid + '/' + obj + '/' + this.state.diffMap[obj];
+            (function (copy_obj) {
                 $.ajax({
                     url: url,
                     method: 'PUT',
                     headers: {'X-Auth-Token': token},
                     success: function (data, textStatus, jqXHR) {
                         var text = document.getElementById(copy_obj);
-                        console.log('SUCCESS ' + copy_obj + ', ' + text);
                         text.style.backgroundColor = 'white';
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
@@ -53,7 +52,6 @@ var ViewPage = React.createClass({
                 });
             }(obj))
             delete this.state.diffMap[obj];
-            console.log(JSON.stringify(this.state.diffMap));
         }
     },
     addToList: function (key, value) {
@@ -63,7 +61,7 @@ var ViewPage = React.createClass({
             diffMap: newMap
         });
     },
-    getUrlParameter : function(sParam) {
+    getUrlParameter: function (sParam) {
         var sPageURL = decodeURIComponent(window.location.search.substring(1)),
             sURLVariables = sPageURL.split('&'),
             sParameterName,
@@ -79,8 +77,7 @@ var ViewPage = React.createClass({
     },
     render: function () {
         var token = this.getUrlParameter('token');
-        var email = this.getUrlParameter('email');
-        var url = '/users/' + email + '/info';
+        var url = '/users/self';
         return (
             <div>
                 <h1>User Information</h1>
@@ -91,9 +88,6 @@ var ViewPage = React.createClass({
         );
     }
 });
-
-//TODO: Create new input element to upload Picture
-//TODO: Create new img element to display picture
 
 /**
  * Creates several UserInfo objects in a <div>
@@ -117,10 +111,10 @@ var UserInfoList = React.createClass({
             roles: 'default role',
             phone: 'default phone',
             fhir_id: 'default fhir id',
-            contact_pref: 'default contact preference'
+            contact_pref: 'default contact preference',
+            picture: 'default_picture.jpg'
         };
     },
-    //TODO: What to display if no email or Incorrect token?
     componentDidMount: function () {
         $.ajax({
             url: this.props.source,
@@ -135,7 +129,9 @@ var UserInfoList = React.createClass({
                     roles: result.data.roles.toString(),
                     phone: result.data.phone,
                     fhir_id: result.data.fhir_id,
-                    contact_pref: result.data.contact_pref
+                    contact_pref: result.data.contact_pref,
+                    picture: result.data.picture,
+                    id: result.data._id
                 });
             }.bind(this),
             error: function (xhr, status, err) {
@@ -149,11 +145,12 @@ var UserInfoList = React.createClass({
         this.setState(obj);
         this.props.updateList(key, value);
         var text = document.getElementById(key);
-        text.style.backgroundColor='green';
+        text.style.backgroundColor = 'green';
     },
     render: function () {
         return (
             <div>
+                <ProfilePicture keyName="picture" userid={this.state.id} data={this.state} canSee={this.props.isHidden}/>
                 <UserInfo type='First Name: ' keyName='name_first' data={this.state} canEdit={this.props.isHidden}
                           onUpdate={this.onUpdate}/>
                 <UserInfo type='Last Name: ' keyName='name_last' data={this.state} canEdit={this.props.isHidden}
@@ -163,7 +160,8 @@ var UserInfoList = React.createClass({
                 <UserInfo type='Roles: ' keyName='roles' data={this.state} canEdit={false}/>
                 <UserInfo type='Phone Number: ' keyName='phone' data={this.state} canEdit={this.props.isHidden}
                           onUpdate={this.onUpdate}/>
-                <UserInfo type='Contact Preference: ' keyName='contact_pref' data={this.state} canEdit={this.props.isHidden}
+                <UserInfo type='Contact Preference: ' keyName='contact_pref' data={this.state}
+                          canEdit={this.props.isHidden}
                           onUpdate={this.onUpdate}/>
                 <UserInfo type='FHIR ID: ' keyName='fhir_id' data={this.state} canEdit={this.props.isHidden}
                           onUpdate={this.onUpdate}/>
@@ -203,6 +201,27 @@ var UserInfo = React.createClass({
     }
 });
 
+var ProfilePicture = React.createClass({
+    //Make this an ajax request
+    render: function () {
+        return (
+            <div>
+                <div>
+                    <img
+                        id={this.props.keyName}
+                        src={"avatars/"+this.props.data[this.props.keyName]}></img>
+                </div>
+                <div hidden={!this.props.canSee}>
+                    <form encType="multipart/form-data" action={"/users/" +
+                    this.props.userid + "/picture"} method="POST">
+                        <input name="image" type="file" accept=".jpg" />
+                        <input type="submit" value="Upload Image"/>
+                    </form>
+                </div>
+            </div>
+        );
+    }
+});
 /**
  * Renders the entire page
  * Places DOM within 'content' <div> on index.html
