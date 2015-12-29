@@ -120,7 +120,7 @@ exports.removeUserPref = function (req, res) {
 };
 
 exports.changeUserPicture = function (req, res) {
-    updateUser(res, {_id: req.params.id}, {picture: 'default_picture.jpg'});
+    updateUser(res, {_id: req.params.id}, {picture: req.params.id+'.jpg'});
 };
 
 exports.removeUserPicture = function (req, res) {

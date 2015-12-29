@@ -1,5 +1,6 @@
 .idea/
 *.iml
+public/lib/
 node_modules
 config/config-local.yml
 *.log

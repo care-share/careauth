@@ -13,16 +13,16 @@ module.exports = function (server, passport) {
     var auth = require('../controllers/auth');
     var user = require('../controllers/user');
     var multer = require('multer');
-    var upload = multer({ dest: './public/avatars'});
-    //var storage = multer.diskStorage({
-    //    destination: function (req, file, cb) {
-    //        cb(null, './public/avatars')
-    //    },
-    //    filename: function (req, file, cb) {
-    //        cb(null, req.body.userid+'.jpg')
-    //    }
-    //});
-    //var upload = multer({ storage: storage});
+    //var upload = multer({ dest: './public/avatars'});
+    var storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, './public/avatars')
+        },
+        filename: function (req, file, cb) {
+            cb(null, req.params.id+'.jpg')
+        }
+    });
+    var upload = multer({ storage: storage});
 
 
     ///////////////////////////////////////////////////////////////////////////
@@ -157,8 +157,7 @@ module.exports = function (server, passport) {
     // * email: email of user to change
     // * pictureLocation:location of new profile picture
     server.route('/users/:id/picture')
-        //.post(auth.checkAdminOrOwnerToken, user.changeUserPicture);
-    .post(upload.single('image'),user.changeUserPicture);
+        .post(auth.checkAdminOrOwnerToken,upload.single('image'),user.changeUserPicture);
 
     // deletes a user's profile picture
     // params:

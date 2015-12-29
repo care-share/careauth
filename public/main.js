@@ -21,6 +21,16 @@ var ViewPage = React.createClass({
             editHidden: false
         };
     },
+    clickCancel: function (event) {
+        this.setState({
+            editHidden: !this.state.editHidden,
+        });
+        for (var obj in this.state.diffMap) {
+            var text = document.getElementById(obj);
+            text.style.backgroundColor = 'white';
+            delete this.state.diffMap[obj];
+        }
+    },
     clickEdit: function (event) {
         this.setState({
             editHidden: !this.state.editHidden
@@ -81,7 +91,10 @@ var ViewPage = React.createClass({
         return (
             <div>
                 <h1>User Information</h1>
-                <UserInfoList source={url} token={token} isHidden={this.state.editHidden} updateList={this.addToList}/>
+                <UserInfoList
+                    source={url} token={token}
+                    isHidden={this.state.editHidden} updateList={this.addToList}
+                    clickCancel={this.clickCancel}/>
                 <button onClick={this.clickEdit} hidden={this.state.editHidden}>Edit User</button>
                 <button onClick={this.clickSubmit} hidden={!this.state.editHidden}>Submit</button>
             </div>
@@ -112,7 +125,8 @@ var UserInfoList = React.createClass({
             phone: 'default phone',
             fhir_id: 'default fhir id',
             contact_pref: 'default contact preference',
-            picture: 'default_picture.jpg'
+            picture: 'default_picture.jpg',
+            initialMap: {}
         };
     },
     componentDidMount: function () {
@@ -131,7 +145,16 @@ var UserInfoList = React.createClass({
                     fhir_id: result.data.fhir_id,
                     contact_pref: result.data.contact_pref,
                     picture: result.data.picture,
-                    id: result.data._id
+                    id: result.data._id,
+                    initialMap: {
+                        name_first: result.data.name_first,
+                        name_last: result.data.name_last,
+                        email: result.data.email,
+                        roles: result.data.roles,
+                        phone: result.data.phone,
+                        fhir_id: result.data.fhir_id,
+                        contact_pref: result.data.contact_pref
+                    }
                 });
             }.bind(this),
             error: function (xhr, status, err) {
@@ -145,31 +168,68 @@ var UserInfoList = React.createClass({
         this.setState(obj);
         this.props.updateList(key, value);
         var text = document.getElementById(key);
-        text.style.backgroundColor = 'green';
+        if (this.state.initialMap[key] != obj[key]) {
+            text.style.backgroundColor = 'green';
+        }
+        else {
+            text.style.backgroundColor = 'white';
+        }
+    },
+    resetField: function () {
+        this.setState({
+            name_first: this.state.initialMap["name_first"],
+            name_last: this.state.initialMap["name_last"],
+            email: this.state.initialMap["email"],
+            roles: this.state.initialMap["roles"],
+            phone: this.state.initialMap["phone"],
+            fhir_id: this.state.initialMap["fhir_id"],
+            contact_pref: this.state.initialMap["contact_pref"]
+        });
+        this.props.clickCancel();
     },
     render: function () {
         return (
             <div>
-                <ProfilePicture keyName="picture" userid={this.state.id} data={this.state} canSee={this.props.isHidden}/>
-                <UserInfo type='First Name: ' keyName='name_first' data={this.state} canEdit={this.props.isHidden}
-                          onUpdate={this.onUpdate}/>
-                <UserInfo type='Last Name: ' keyName='name_last' data={this.state} canEdit={this.props.isHidden}
-                          onUpdate={this.onUpdate}/>
-                <UserInfo type='Email: ' keyName='email' data={this.state} canEdit={this.props.isHidden}
-                          onUpdate={this.onUpdate}/>
+                <ProfilePicture keyName="picture" userid={this.state.id}
+                                token={this.props.token} data={this.state} canSee={this.props.isHidden}/>
+                <br/>
+                <UserInfo type='First Name: ' keyName='name_first' data={this.state}
+                          canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
+                <UserInfo type='Last Name: ' keyName='name_last' data={this.state}
+                          canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
+                <UserInfo type='Email: ' keyName='email' data={this.state}
+                          canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
                 <UserInfo type='Roles: ' keyName='roles' data={this.state} canEdit={false}/>
-                <UserInfo type='Phone Number: ' keyName='phone' data={this.state} canEdit={this.props.isHidden}
+                <UserInfo type='Phone Number: ' keyName='phone' data={this.state}
+                          canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
+                <UserInfo type='Contact Preference: ' keyName='contact_pref'
+                          data={this.state} canEdit={this.props.isHidden}
                           onUpdate={this.onUpdate}/>
-                <UserInfo type='Contact Preference: ' keyName='contact_pref' data={this.state}
-                          canEdit={this.props.isHidden}
-                          onUpdate={this.onUpdate}/>
-                <UserInfo type='FHIR ID: ' keyName='fhir_id' data={this.state} canEdit={this.props.isHidden}
-                          onUpdate={this.onUpdate}/>
+                <UserInfo type='FHIR ID: ' keyName='fhir_id' data={this.state}
+                          canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
+                <button onClick={this.resetField} hidden={!this.props.isHidden}>Cancel</button>
             </div>
         );
     }
 });
 
+//var UserPreferences = React.createClass({
+//    handleChange: function (change) {
+//      this.props.onUpdate('contact_pref', change.target.value);
+//    },
+//    render: function() {
+//        return (
+//            <div>
+//                Contact Preference:
+//                <select>
+//                    <option value="never" onChange={this.handleChange}>Never</option>
+//                    <option value="once a day" onChange={this.handleChange}>Once a day</option>
+//                    <option value="immediately" onChange={this.handleChange}>Immediately</option>
+//                </select>
+//            </div>
+//        )
+//    }
+//});
 
 /**
  * UserInfo is a React component used to display user information in a <textarea>
@@ -202,6 +262,38 @@ var UserInfo = React.createClass({
 });
 
 var ProfilePicture = React.createClass({
+    handleSubmit: function (e) {
+        e.preventDefault();
+    },
+    handleChange: function (e) {
+        console.log('handle change is called');
+        console.log(this.props.userid);
+        var userid = this.props.userid;
+        var url = '/users/' + userid + '/picture/';
+        var token = this.props.token;
+        $("#multiform").submit(function (e) {
+            var formObj = $(this);
+            var formData = new FormData(this);
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                mimeType: 'multipart/form-data',
+                contentType: false,
+                headers: {'X-Auth-Token': token},
+                cache: false,
+                processData: false,
+                success: function (data, textStatus, jqXHR) {
+                    console.log('success!');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                }
+            });
+            e.preventDefault(); //Prevent Default action.
+            // e.unbind();
+        });
+        $("#multiform").submit();
+    },
     //Make this an ajax request
     render: function () {
         return (
@@ -212,10 +304,9 @@ var ProfilePicture = React.createClass({
                         src={"avatars/"+this.props.data[this.props.keyName]}></img>
                 </div>
                 <div hidden={!this.props.canSee}>
-                    <form encType="multipart/form-data" action={"/users/" +
-                    this.props.userid + "/picture"} method="POST">
-                        <input name="image" type="file" accept=".jpg" />
-                        <input type="submit" value="Upload Image"/>
+                    <form name="multiform" id="multiform" encType="multipart/form-data" onSubmit={this.handleSubmit}>
+                        <input name="image" type="file" accept=".jpg"/>
+                        <input type="submit" onClick={this.handleChange} />
                     </form>
                 </div>
             </div>
