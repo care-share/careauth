@@ -185,6 +185,12 @@ var UserInfoList = React.createClass({
             fhir_id: this.state.initialMap["fhir_id"],
             contact_pref: this.state.initialMap["contact_pref"]
         });
+        document.getElementById('name_first').style.backgroundColor = 'white';
+        document.getElementById('name_last').style.backgroundColor = 'white';
+        document.getElementById('email').style.backgroundColor = 'white';
+        document.getElementById('roles').style.backgroundColor = 'white';
+        document.getElementById('phone').style.backgroundColor = 'white';
+        document.getElementById('fhir_id').style.backgroundColor = 'white';
         this.props.clickCancel();
     },
     render: function () {
@@ -202,9 +208,7 @@ var UserInfoList = React.createClass({
                 <UserInfo type='Roles: ' keyName='roles' data={this.state} canEdit={false}/>
                 <UserInfo type='Phone Number: ' keyName='phone' data={this.state}
                           canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
-                <UserInfo type='Contact Preference: ' keyName='contact_pref'
-                          data={this.state} canEdit={this.props.isHidden}
-                          onUpdate={this.onUpdate}/>
+                <UserPreferences onUpdate={this.onUpdate} pref={this.state.contact_pref} canEdit={this.props.isHidden}/>
                 <UserInfo type='FHIR ID: ' keyName='fhir_id' data={this.state}
                           canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
                 <button onClick={this.resetField} hidden={!this.props.isHidden}>Cancel</button>
@@ -213,23 +217,29 @@ var UserInfoList = React.createClass({
     }
 });
 
-//var UserPreferences = React.createClass({
-//    handleChange: function (change) {
-//      this.props.onUpdate('contact_pref', change.target.value);
-//    },
-//    render: function() {
-//        return (
-//            <div>
-//                Contact Preference:
-//                <select>
-//                    <option value="never" onChange={this.handleChange}>Never</option>
-//                    <option value="once a day" onChange={this.handleChange}>Once a day</option>
-//                    <option value="immediately" onChange={this.handleChange}>Immediately</option>
-//                </select>
-//            </div>
-//        )
-//    }
-//});
+//Previous "Contact Preferences"
+//<UserInfo type='Contact Preference: ' keyName='contact_pref'
+//          data={this.state} canEdit={this.props.isHidden}
+//          onUpdate={this.onUpdate}/>
+
+var UserPreferences = React.createClass({
+    handleChange: function (change) {
+        console.log(change.target.value);
+        this.props.onUpdate('contact_pref', change.target.value);
+    },
+    render: function () {
+        return (
+            <div>
+                Contact Preference:
+                <select value={this.props.pref} disabled={!this.props.canEdit} onChange={this.handleChange}>
+                    <option type="text" value="never" >Never</option>
+                    <option type="text" value="once a day">Once a day</option>
+                    <option type="text" value="immediately">Immediately</option>
+                </select>
+            </div>
+        )
+    }
+});
 
 /**
  * UserInfo is a React component used to display user information in a <textarea>
@@ -306,7 +316,7 @@ var ProfilePicture = React.createClass({
                 <div hidden={!this.props.canSee}>
                     <form name="multiform" id="multiform" encType="multipart/form-data" onSubmit={this.handleSubmit}>
                         <input name="image" type="file" accept=".jpg"/>
-                        <input type="submit" onClick={this.handleChange} />
+                        <input type="submit" onClick={this.handleChange}/>
                     </form>
                 </div>
             </div>
