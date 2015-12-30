@@ -22,6 +22,7 @@
     "babel": "*",
     "jquery": "~2.1.4",
     "jwt-decode": "~1.4.0",
-    "react": "~0.14.3"
+    "react": "~0.14.3",
+    "validator-js": "~4.4.1"
   }
 }

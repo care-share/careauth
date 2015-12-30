@@ -5,7 +5,6 @@
  */
 
 //TODO: Update ViewPage Documentation
-//TODO: When email gets updated point to new URL
 
 /**
  * The entire view of the User Information page
@@ -162,17 +161,61 @@ var UserInfoList = React.createClass({
             }.bind(this)
         });
     },
+    //validateField: function(key,value) {
+    //    if (key === 'email') {
+    //        if(validator.isEmail(value)) {
+    //            this.onUpdate(key,value);
+    //        } else {
+    //
+    //        }
+    //    } else if (key === 'phone') {
+    //
+    //    }
+    //},
     onUpdate: function (key, value) {
         var obj = {};
         obj[key] = value;
         this.setState(obj);
-        this.props.updateList(key, value);
-        var text = document.getElementById(key);
-        if (this.state.initialMap[key] != obj[key]) {
-            text.style.backgroundColor = 'green';
-        }
-        else {
-            text.style.backgroundColor = 'white';
+
+        //check if property is email or phone
+        //If email, validate
+        if (key === 'email') {
+            if (validator.isEmail(obj[key])) {
+                this.props.updateList(key, value);
+                var text = document.getElementById(key);
+                if (this.state.initialMap[key] != obj[key]) {
+                    text.style.backgroundColor = 'green';
+                }
+                else {
+                    text.style.backgroundColor = 'white';
+                }
+            } else {
+                var text = document.getElementById(key);
+                text.style.backgroundColor = 'red';
+            }
+        } else if (key == 'phone') {
+            if (validator.isMobilePhone(obj[key], 'en-US')) {
+                this.props.updateList(key, value);
+                var text = document.getElementById(key);
+                if (this.state.initialMap[key] != obj[key]) {
+                    text.style.backgroundColor = 'green';
+                }
+                else {
+                    text.style.backgroundColor = 'white';
+                }
+            } else {
+                var text = document.getElementById(key);
+                text.style.backgroundColor = 'red';
+            }
+        } else {
+            this.props.updateList(key, value);
+            var text = document.getElementById(key);
+            if (this.state.initialMap[key] != obj[key]) {
+                text.style.backgroundColor = 'green';
+            }
+            else {
+                text.style.backgroundColor = 'white';
+            }
         }
     },
     resetField: function () {
@@ -217,11 +260,6 @@ var UserInfoList = React.createClass({
     }
 });
 
-//Previous "Contact Preferences"
-//<UserInfo type='Contact Preference: ' keyName='contact_pref'
-//          data={this.state} canEdit={this.props.isHidden}
-//          onUpdate={this.onUpdate}/>
-
 var UserPreferences = React.createClass({
     handleChange: function (change) {
         console.log(change.target.value);
@@ -232,7 +270,7 @@ var UserPreferences = React.createClass({
             <div>
                 Contact Preference:
                 <select value={this.props.pref} disabled={!this.props.canEdit} onChange={this.handleChange}>
-                    <option type="text" value="never" >Never</option>
+                    <option type="text" value="never">Never</option>
                     <option type="text" value="once a day">Once a day</option>
                     <option type="text" value="immediately">Immediately</option>
                 </select>
@@ -276,8 +314,6 @@ var ProfilePicture = React.createClass({
         e.preventDefault();
     },
     handleChange: function (e) {
-        console.log('handle change is called');
-        console.log(this.props.userid);
         var userid = this.props.userid;
         var url = '/users/' + userid + '/picture/';
         var token = this.props.token;
@@ -294,7 +330,6 @@ var ProfilePicture = React.createClass({
                 cache: false,
                 processData: false,
                 success: function (data, textStatus, jqXHR) {
-                    console.log('success!');
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                 }
@@ -304,7 +339,7 @@ var ProfilePicture = React.createClass({
         });
         $("#multiform").submit();
     },
-    //Make this an ajax request
+
     render: function () {
         return (
             <div>
