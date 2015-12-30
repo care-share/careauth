@@ -1,10 +1,11 @@
 /**
  * Created by Collin McRae
- * ver: 0.3
- * last modified: 12/24/2015
+ * ver: 0.5
+ * last modified: 12/30/2015
  */
 
-//TODO: Update ViewPage Documentation
+//TODO: Add error messages to front-end
+//TODO: Add documentation for new elements, update documentation for old elements
 
 /**
  * The entire view of the User Information page
@@ -53,10 +54,14 @@ var ViewPage = React.createClass({
                     success: function (data, textStatus, jqXHR) {
                         var text = document.getElementById(copy_obj);
                         text.style.backgroundColor = 'white';
+                        var errMsg = document.getElementById(copy_obj+'err');
+                        errMsg.innerHTML = "";
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         var text = document.getElementById(copy_obj);
                         text.style.backgroundColor = 'red';
+                        var errMsg = document.getElementById(copy_obj+'err');
+                        errMsg.innerHTML = copy_obj+': '+textStatus +' '+errorThrown;
                     }
                 });
             }(obj))
@@ -93,9 +98,10 @@ var ViewPage = React.createClass({
                 <UserInfoList
                     source={url} token={token}
                     isHidden={this.state.editHidden} updateList={this.addToList}
-                    clickCancel={this.clickCancel}/>
+                    clickCancel={this.clickCancel}
+                    clickSubmit={this.clickSubmit}
+                />
                 <button onClick={this.clickEdit} hidden={this.state.editHidden}>Edit User</button>
-                <button onClick={this.clickSubmit} hidden={!this.state.editHidden}>Submit</button>
             </div>
         );
     }
@@ -125,10 +131,11 @@ var UserInfoList = React.createClass({
             fhir_id: 'default fhir id',
             contact_pref: 'default contact preference',
             picture: 'default_picture.jpg',
+            canSubmit: false,
             initialMap: {}
         };
     },
-    componentDidMount: function () {
+    loadServerData: function () {
         $.ajax({
             url: this.props.source,
             dataType: 'json',
@@ -161,61 +168,63 @@ var UserInfoList = React.createClass({
             }.bind(this)
         });
     },
-    //validateField: function(key,value) {
-    //    if (key === 'email') {
-    //        if(validator.isEmail(value)) {
-    //            this.onUpdate(key,value);
-    //        } else {
-    //
-    //        }
-    //    } else if (key === 'phone') {
-    //
-    //    }
-    //},
+    componentDidMount: function () {
+        this.loadServerData();
+    },
+    //TODO add error message if field is bad
+    validateField: function (key, value) {
+        var obj = {};
+        obj[key] = value;
+        this.setState(obj);
+        var errMsg = document.getElementById(key+'err');
+        if (key === 'email') {
+            if (validator.isEmail(value)) {
+                this.setState({canSubmit: false});
+                this.onUpdate(key, value);
+                errMsg.innerHTML = '';
+            } else {
+                //TODO Add error message
+                var text = document.getElementById(key);
+                text.style.backgroundColor = 'red';
+                this.setState({canSubmit : true});
+                errMsg.innerHTML = 'invalid email';
+            }
+        } else if (key === 'phone') {
+            if (validator.isMobilePhone(value, 'en-US')) {
+                this.setState({canSubmit: false});
+                this.onUpdate(key, value);
+                errMsg.innerHTML = '';
+            } else {
+                var text = document.getElementById(key);
+                text.style.backgroundColor = 'red';
+                this.setState({canSubmit : true});
+                errMsg.innerHTML = 'invalid phone';
+            }
+        } else if (key === 'name_first' || key === 'name_last') {
+            var str = validator.trim(value);
+            if(str !== ''){
+                this.setState({canSubmit : false});
+                this.onUpdate(key, value);
+                errMsg.innerHTML = '';
+            } else {
+                var text = document.getElementById(key);
+                text.style.backgroundColor = 'red';
+                this.setState({canSubmit : true});
+                errMsg.innerHTML = key + ' cannot be empty';
+            }
+        }
+    },
     onUpdate: function (key, value) {
         var obj = {};
         obj[key] = value;
         this.setState(obj);
-
-        //check if property is email or phone
-        //If email, validate
-        if (key === 'email') {
-            if (validator.isEmail(obj[key])) {
-                this.props.updateList(key, value);
-                var text = document.getElementById(key);
-                if (this.state.initialMap[key] != obj[key]) {
-                    text.style.backgroundColor = 'green';
-                }
-                else {
-                    text.style.backgroundColor = 'white';
-                }
-            } else {
-                var text = document.getElementById(key);
-                text.style.backgroundColor = 'red';
-            }
-        } else if (key == 'phone') {
-            if (validator.isMobilePhone(obj[key], 'en-US')) {
-                this.props.updateList(key, value);
-                var text = document.getElementById(key);
-                if (this.state.initialMap[key] != obj[key]) {
-                    text.style.backgroundColor = 'green';
-                }
-                else {
-                    text.style.backgroundColor = 'white';
-                }
-            } else {
-                var text = document.getElementById(key);
-                text.style.backgroundColor = 'red';
-            }
-        } else {
-            this.props.updateList(key, value);
-            var text = document.getElementById(key);
-            if (this.state.initialMap[key] != obj[key]) {
-                text.style.backgroundColor = 'green';
-            }
-            else {
-                text.style.backgroundColor = 'white';
-            }
+        this.props.updateList(key, value);
+        var text = document.getElementById(key);
+        if (this.state.initialMap[key] != obj[key]) {
+            text.style.backgroundColor = 'green';
+        }
+        else {
+            text.style.backgroundColor = 'white';
         }
     },
     resetField: function () {
@@ -236,25 +245,33 @@ var UserInfoList = React.createClass({
         document.getElementById('fhir_id').style.backgroundColor = 'white';
         this.props.clickCancel();
     },
+    submitFields: function () {
+        this.props.clickSubmit();
+        this.loadServerData();
+    },
     render: function () {
         return (
             <div>
                 <ProfilePicture keyName="picture" userid={this.state.id}
                                 token={this.props.token} data={this.state} canSee={this.props.isHidden}/>
                 <br/>
-                <UserInfo type='First Name: ' keyName='name_first' data={this.state}
-                          canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
-                <UserInfo type='Last Name: ' keyName='name_last' data={this.state}
-                          canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
-                <UserInfo type='Email: ' keyName='email' data={this.state}
-                          canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
-                <UserInfo type='Roles: ' keyName='roles' data={this.state} canEdit={false}/>
-                <UserInfo type='Phone Number: ' keyName='phone' data={this.state}
-                          canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
-                <UserPreferences onUpdate={this.onUpdate} pref={this.state.contact_pref} canEdit={this.props.isHidden}/>
-                <UserInfo type='FHIR ID: ' keyName='fhir_id' data={this.state}
-                          canEdit={this.props.isHidden} onUpdate={this.onUpdate}/>
-                <button onClick={this.resetField} hidden={!this.props.isHidden}>Cancel</button>
+                <table>
+                    <UserInfo type='First Name: ' keyName='name_first' data={this.state}
+                              canEdit={this.props.isHidden} onUpdate={this.validateField}/>
+                    <UserInfo type='Last Name: ' keyName='name_last' data={this.state}
+                              canEdit={this.props.isHidden} onUpdate={this.validateField}/>
+                    <UserInfo type='Email: ' keyName='email' data={this.state}
+                              canEdit={this.props.isHidden} onUpdate={this.validateField}/>
+                    <UserInfo type='Roles: ' keyName='roles' data={this.state} canEdit={false}/>
+                    <UserInfo type='Phone Number: ' keyName='phone' data={this.state}
+                              canEdit={this.props.isHidden} onUpdate={this.validateField}/>
+                    <UserPreferences onUpdate={this.onUpdate} pref={this.state.contact_pref}
+                                     canEdit={this.props.isHidden}/>
+                    <UserInfo type='FHIR ID: ' keyName='fhir_id' data={this.state}
+                              canEdit={false} onUpdate={this.onUpdate}/>
+                    </table>
+                    <button onClick={this.resetField} hidden={!this.props.isHidden}>Cancel</button>
+                    <button onClick={this.submitFields} hidden={!this.props.isHidden}>Submit</button>
             </div>
         );
     }
@@ -262,19 +279,21 @@ var UserInfoList = React.createClass({
 
 var UserPreferences = React.createClass({
     handleChange: function (change) {
-        console.log(change.target.value);
         this.props.onUpdate('contact_pref', change.target.value);
     },
     render: function () {
         return (
-            <div>
-                Contact Preference:
-                <select value={this.props.pref} disabled={!this.props.canEdit} onChange={this.handleChange}>
+            <tbody>
+            <tr>
+                <td>Contact Preference:</td>
+                <td><select value={this.props.pref} disabled={!this.props.canEdit} onChange={this.handleChange}>
                     <option type="text" value="never">Never</option>
                     <option type="text" value="once a day">Once a day</option>
                     <option type="text" value="immediately">Immediately</option>
                 </select>
-            </div>
+                </td>
+            </tr>
+            </tbody>
         )
     }
 });
@@ -295,19 +314,43 @@ var UserInfo = React.createClass({
     },
     render: function () {
         return (
-            <div>
-                {this.props.type}
-                <textarea
+            <tbody>
+            <tr>
+                <td>{this.props.type}</td>
+                <td><textarea
                     id={this.props.keyName}
                     value={this.props.data[this.props.keyName]}
                     onChange={this.handleChange}
                     readOnly={!this.props.canEdit}
                     style={{backgroundColor: "white"}}
-                    rows="1" cols="20"></textarea>
-            </div>
+                    rows="1" cols="20"></textarea></td>
+                <td><label id={this.props.keyName + 'err'} value="Display"></label></td>
+            </tr>
+            </tbody>
         );
     }
 });
+//
+//var PasswordHandler = React.createClass({
+//   render: function (e) {
+//       return (
+//           <tbody hidden={!this.props.canEdit}>
+//           <tr>
+//               <td>Existing Password</td>
+//               <td><textarea>Type it here!</textarea></td>
+//           </tr>
+//           <tr>
+//               <td>New Password</td>
+//               <td><textarea>Type it here!</textarea></td>
+//           </tr>
+//           <tr>
+//               <td>Confirm Password</td>
+//               <td><textarea>Type it here!</textarea></td>
+//           </tr>
+//           </tbody>
+//       );
+//   }
+//});
 
 var ProfilePicture = React.createClass({
     handleSubmit: function (e) {
@@ -330,16 +373,19 @@ var ProfilePicture = React.createClass({
                 cache: false,
                 processData: false,
                 success: function (data, textStatus, jqXHR) {
+                    //TODO add success message
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
+                    //TODO add error message
                 }
             });
             e.preventDefault(); //Prevent Default action.
             // e.unbind();
         });
         $("#multiform").submit();
+        console.log(this.props.data[this.props.keyName]);
+        this.forceUpdate();
     },
-
     render: function () {
         return (
             <div>

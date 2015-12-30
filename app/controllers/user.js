@@ -33,9 +33,9 @@ function findUsers(req, res, query) {
             }
             respond(res, 200, result);
         }).catch(function (err) {
-            app.logger.error('Failed to update user:', err);
-            respond(res, 500);
-        }).done();
+        app.logger.error('Failed to update user:', err);
+        respond(res, 500);
+    }).done();
 }
 
 exports.findUserSelf = function (req, res) {
@@ -57,9 +57,9 @@ function findUser(req, res, id) {
                 respond(res, 404);
             }
         }).catch(function (err) {
-            app.logger.error('Failed to find user:', err);
-            respond(res, 500);
-        }).done();
+        app.logger.error('Failed to find user:', err);
+        respond(res, 500);
+    }).done();
 }
 
 exports.approveUser = function (req, res) {
@@ -120,7 +120,7 @@ exports.removeUserPref = function (req, res) {
 };
 
 exports.changeUserPicture = function (req, res) {
-    updateUser(res, {_id: req.params.id}, {picture: req.params.id+'.jpg'});
+    updateUser(res, {_id: req.params.id}, {picture: req.params.id + '.jpg'});
 };
 
 exports.removeUserPicture = function (req, res) {
@@ -128,34 +128,72 @@ exports.removeUserPicture = function (req, res) {
 };
 
 exports.changeUserPassword = function (req, res) {
-    // TODO: validate
-    //Search for user
-    //Once user object == email param
-    //setPassword (use callback function)
+    // JOE CODE
     var newPassword = req.params.password;
-    return Account.findOneQ({id: req.params.id})
+    if (newPassword.length < 8) {
+        respond(res, 400);
+    }
+    Account.findOneQ({_id: req.params.id})
         .then(function (result) {
-            if (result) {
-                result.setPassword(newPassword,
-                    function (err, thisModel, passwordErr) {
-                        if (err) {
-                            respond(res, 500);
-                        }
-                        if (passwordErr) {
-                            respond(res, 400); //Bad Request response
-                        }
-                        if (thisModel) {
-                            thisModel.save();
-                            respond(res, 200);
-                        }
-                    })
-            } else {
-                respond(res, 400);
-            }
+            Account.authenticate(result.email, newPassword, function (err, result) {
+                if (err) {
+                    // do stuff
+                    //Unable to authenticate user, incorrect user
+                    //Return err
+
+                } else {
+                    if (result) {
+                        result.setPassword(newPassword,
+                            function (err, thisModel, passwordErr) {
+                                if (err) {
+                                    respond(res, 500);
+                                }
+                                if (passwordErr) {
+                                    respond(res, 400); //Bad Request response
+                                }
+                                if (thisModel) {
+                                    thisModel.save();
+                                    respond(res, 200);
+                                }
+                            })
+                    } else {
+                        respond(res, 400);
+                    }
+                }
+            });
         }).catch(function (err) {
-            app.logger.error('Failed to change password for user:', err);
-            respond(res, 500);
-        }).done();
+        app.logger.error('Failed to change password for user:', err);
+        respond(res, 500);
+        // log error and respond with 404
+    }).done();
+    //// TODO: validate
+    ////Search for user
+    ////Once user object == email param
+    ////setPassword (use callback function)
+    //var newPassword = req.params.password;
+    //return Account.findOneQ({id: req.params.id})
+    //    .then(function (result) {
+    //        if (result) {
+    //            result.setPassword(newPassword,
+    //                function (err, thisModel, passwordErr) {
+    //                    if (err) {
+    //                        respond(res, 500);
+    //                    }
+    //                    if (passwordErr) {
+    //                        respond(res, 400); //Bad Request response
+    //                    }
+    //                    if (thisModel) {
+    //                        thisModel.save();
+    //                        respond(res, 200);
+    //                    }
+    //                })
+    //        } else {
+    //            respond(res, 400);
+    //        }
+    //    }).catch(function (err) {
+    //        app.logger.error('Failed to change password for user:', err);
+    //        respond(res, 500);
+    //    }).done();
 
     //Res = response from
 };
@@ -191,9 +229,9 @@ exports.deleteUser = function (req, res) {
                 respond(res, 404);
             }
         }).catch(function (err) {
-            app.logger.error('Failed to delete user:', err);
-            respond(res, 500);
-        }).done();
+        app.logger.error('Failed to delete user:', err);
+        respond(res, 500);
+    }).done();
 };
 
 // local methods
