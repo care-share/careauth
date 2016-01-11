@@ -25,6 +25,7 @@ var ViewPage = React.createClass({
         this.setState({
             editHidden: !this.state.editHidden,
         });
+
         for (var obj in this.state.diffMap) {
             var text = document.getElementById(obj);
             text.style.backgroundColor = 'white';
@@ -32,6 +33,7 @@ var ViewPage = React.createClass({
         }
     },
     clickEdit: function (event) {
+        $( ".userInfoField.editableField" ).removeAttr('disabled');
         this.setState({
             editHidden: !this.state.editHidden
         });
@@ -237,12 +239,7 @@ var UserInfoList = React.createClass({
             fhir_id: this.state.initialMap["fhir_id"],
             contact_pref: this.state.initialMap["contact_pref"]
         });
-        document.getElementById('name_first').style.backgroundColor = 'white';
-        document.getElementById('name_last').style.backgroundColor = 'white';
-        document.getElementById('email').style.backgroundColor = 'white';
-        document.getElementById('roles').style.backgroundColor = 'white';
-        document.getElementById('phone').style.backgroundColor = 'white';
-        document.getElementById('fhir_id').style.backgroundColor = 'white';
+        $(".userInfoField.editableField").attr('disabled','true');
         this.props.clickCancel();
     },
     submitFields: function () {
@@ -255,21 +252,24 @@ var UserInfoList = React.createClass({
                 <ProfilePicture keyName="picture" userid={this.state.id}
                                 token={this.props.token} data={this.state} canSee={this.props.isHidden}/>
                 <br/>
+                <form>
                 <table>
-                    <UserInfo type='First Name: ' keyName='name_first' data={this.state}
-                              canEdit={this.props.isHidden} onUpdate={this.validateField}/>
-                    <UserInfo type='Last Name: ' keyName='name_last' data={this.state}
-                              canEdit={this.props.isHidden} onUpdate={this.validateField}/>
-                    <UserInfo type='Email: ' keyName='email' data={this.state}
-                              canEdit={this.props.isHidden} onUpdate={this.validateField}/>
-                    <UserInfo type='Roles: ' keyName='roles' data={this.state} canEdit={false}/>
-                    <UserInfo type='Phone Number: ' keyName='phone' data={this.state}
-                              canEdit={this.props.isHidden} onUpdate={this.validateField}/>
+                    <tbody>
+                    <UserInfo label='First Name: ' keyName='name_first' data={this.state} type="text"
+                              class="userInfoField editableField" onUpdate={this.validateField}/>
+                    <UserInfo label='Last Name: ' keyName='name_last' data={this.state} type="text"
+                              class="userInfoField editableField" onUpdate={this.validateField}/>
+                    <UserInfo label='Email: ' keyName='email' data={this.state} type="email"
+                              class="userInfoField editableField" onUpdate={this.validateField}/>
+                    <UserInfo label='Roles: ' keyName='roles' data={this.state} canEdit={false} type="text"/>
+                    <UserInfo label='Phone Number: ' keyName='phone' data={this.state} type="tel"
+                              class="userInfoField editableField" onUpdate={this.validateField}/>
                     <UserPreferences onUpdate={this.onUpdate} pref={this.state.contact_pref}
-                                     canEdit={this.props.isHidden}/>
-                    <UserInfo type='FHIR ID: ' keyName='fhir_id' data={this.state}
-                              canEdit={false} onUpdate={this.onUpdate}/>
+                                     class="userInfoField editableField"/>
+                    <UserInfo label='FHIR ID: ' keyName='fhir_id' data={this.state} type="text"
+                              canEdit={false} onUpdate={this.onUpdate}/></tbody>
                     </table>
+                    </form>
                     <button onClick={this.resetField} hidden={!this.props.isHidden}>Cancel</button>
                     <button onClick={this.submitFields} hidden={!this.props.isHidden}>Submit</button>
             </div>
@@ -283,17 +283,16 @@ var UserPreferences = React.createClass({
     },
     render: function () {
         return (
-            <tbody>
+
             <tr>
                 <td>Contact Preference:</td>
-                <td><select value={this.props.pref} disabled={!this.props.canEdit} onChange={this.handleChange}>
+                <td><select value={this.props.pref} class={this.props.class} onChange={this.handleChange} disabled>
                     <option type="text" value="never">Never</option>
                     <option type="text" value="once a day">Once a day</option>
                     <option type="text" value="immediately">Immediately</option>
                 </select>
                 </td>
             </tr>
-            </tbody>
         )
     }
 });
@@ -316,14 +315,14 @@ var UserInfo = React.createClass({
         return (
             <tbody>
             <tr>
-                <td>{this.props.type}</td>
-                <td><textarea
+                <td>{this.props.label}</td>
+                <td><input
+                    type={this.props.type}
                     id={this.props.keyName}
                     value={this.props.data[this.props.keyName]}
                     onChange={this.handleChange}
-                    readOnly={!this.props.canEdit}
-                    style={{backgroundColor: "white"}}
-                    rows="1" cols="20"></textarea></td>
+                    className={this.props.class}
+                    disabled></input></td>
                 <td><label id={this.props.keyName + 'err'} value="Display"></label></td>
             </tr>
             </tbody>
