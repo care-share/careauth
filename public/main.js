@@ -331,6 +331,10 @@ var UserInfo = React.createClass({
     }
 });
 //
+//Add Password Edit button in order to enable editing
+//Add Password submit button in order to submit password
+//This works separately from the rest of User Edit
+//Need to make AJAX request as well as place route into backend
 //var PasswordHandler = React.createClass({
 //   render: function (e) {
 //       return (

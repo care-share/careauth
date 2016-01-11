@@ -129,7 +129,9 @@ exports.removeUserPicture = function (req, res) {
 
 exports.changeUserPassword = function (req, res) {
     // JOE CODE
-    var newPassword = req.params.password;
+    //What do I want to do? What am I checking?
+    var newPassword = req.params.newPassword;
+    console.log(newPassword);
     if (newPassword.length < 8) {
         respond(res, 400);
     }
@@ -140,7 +142,7 @@ exports.changeUserPassword = function (req, res) {
                     // do stuff
                     //Unable to authenticate user, incorrect user
                     //Return err
-
+                    respond(res,400);
                 } else {
                     if (result) {
                         result.setPassword(newPassword,

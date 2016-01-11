@@ -123,7 +123,7 @@ module.exports = function (server, passport) {
     // params:
     // * email: email of user to change
     // * newPassword: new password for user
-    server.route('/users/:id/password/:password')
+    server.route('/users/:id/password/:newPassword')
         .put(auth.checkAdminOrOwnerToken, user.changeUserPassword);
 
     // updates a user's phone number
