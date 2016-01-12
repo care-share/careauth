@@ -25,6 +25,7 @@
     "passport": "^0.3.2",
     "passport-local-mongoose": "^3.1.0",
     "q": "^1.4.1",
+    "q-io": "^1.13.2",
     "revalidator": "^0.3.1",
     "should": "~2.1.0",
     "winston": "^1.0.1",
