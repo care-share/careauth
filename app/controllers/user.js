@@ -128,14 +128,15 @@ exports.removeUserPicture = function (req, res) {
 };
 
 exports.changeUserInfo = function (req, res) {
-    if(req.body.name_first)
-        updateUser(res, {_id: req.params.id}, {name_first: req.body.name_first});
-    if(req.body.name_last)
-        updateUser(res, {_id: req.params.id}, {name_last: req.body.name_last});
-    if(req.body.email)
-        updateUser(res, {_id: req.params.id}, {email: req.body.email});
-    if(req.body.phone)
-        updateUser(res, {_id: req.params.id}, {phone: req.body.phone});
+    var update = {};
+    for(var i in req.body){
+        var key = req.body[i].name;
+        var value = req.body[i].value;
+        if(key === 'name_first' || key === 'name_last' || key === 'email' || key === 'phone') {
+            update[key] = value;
+        }
+    }
+    updateUser(res, {_id: req.params.id}, update);
     //TODO Need to add contact preferences
 };
 
