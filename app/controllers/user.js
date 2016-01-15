@@ -127,6 +127,18 @@ exports.removeUserPicture = function (req, res) {
     updateUser(res, {_id: req.params.id}, {picture: 'default_picture.jpg'});
 };
 
+exports.changeUserInfo = function (req, res) {
+    if(req.body.name_first)
+        updateUser(res, {_id: req.params.id}, {name_first: req.body.name_first});
+    if(req.body.name_last)
+        updateUser(res, {_id: req.params.id}, {name_last: req.body.name_last});
+    if(req.body.email)
+        updateUser(res, {_id: req.params.id}, {email: req.body.email});
+    if(req.body.phone)
+        updateUser(res, {_id: req.params.id}, {phone: req.body.phone});
+    //TODO Need to add contact preferences
+};
+
 exports.changeUserPassword = function (req, res) {
     // JOE CODE
     //What do I want to do? What am I checking?

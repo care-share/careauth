@@ -1,0 +1,20 @@
+.userInfoField{
+
+}
+
+.userInfoField:valid{
+    background-color:#ddffdd;
+}
+
+.userInfoField:invalid{
+    background-color:#ffdddd;
+}
+
+.userInfoField:required{
+    border-color:#800000;
+    border-width:3px;
+}
+
+.editableField{
+
+}

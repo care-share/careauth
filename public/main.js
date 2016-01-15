@@ -125,13 +125,13 @@ var ViewPage = React.createClass({
 var UserInfoList = React.createClass({
     getInitialState: function () {
         return {
-            name_first: 'default first name',
-            name_last: 'default last name',
-            email: 'default email',
-            roles: 'default role',
-            phone: 'default phone',
-            fhir_id: 'default fhir id',
-            contact_pref: 'default contact preference',
+            name_first: '',
+            name_last: '',
+            email: '',
+            roles: '',
+            phone: '',
+            fhir_id: '',
+            contact_pref: '',
             picture: 'default_picture.jpg',
             canSubmit: false,
             initialMap: {}
@@ -173,61 +173,11 @@ var UserInfoList = React.createClass({
     componentDidMount: function () {
         this.loadServerData();
     },
-    //TODO add error message if field is bad
-    validateField: function (key, value) {
+    handleChange: function(event) {
         var obj = {};
-        obj[key] = value;
+        obj[event.target.name] = event.target.value;
         this.setState(obj);
-        var errMsg = document.getElementById(key+'err');
-        if (key === 'email') {
-            if (validator.isEmail(value)) {
-                this.setState({canSubmit: false});
-                this.onUpdate(key, value);
-                errMsg.innerHTML = '';
-            } else {
-                //TODO Add error message
-                var text = document.getElementById(key);
-                text.style.backgroundColor = 'red';
-                this.setState({canSubmit : true});
-                errMsg.innerHTML = 'invalid email';
-            }
-        } else if (key === 'phone') {
-            if (validator.isMobilePhone(value, 'en-US')) {
-                this.setState({canSubmit: false});
-                this.onUpdate(key, value);
-                errMsg.innerHTML = '';
-            } else {
-                var text = document.getElementById(key);
-                text.style.backgroundColor = 'red';
-                this.setState({canSubmit : true});
-                errMsg.innerHTML = 'invalid phone';
-            }
-        } else if (key === 'name_first' || key === 'name_last') {
-            var str = validator.trim(value);
-            if(str !== ''){
-                this.setState({canSubmit : false});
-                this.onUpdate(key, value);
-                errMsg.innerHTML = '';
-            } else {
-                var text = document.getElementById(key);
-                text.style.backgroundColor = 'red';
-                this.setState({canSubmit : true});
-                errMsg.innerHTML = key + ' cannot be empty';
-            }
-        }
-    },
-    onUpdate: function (key, value) {
-        var obj = {};
-        obj[key] = value;
-        this.setState(obj);
-        this.props.updateList(key, value);
-        var text = document.getElementById(key);
-        if (this.state.initialMap[key] != obj[key]) {
-            text.style.backgroundColor = 'green';
-        }
-        else {
-            text.style.backgroundColor = 'white';
-        }
+        //this.props.updateList(key, value);
     },
     resetField: function () {
         this.setState({
@@ -255,19 +205,94 @@ var UserInfoList = React.createClass({
                 <form>
                 <table>
                     <tbody>
-                    <UserInfo label='First Name: ' keyName='name_first' data={this.state} type="text"
-                              class="userInfoField editableField" onUpdate={this.validateField}/>
-                    <UserInfo label='Last Name: ' keyName='name_last' data={this.state} type="text"
-                              class="userInfoField editableField" onUpdate={this.validateField}/>
-                    <UserInfo label='Email: ' keyName='email' data={this.state} type="email"
-                              class="userInfoField editableField" onUpdate={this.validateField}/>
-                    <UserInfo label='Roles: ' keyName='roles' data={this.state} canEdit={false} type="text"/>
-                    <UserInfo label='Phone Number: ' keyName='phone' data={this.state} type="tel"
-                              class="userInfoField editableField" onUpdate={this.validateField}/>
-                    <UserPreferences onUpdate={this.onUpdate} pref={this.state.contact_pref}
-                                     class="userInfoField editableField"/>
-                    <UserInfo label='FHIR ID: ' keyName='fhir_id' data={this.state} type="text"
-                              canEdit={false} onUpdate={this.onUpdate}/></tbody>
+                    <tr>
+                        <td>First Name:</td>
+                        <td>
+                            <input
+                                name="name_first"
+                                placeholder="Enter your first name"
+                                type="text"
+                                value={this.state.name_first}
+                                required
+                                disabled
+                                onChange={this.handleChange}
+                                className="userInfoField editableField"
+                            ></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Last Name:</td>
+                        <td>
+                            <input
+                                name="name_last"
+                                placeholder="Enter your last name"
+                                type="text"
+                                onChange={this.handleChange}
+                                value={this.state.name_last}
+                                required
+                                disabled
+                                className="userInfoField editableField"
+                            ></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Email:</td>
+                        <td>
+                            <input
+                                name="email"
+                                placeholder="Enter your email"
+                                type="email"
+                                value={this.state.email}
+                                onChange={this.handleChange}
+                                required
+                                disabled
+                                className="userInfoField editableField"
+                            ></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Roles:</td>
+                        <td>
+                            <input
+                                placeholder="No roles exist"
+                                type="text"
+                                value={this.state.roles}
+                                disabled
+                                className="userInfoField"
+                            ></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Phone:</td>
+                        <td>
+                            <input
+                                name="phone"
+                                placeholder="Enter your phone"
+                                type="tel"
+                                onChange={this.handleChange}
+                                value={this.state.phone}
+                                required
+                                disabled
+                                className="userInfoField editableField"
+                            ></input>
+                        </td>
+                    </tr>
+                    <UserPreferences pref={this.state.contact_pref}
+                                     class="userInfoField editableField" placeholder="Select your contact preference"/>
+                    <tr>
+                        <td>FHIR ID:</td>
+                        <td>
+                            <input
+                                placeholder="No fhir id exists"
+                                type="text"
+                                value={this.state.fhir_id}
+                                required
+                                disabled
+                                className="userInfoField"
+                            ></input>
+                        </td>
+                    </tr>
+                    </tbody>
                     </table>
                     </form>
                     <button onClick={this.resetField} hidden={!this.props.isHidden}>Cancel</button>
@@ -286,7 +311,7 @@ var UserPreferences = React.createClass({
 
             <tr>
                 <td>Contact Preference:</td>
-                <td><select value={this.props.pref} class={this.props.class} onChange={this.handleChange} disabled>
+                <td><select value={this.props.pref} className={this.props.class} onChange={this.handleChange} disabled>
                     <option type="text" value="never">Never</option>
                     <option type="text" value="once a day">Once a day</option>
                     <option type="text" value="immediately">Immediately</option>
@@ -297,38 +322,6 @@ var UserPreferences = React.createClass({
     }
 });
 
-/**
- * UserInfo is a React component used to display user information in a <textarea>
- * updates from these <textarea>'s are passed up to UserInfoList and update state
- *@param this.props.canEdit used to see if textarea is editable
- *@param this.props.type used to label the type of data being displayed
- *@param this.props.data sets the data to be displayed
- *@param this.props.keyName used to select the correct state to display and edit
- *@method handleChange updates state from parent using change.target.value
- *@method render creates a <div> containing a read-only <textarea>
- */
-var UserInfo = React.createClass({
-    handleChange: function (change) {
-        this.props.onUpdate(this.props.keyName, change.target.value);
-    },
-    render: function () {
-        return (
-            <tbody>
-            <tr>
-                <td>{this.props.label}</td>
-                <td><input
-                    type={this.props.type}
-                    id={this.props.keyName}
-                    value={this.props.data[this.props.keyName]}
-                    onChange={this.handleChange}
-                    className={this.props.class}
-                    disabled></input></td>
-                <td><label id={this.props.keyName + 'err'} value="Display"></label></td>
-            </tr>
-            </tbody>
-        );
-    }
-});
 //
 //Add Password Edit button in order to enable editing
 //Add Password submit button in order to submit password
@@ -363,7 +356,7 @@ var ProfilePicture = React.createClass({
         var userid = this.props.userid;
         var url = '/users/' + userid + '/picture/';
         var token = this.props.token;
-        $("#multiform").submit(function (e) {
+        $("#pictureForm").submit(function (e) {
             var formObj = $(this);
             var formData = new FormData(this);
             $.ajax({
@@ -385,7 +378,7 @@ var ProfilePicture = React.createClass({
             e.preventDefault(); //Prevent Default action.
             // e.unbind();
         });
-        $("#multiform").submit();
+        $("#pictureForm").submit();
         console.log(this.props.data[this.props.keyName]);
         this.forceUpdate();
     },
@@ -398,7 +391,7 @@ var ProfilePicture = React.createClass({
                         src={"avatars/"+this.props.data[this.props.keyName]}></img>
                 </div>
                 <div hidden={!this.props.canSee}>
-                    <form name="multiform" id="multiform" encType="multipart/form-data" onSubmit={this.handleSubmit}>
+                    <form name="multiform" id="pictureForm" encType="multipart/form-data" onSubmit={this.handleSubmit}>
                         <input name="image" type="file" accept=".jpg"/>
                         <input type="submit" onClick={this.handleChange}/>
                     </form>

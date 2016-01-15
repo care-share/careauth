@@ -71,6 +71,11 @@ module.exports = function (server, passport) {
     server.route('/users/:id/approve')
         .post(auth.checkAdminToken, user.approveUser);
 
+    // updates all of user's information
+    // params
+    server.route('users/:id/update')
+        .put(auth.checkAdminOrOwnerToken, user.changeUserInfo);
+
     // adds or removes a role from a user
     // params:
     //  * email: email of user to change
