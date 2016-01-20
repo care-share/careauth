@@ -145,43 +145,49 @@ exports.changeUserPassword = function (req, res) {
     var newPassword = req.body[1].value;
     console.log('Old password is '+ oldPassword);
     console.log('New password is ' + newPassword);
+
+    // basic password validation
     if (newPassword.length < 8) {
+        // TODO: validation using passport
         respond(res, 400);
+        return;
     }
-    Account.findOneQ({_id: req.params.id})
-        .then(function (result) {
-            Account.authenticate(result.email, oldPassword, function (err, result) {
+    Account.findOneQ({_id: req.params.id}).then(function (user) {
+        if (!user) {
+            respond(res, 404);
+            return;
+        }
+        user.authenticate(oldPassword, function (err, user, passportErr) {
+            if (err) {
+                app.logger.verbose('User %s tried to change password for %s but triggered a crypto error:', req.user.id, req.params.id, err);
+                respond(res, 500);
+                return;
+            } else if (passportErr) {
+                app.logger.verbose('User %s tried to change password for %s but triggered a passport error:', req.user.id, req.params.id, passportErr);
+                respond(res, 401);
+                return;
+            } else if (!user) {
+                app.logger.verbose('User %s tried to change password for %s but authenticate result is undefined!', req.user.id, req.params.id);
+                return;
+            }
+            user.setPassword(newPassword, function (err, user) {
                 if (err) {
-                    //Unable to authenticate the user, bad password
-                    console.log('Incorrect Password');
-                    respond(res,400);
-                } else {
-                    if (result) {
-                        console.log('Was the correct password');
-                        result.setPassword(newPassword,
-                            function (err, thisModel, passwordErr) {
-                                if (err) {
-                                    console.log('Cannot set Password');
-                                    respond(res, 500);
-                                }
-                                if (passwordErr) {
-                                    respond(res, 400); //Bad Request response
-                                }
-                                if (thisModel) {
-                                    console.log('Password gets set');
-                                    thisModel.save();
-                                    respond(res, 200);
-                                }
-                            })
-                    } else {
-                        respond(res, 400);
-                    }
+                    app.logger.verbose('User %s tried to change password for %s but triggered a validation error:', req.user.id, req.params.id, err);
+                    return;
                 }
+                user.save(function (err) {
+                    if (err) {
+                        app.logger.error('Failed to save user after changing password:', err);
+                        respond(res, 500);
+                        return;
+                    }
+                    respond(res, 200);
+                });
             });
-        }).catch(function (err) {
+        });
+    }).catch(function (err) {
         app.logger.error('Failed to change password for user:', err);
         respond(res, 500);
-        // log error and respond with 404
     }).done();
 };
 
