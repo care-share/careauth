@@ -329,25 +329,32 @@ var PasswordHandler = React.createClass({
     submitChanges: function (e) {
         var userid = this.props.userid;
         var token = this.props.token;
-        $('#passform').submit(function () {
-            var frm = $(this);
-            var dat = JSON.stringify(frm.serializeArray());
-            var url = "users/" + userid + "/password";
+        if(this.state.new_password === this.state.confirm_password){
+            console.log('Passwords match');
+            $('#passform').submit(function () {
+                var frm = $(this);
+                var dat = JSON.stringify(frm.serializeArray());
+                var url = "users/" + userid + "/password";
 
-            console.log("I am about to POST this:\n\n" + dat);
-            //Catch Response, update state
-            $.ajax({
-                type: "POST",
-                url: url,
-                headers: {'X-Auth-Token': token},
-                data: dat,
-                success: function () {
-                    console.log('SUCCESS');
-                },
-                dataType: "json",
-                contentType: "application/json"
+                console.log("I am about to POST this:\n\n" + dat);
+                //Catch Response, update state
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    headers: {'X-Auth-Token': token},
+                    data: dat,
+                    success: function () {
+                        console.log('SUCCESS');
+                    },
+                    dataType: "json",
+                    contentType: "application/json"
+                });
             });
-        });
+        } else {
+            console.log('Passwords do not match!');
+            //TODO display error message on UI
+        }
+
     },
     handleChange: function (event) {
         var obj = {};
