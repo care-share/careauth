@@ -12,6 +12,7 @@ module.exports = function (server, passport) {
     var account = require('../controllers/account');
     var auth = require('../controllers/auth');
     var user = require('../controllers/user');
+    var medrec = require('../controllers/medrec');
     var multer = require('multer');
     //var upload = multer({ dest: './public/avatars'});
     var storage = multer.diskStorage({
@@ -40,6 +41,22 @@ module.exports = function (server, passport) {
 
     server.route('/auth/logout')
         .post(auth.checkToken, account.logout);
+
+    ///////////////////////////////////////////////////////////////////////////
+    // MEDREC CONTROLLER
+    ///////////////////////////////////////////////////////////////////////////
+
+    // gets a list of MedRecs for a given FHIR user
+    server.route('/medrecs/patient_id/:patient_id')
+        .get(auth.checkToken, medrec.findMedRecs);
+
+    // create or update a MedRec
+    server.route('/medrecs')
+        .put(auth.checkToken, medrec.saveMedRec);
+
+    // delete a MedRec
+    server.route('/medrecs/id/:id')
+        .delete(auth.checkToken, medrec.deleteMedRec);
 
     ///////////////////////////////////////////////////////////////////////////
     // USER CONTROLLER
