@@ -1,10 +1,9 @@
 /**
  * Created by Collin McRae
- * ver: 0.5
- * last modified: 12/30/2015
+ * ver: 0.7
+ * last modified: 1/19/2016
  */
 
-//TODO: Add error messages to front-end
 //TODO: Add documentation for new elements, update documentation for old elements
 
 /**
@@ -25,56 +24,17 @@ var ViewPage = React.createClass({
         this.setState({
             editHidden: !this.state.editHidden,
         });
-
-        for (var obj in this.state.diffMap) {
-            var text = document.getElementById(obj);
-            text.style.backgroundColor = 'white';
-            delete this.state.diffMap[obj];
-        }
     },
     clickEdit: function (event) {
-        $( ".userInfoField.editableField" ).removeAttr('disabled');
+        $(".userInfoField.editableField").removeAttr('disabled');
         this.setState({
             editHidden: !this.state.editHidden
         });
     },
     clickSubmit: function (event) {
+        $(".userInfoField.editableField").attr('disabled', 'true');
         this.setState({
             editHidden: !this.state.editHidden
-        });
-        var token = this.getUrlParameter('token');
-        //From token I need to get ID
-        var decoded = jwt_decode(token);
-        var userid = decoded.sub;
-        for (var obj in this.state.diffMap) {
-            var url = '/users/' + userid + '/' + obj + '/' + this.state.diffMap[obj];
-            (function (copy_obj) {
-                $.ajax({
-                    url: url,
-                    method: 'PUT',
-                    headers: {'X-Auth-Token': token},
-                    success: function (data, textStatus, jqXHR) {
-                        var text = document.getElementById(copy_obj);
-                        text.style.backgroundColor = 'white';
-                        var errMsg = document.getElementById(copy_obj+'err');
-                        errMsg.innerHTML = "";
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        var text = document.getElementById(copy_obj);
-                        text.style.backgroundColor = 'red';
-                        var errMsg = document.getElementById(copy_obj+'err');
-                        errMsg.innerHTML = copy_obj+': '+textStatus +' '+errorThrown;
-                    }
-                });
-            }(obj))
-            delete this.state.diffMap[obj];
-        }
-    },
-    addToList: function (key, value) {
-        var newMap = this.state.diffMap;
-        newMap[key] = value;
-        this.setState({
-            diffMap: newMap
         });
     },
     getUrlParameter: function (sParam) {
@@ -173,11 +133,10 @@ var UserInfoList = React.createClass({
     componentDidMount: function () {
         this.loadServerData();
     },
-    handleChange: function(event) {
+    handleChange: function (event) {
         var obj = {};
         obj[event.target.name] = event.target.value;
         this.setState(obj);
-        //this.props.updateList(key, value);
     },
     resetField: function () {
         this.setState({
@@ -189,12 +148,40 @@ var UserInfoList = React.createClass({
             fhir_id: this.state.initialMap["fhir_id"],
             contact_pref: this.state.initialMap["contact_pref"]
         });
-        $(".userInfoField.editableField").attr('disabled','true');
+        $(".userInfoField.editableField").attr('disabled', 'true');
         this.props.clickCancel();
     },
-    submitFields: function () {
-        this.props.clickSubmit();
-        this.loadServerData();
+    submitChanges: function (e) {
+        var userid = this.state.id;
+        var token = this.props.token;
+        var reactObj = this;
+        function submit() {
+            reactObj.loadServerData();
+            reactObj.props.clickSubmit();
+        }
+        $('#myform').submit(function () {
+            var frm = $(this);
+            var dat = JSON.stringify(frm.serializeArray());
+            var url = "users/" + userid + "/update";
+
+            console.log("I am about to POST this:\n\n" + dat);
+            //Catch Response, update state
+            $.ajax({
+                type: "POST",
+                url: url,
+                headers: {'X-Auth-Token': token},
+                data: dat,
+                success: function (result) {
+                    console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
+                    submit(result);
+                },
+                dataType: "json",
+                contentType: "application/json"
+            });
+        });
+    },
+    handleSubmit: function (e) {
+        e.preventDefault();
     },
     render: function () {
         return (
@@ -202,101 +189,106 @@ var UserInfoList = React.createClass({
                 <ProfilePicture keyName="picture" userid={this.state.id}
                                 token={this.props.token} data={this.state} canSee={this.props.isHidden}/>
                 <br/>
-                <form>
-                <table>
-                    <tbody>
-                    <tr>
-                        <td>First Name:</td>
-                        <td>
-                            <input
-                                name="name_first"
-                                placeholder="Enter your first name"
-                                type="text"
-                                value={this.state.name_first}
-                                required
-                                disabled
-                                onChange={this.handleChange}
-                                className="userInfoField editableField"
-                            ></input>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Last Name:</td>
-                        <td>
-                            <input
-                                name="name_last"
-                                placeholder="Enter your last name"
-                                type="text"
-                                onChange={this.handleChange}
-                                value={this.state.name_last}
-                                required
-                                disabled
-                                className="userInfoField editableField"
-                            ></input>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Email:</td>
-                        <td>
-                            <input
-                                name="email"
-                                placeholder="Enter your email"
-                                type="email"
-                                value={this.state.email}
-                                onChange={this.handleChange}
-                                required
-                                disabled
-                                className="userInfoField editableField"
-                            ></input>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Roles:</td>
-                        <td>
-                            <input
-                                placeholder="No roles exist"
-                                type="text"
-                                value={this.state.roles}
-                                disabled
-                                className="userInfoField"
-                            ></input>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Phone:</td>
-                        <td>
-                            <input
-                                name="phone"
-                                placeholder="Enter your phone"
-                                type="tel"
-                                onChange={this.handleChange}
-                                value={this.state.phone}
-                                required
-                                disabled
-                                className="userInfoField editableField"
-                            ></input>
-                        </td>
-                    </tr>
-                    <UserPreferences pref={this.state.contact_pref}
-                                     class="userInfoField editableField" placeholder="Select your contact preference"/>
-                    <tr>
-                        <td>FHIR ID:</td>
-                        <td>
-                            <input
-                                placeholder="No fhir id exists"
-                                type="text"
-                                value={this.state.fhir_id}
-                                required
-                                disabled
-                                className="userInfoField"
-                            ></input>
-                        </td>
-                    </tr>
-                    </tbody>
+                <form id="myform" onSubmit={this.handleSubmit}>
+                    <table>
+                        <tbody>
+                        <tr>
+                            <td>First Name:</td>
+                            <td>
+                                <input
+                                    name="name_first"
+                                    placeholder="Enter your first name"
+                                    type="text"
+                                    value={this.state.name_first}
+                                    required
+                                    disabled
+                                    onChange={this.handleChange}
+                                    className="userInfoField editableField"
+                                ></input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Last Name:</td>
+                            <td>
+                                <input
+                                    name="name_last"
+                                    placeholder="Enter your last name"
+                                    type="text"
+                                    onChange={this.handleChange}
+                                    value={this.state.name_last}
+                                    required
+                                    disabled
+                                    className="userInfoField editableField"
+                                ></input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Email:</td>
+                            <td>
+                                <input
+                                    name="email"
+                                    placeholder="Enter your email"
+                                    type="email"
+                                    value={this.state.email}
+                                    onChange={this.handleChange}
+                                    required
+                                    disabled
+                                    className="userInfoField editableField"
+                                ></input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Roles:</td>
+                            <td>
+                                <input
+                                    placeholder="No roles exist"
+                                    type="text"
+                                    value={this.state.roles}
+                                    disabled
+                                    className="userInfoField"
+                                ></input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Phone:</td>
+                            <td>
+                                <input
+                                    name="phone"
+                                    placeholder="Enter your phone"
+                                    type="tel"
+                                    onChange={this.handleChange}
+                                    value={this.state.phone}
+                                    required
+                                    disabled
+                                    className="userInfoField editableField"
+                                ></input>
+                            </td>
+                        </tr>
+                        <UserPreferences pref={this.state.contact_pref}
+                                         class="userInfoField editableField"
+                                         placeholder="Select your contact preference"/>
+                        <tr>
+                            <td>FHIR ID:</td>
+                            <td>
+                                <input
+                                    placeholder="No fhir id exists"
+                                    type="text"
+                                    value={this.state.fhir_id}
+                                    required
+                                    disabled
+                                    className="userInfoField"
+                                ></input>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="submit" onClick={this.submitChanges} hidden={!this.props.isHidden}></input>
+                            </td>
+                        </tr>
+                        </tbody>
                     </table>
-                    </form>
-                    <button onClick={this.resetField} hidden={!this.props.isHidden}>Cancel</button>
-                    <button onClick={this.submitFields} hidden={!this.props.isHidden}>Submit</button>
+                </form>
+                <button onClick={this.resetField} hidden={!this.props.isHidden}>Cancel</button>
             </div>
         );
     }
@@ -323,10 +315,6 @@ var UserPreferences = React.createClass({
 });
 
 //
-//Add Password Edit button in order to enable editing
-//Add Password submit button in order to submit password
-//This works separately from the rest of User Edit
-//Need to make AJAX request as well as place route into backend
 //var PasswordHandler = React.createClass({
 //   render: function (e) {
 //       return (

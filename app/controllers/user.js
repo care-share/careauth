@@ -136,13 +136,14 @@ exports.changeUserInfo = function (req, res) {
             update[key] = value;
         }
     }
-    updateUser(res, {_id: req.params.id}, update);
+    updateUser(res, {_id: req.params.id}, update, true);
     //TODO Need to add contact preferences
 };
 
 exports.changeUserPassword = function (req, res) {
     // JOE CODE
-    //What do I want to do? What am I checking?
+    //1) Get
+
     var newPassword = req.params.newPassword;
     console.log(newPassword);
     if (newPassword.length < 8) {
@@ -250,11 +251,12 @@ exports.deleteUser = function (req, res) {
 };
 
 // local methods
-function updateUser(res, query, update) {
-    return Account.findOneAndUpdateQ(query, update)
+function updateUser(res, query, update, replyWithResult) {
+    return Account.findOneAndUpdateQ(query, update, replyWithResult ? {new: true} : undefined)
         .then(function (result) {
             if (result) {
-                respond(res, 200);
+                result.token = undefined; // TODO: filter out unwanted properties in a more elegant way
+                respond(res, 200, replyWithResult ? result : undefined);
             } else {
                 respond(res, 404);
             }

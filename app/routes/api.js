@@ -106,10 +106,9 @@ module.exports = function (server, passport) {
 
     // updates the user's password
     // params:
-    // * email: email of user to change
-    // * newPassword: new password for user
-    server.route('/users/:id/password/:newPassword')
-        .put(auth.checkAdminOrOwnerToken, user.changeUserPassword);
+    // * id: email of user to change
+    server.route('/users/:id/password')
+        .post(auth.checkAdminOrOwnerToken, user.changeUserPassword);
 
     // updates a user's contact preference
     // params:
