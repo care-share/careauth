@@ -155,17 +155,18 @@ var UserInfoList = React.createClass({
         var userid = this.state.id;
         var token = this.props.token;
         var reactObj = this;
+
         function submit() {
             reactObj.loadServerData();
             reactObj.props.clickSubmit();
         }
+
         $('#myform').submit(function () {
             var frm = $(this);
             var dat = JSON.stringify(frm.serializeArray());
             var url = "users/" + userid + "/update";
 
             console.log("I am about to POST this:\n\n" + dat);
-            //Catch Response, update state
             $.ajax({
                 type: "POST",
                 url: url,
@@ -188,6 +189,8 @@ var UserInfoList = React.createClass({
             <div>
                 <ProfilePicture keyName="picture" userid={this.state.id}
                                 token={this.props.token} data={this.state} canSee={this.props.isHidden}/>
+                <br/>
+                <PasswordHandler token={this.props.token} userid={this.state.id} isHidden={this.props.isHidden}/>
                 <br/>
                 <form id="myform" onSubmit={this.handleSubmit}>
                     <table>
@@ -282,13 +285,13 @@ var UserInfoList = React.createClass({
                         </tr>
                         <tr>
                             <td>
-                                <input type="submit" onClick={this.submitChanges} hidden={!this.props.isHidden}></input>
+                                <input type="submit" onClick={this.submitChanges} hidden={!this.props.isHidden} value="submit changes"></input>
                             </td>
                         </tr>
                         </tbody>
                     </table>
                 </form>
-                <button onClick={this.resetField} hidden={!this.props.isHidden}>Cancel</button>
+                <button onClick={this.resetField} hidden={!this.props.isHidden}>cancel</button>
             </div>
         );
     }
@@ -314,27 +317,80 @@ var UserPreferences = React.createClass({
     }
 });
 
-//
-//var PasswordHandler = React.createClass({
-//   render: function (e) {
-//       return (
-//           <tbody hidden={!this.props.canEdit}>
-//           <tr>
-//               <td>Existing Password</td>
-//               <td><textarea>Type it here!</textarea></td>
-//           </tr>
-//           <tr>
-//               <td>New Password</td>
-//               <td><textarea>Type it here!</textarea></td>
-//           </tr>
-//           <tr>
-//               <td>Confirm Password</td>
-//               <td><textarea>Type it here!</textarea></td>
-//           </tr>
-//           </tbody>
-//       );
-//   }
-//});
+
+var PasswordHandler = React.createClass({
+    getInitialState: function() {
+        return {
+            existing_password: '',
+            new_password: '',
+            confirm_password: ''
+        };
+    },
+    submitChanges: function (e) {
+        var userid = this.props.userid;
+        var token = this.props.token;
+        $('#passform').submit(function () {
+            var frm = $(this);
+            var dat = JSON.stringify(frm.serializeArray());
+            var url = "users/" + userid + "/password";
+
+            console.log("I am about to POST this:\n\n" + dat);
+            //Catch Response, update state
+            $.ajax({
+                type: "POST",
+                url: url,
+                headers: {'X-Auth-Token': token},
+                data: dat,
+                success: function () {
+                    console.log('SUCCESS');
+                },
+                dataType: "json",
+                contentType: "application/json"
+            });
+        });
+    },
+    handleChange: function (event) {
+        var obj = {};
+        obj[event.target.name] = event.target.value;
+        this.setState(obj);
+    },
+    handleSubmit: function (e) {
+        e.preventDefault();
+    },
+    render: function () {
+        return (
+            <form id="passform" hidden={!this.props.isHidden} onSubmit={this.handleSubmit}>
+                <table>
+                    <tbody>
+                    <tr>
+                        <td>Existing Password: </td>
+                        <td><input value={this.state.existing_password} onChange={this.handleChange}
+                                   className="userInfoField editableField" required type="text"
+                                   placeholder="Enter existing password" name="existing_password"></input></td>
+                    </tr>
+                    <tr>
+                        <td>New Password: </td>
+                        <td><input value={this.state.new_password} onChange={this.handleChange}
+                                   className="userInfoField editableField" required type="text"
+                                   placeholder="Enter new password" name="new_password"></input></td>
+                    </tr>
+                    <tr>
+                        <td>Confirm Password: </td>
+                        <td><input value={this.state.confirm_password} onChange={this.handleChange}
+                                   className="userInfoField editableField" required type="text"
+                                   placeholder="Confirm new password" name="confirm_password"></input></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="submit" value="submit password" onClick={this.submitChanges}></input>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </form>
+        );
+    }
+});
 
 var ProfilePicture = React.createClass({
     handleSubmit: function (e) {
@@ -381,7 +437,7 @@ var ProfilePicture = React.createClass({
                 <div hidden={!this.props.canSee}>
                     <form name="multiform" id="pictureForm" encType="multipart/form-data" onSubmit={this.handleSubmit}>
                         <input name="image" type="file" accept=".jpg"/>
-                        <input type="submit" onClick={this.handleChange}/>
+                        <input type="submit" value="submit picture" onClick={this.handleChange}/>
                     </form>
                 </div>
             </div>

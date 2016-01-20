@@ -141,33 +141,34 @@ exports.changeUserInfo = function (req, res) {
 };
 
 exports.changeUserPassword = function (req, res) {
-    // JOE CODE
-    //1) Get
-
-    var newPassword = req.params.newPassword;
-    console.log(newPassword);
+    var oldPassword = req.body[0].value;
+    var newPassword = req.body[1].value;
+    console.log('Old password is '+ oldPassword);
+    console.log('New password is ' + newPassword);
     if (newPassword.length < 8) {
         respond(res, 400);
     }
     Account.findOneQ({_id: req.params.id})
         .then(function (result) {
-            Account.authenticate(result.email, newPassword, function (err, result) {
+            Account.authenticate(result.email, oldPassword, function (err, result) {
                 if (err) {
-                    // do stuff
-                    //Unable to authenticate user, incorrect user
-                    //Return err
+                    //Unable to authenticate the user, bad password
+                    console.log('Incorrect Password');
                     respond(res,400);
                 } else {
                     if (result) {
+                        console.log('Was the correct password');
                         result.setPassword(newPassword,
                             function (err, thisModel, passwordErr) {
                                 if (err) {
+                                    console.log('Cannot set Password');
                                     respond(res, 500);
                                 }
                                 if (passwordErr) {
                                     respond(res, 400); //Bad Request response
                                 }
                                 if (thisModel) {
+                                    console.log('Password gets set');
                                     thisModel.save();
                                     respond(res, 200);
                                 }
@@ -182,36 +183,6 @@ exports.changeUserPassword = function (req, res) {
         respond(res, 500);
         // log error and respond with 404
     }).done();
-    //// TODO: validate
-    ////Search for user
-    ////Once user object == email param
-    ////setPassword (use callback function)
-    //var newPassword = req.params.password;
-    //return Account.findOneQ({id: req.params.id})
-    //    .then(function (result) {
-    //        if (result) {
-    //            result.setPassword(newPassword,
-    //                function (err, thisModel, passwordErr) {
-    //                    if (err) {
-    //                        respond(res, 500);
-    //                    }
-    //                    if (passwordErr) {
-    //                        respond(res, 400); //Bad Request response
-    //                    }
-    //                    if (thisModel) {
-    //                        thisModel.save();
-    //                        respond(res, 200);
-    //                    }
-    //                })
-    //        } else {
-    //            respond(res, 400);
-    //        }
-    //    }).catch(function (err) {
-    //        app.logger.error('Failed to change password for user:', err);
-    //        respond(res, 500);
-    //    }).done();
-
-    //Res = response from
 };
 
 function changeUserRole(req, res, add) {
