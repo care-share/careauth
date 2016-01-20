@@ -439,7 +439,7 @@ var ProfilePicture = React.createClass({
                 <div>
                     <img
                         id={this.props.keyName}
-                        src={"avatars/"+this.props.data[this.props.keyName]}></img>
+                        src={"/avatars/"+this.props.data[this.props.keyName]}></img>
                 </div>
                 <div hidden={!this.props.canSee}>
                     <form name="multiform" id="pictureForm" encType="multipart/form-data" onSubmit={this.handleSubmit}>
