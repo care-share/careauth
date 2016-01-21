@@ -1,7 +1,9 @@
 // skeleton React page
 var ViewPage = React.createClass({
     getInitialState: function () {
-        return {};
+        return {
+	    medication_list_response: ''
+	};
     },
     getUrlParameter: function (sParam) {
         var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -24,15 +26,37 @@ var ViewPage = React.createClass({
         var token = this.getUrlParameter('token');
         var patient_id = this.getUrlParameter('patient_id');
         // TODO: validate that token and patient_id are not null
-        var fhir_url_base = 'http://fhir.localhost:3000'; // TODO: this is hard-coded, get this from config somehow instead
+        var fhir_url_base = 'http://fhir.vacareshare.org:8081/baseDstu2'; // TODO: this is hard-coded, get this from config somehow instead
         var fhir_url = fhir_url_base + '/MedicationOrder?_include=MedicationOrder:medication&_format=json&_count=50&patient=' + patient_id;
         // TODO: make an AJAX call to GET 'fhir_url' (using the token in the header), get the resulting medications, and store them in the state
+	$.ajax({
+            url: fhir_url,
+            dataType: 'json',
+            headers: {'X-Auth-Token': token},
+            success: function (result) {
+                this.setState({
+		    medication_list_response: result
+                });
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(this.props.source, status, err.toString());
+            }.bind(this)
+        });
         return (
-            <div>
+		<div>
+		<p>{fhir_url}</p>
                 <h1>MedRec Page</h1>
                 <p>under construction</p>
+		<p>patient id: {patient_id}</p>
+		<p>medication list: {this.state.medication_list_response}</p>
             </div>
         )
+    }
+});
+
+var MedicationList = React.createClass({
+    render: function (){
+
     }
 });
 

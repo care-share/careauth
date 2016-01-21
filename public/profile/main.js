@@ -82,7 +82,7 @@ var ViewPage = React.createClass({
  * Calls updateList in ViewPage to update list of changes to be returned to server
  * @method render creates a <div> containing userInfo objects
  */
-var UserInfoList = React.createClass({
+var UserInfoList = React.createClass({ 
     getInitialState: function () {
         return {
             name_first: '',
