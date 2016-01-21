@@ -29,12 +29,113 @@ var ViewPage = React.createClass({
         // TODO: make an AJAX call to GET 'fhir_url' (using the token in the header), get the resulting medications, and store them in the state
         return (
             <div>
-                <h1>MedRec Page</h1>
-                <p>under construction</p>
+                <h1>Enter Modifications</h1>
+                <MedRecInfoList />
             </div>
         )
     }
 });
+
+//TODO create add button to add another MedRecInfo
+
+var MedRecInfoList = React.createClass({
+    getInitialState: function () {
+        return {};
+    },
+    render: function () {
+        return (
+            <ol>
+            <MedRecInfo/>
+            </ol>
+        );
+    }
+});
+
+//Header Enter Modifications
+//Numbered List
+//header <med_name>
+//CheckBox, label "Drug name Substitution", input area
+//label "Dose: ", input area
+//label "Frequency: ", input area
+//header "Patient Reports"
+//label "Compliance: " radio yes/no (change to yes/no slider)
+//label "VA Med?: " radio yes/no (change to yes/no slider)
+//label "Note: " input area (large)
+
+//TODO add hidden FHIR id value to POST when submitting
+
+var MedRecInfo = React.createClass({
+    getInitialState: function () {
+        return {
+            med_name: 'Advil',
+            name_sub: '',
+            dose: '',
+            freq: '',
+            complianceBool: '',
+            medBool: '',
+            note: '',
+            fhir_id: ''
+        };
+    },
+    handleChange: function (event) {
+        var obj = {};
+        obj[event.target.name] = event.target.value;
+        this.setState(obj);
+    },
+    render: function () {
+        return (
+            <li>
+                <h2>{this.state.med_name}</h2>
+                <table>
+                    <tbody>
+                    <tr>
+                        <td>Drug name substitution
+                            <input type="text" value={this.state.name_sub} name="name_sub"
+                                   onChange={this.handleChange}></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Dose: <input type="text" value={this.state.dose} name="dose"
+                                         onChange={this.handleChange}></input></td>
+                    </tr>
+                    <tr>
+                        <td>Frequency: <input type="text" value={this.state.freq} name="freq"
+                                              onChange={this.handleChange}></input></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <h2>Patient Reports</h2>
+                <table>
+                    <tbody>
+                    <tr>
+                        <td>Compliance:
+                            <form action="">
+                                <input type="radio" name="complianceBool" value="yes" onClick={this.handleChange}>
+                                    Yes </input>
+                                <input type="radio" name="complianceBool" value="no" onClick={this.handleChange}>
+                                    No </input>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>VA Med?
+                            <form>
+                                <input type="radio" name="medBool" value="yes" onClick={this.handleChange}> Yes</input>
+                                <input type="radio" name="medBool" value="no" onClick={this.handleChange}> No</input>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Note: <input type="text" name="note" value={this.state.note}
+                                         onChange={this.handleChange}></input></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </li>
+        );
+    }
+});
+
 
 /**
  * Renders the entire page
