@@ -323,15 +323,26 @@ var PasswordHandler = React.createClass({
         return {
             existing_password: '',
             new_password: '',
-            confirm_password: ''
+            confirm_password: '',
+            validation_err: false
         };
+    },
+    clearState: function() {
+        this.setState({
+            existing_password: '',
+            new_password: '',
+            confirm_password: '',
+            validation_err: false
+        });
     },
     submitChanges: function (e) {
         var userid = this.props.userid;
         var token = this.props.token;
+        function emptyFields(){
+            this.clearState();
+        }
         if(this.state.new_password === this.state.confirm_password){
-            console.log('Passwords match');
-            $('#passform').submit(function () {
+            $('#passform').unbind('submit').bind('submit',function () {
                 var frm = $(this);
                 var dat = JSON.stringify(frm.serializeArray());
                 var url = "users/" + userid + "/password";
@@ -345,14 +356,17 @@ var PasswordHandler = React.createClass({
                     data: dat,
                     success: function () {
                         console.log('SUCCESS');
+                        emptyFields();
                     },
                     dataType: "json",
                     contentType: "application/json"
                 });
             });
         } else {
-            console.log('Passwords do not match!');
-            //TODO display error message on UI
+            this.clearState();
+            this.setState({
+                validation_err : true
+            });
         }
 
     },
@@ -372,20 +386,21 @@ var PasswordHandler = React.createClass({
                     <tr>
                         <td>Existing Password: </td>
                         <td><input value={this.state.existing_password} onChange={this.handleChange}
-                                   className="userInfoField editableField" required type="text"
+                                   className="userInfoField editableField passwordField" required type="password"
                                    placeholder="Enter existing password" name="existing_password"></input></td>
                     </tr>
                     <tr>
                         <td>New Password: </td>
                         <td><input value={this.state.new_password} onChange={this.handleChange}
-                                   className="userInfoField editableField" required type="text"
+                                   className="userInfoField editableField passwordField" required type="password"
                                    placeholder="Enter new password" name="new_password"></input></td>
                     </tr>
                     <tr>
                         <td>Confirm Password: </td>
                         <td><input value={this.state.confirm_password} onChange={this.handleChange}
-                                   className="userInfoField editableField" required type="text"
+                                   className="userInfoField editableField passwordField" required type="password"
                                    placeholder="Confirm new password" name="confirm_password"></input></td>
+                        <td><span hidden={!this.state.validation_err}>passwords do not match</span></td>
                     </tr>
                     <tr>
                         <td>
