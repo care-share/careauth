@@ -30,15 +30,28 @@ var ViewPage = React.createClass({
         //var fhir_url = fhir_url_base + '/MedicationOrder?_include=MedicationOrder:medication&_format=json&_count=50&patient=' + patient_id;
         var fhir_url = fhir_url_base + '/MedicationOrder?_count=50&_format=json&_include=MedicationOrder%3Amedication&patient=' + patient_id;
         // TODO: make an AJAX call to GET 'fhir_url' (using the token in the header), get the resulting medications, and store them in the state
+
+        //Patient ID to use: 1452917292723-444-44-4444
         $.ajax({
             url: fhir_url,
             dataType: 'json',
-            cache: false,
+            type: 'GET',
+            //cache: false,
             headers: {'X-Auth-Token': token},
             success: function (result) {
-                this.setState({
-                    medication_list_response: result
-                });
+                //console.log(JSON.stringify(result.entry[0]));
+                var initial = 0;
+                for (var i=0;i < result.entry.length; i++){
+                    if(result.entry[i].resource.resourceType==="Medication"){
+                        //Do work
+                        if(initial === 0){
+                            initial = i;
+                        }
+                        var obj = this.state.medication_list_response;
+                        obj[i - initial] =result.entry[i].resource.code.text;
+                        this.setState(obj);
+                    }
+                }
             }.bind(this),
             error: function (xhr, status, err) {
                 console.error(this.props.source, status, err.toString());
@@ -133,17 +146,17 @@ var MedRecInfo = React.createClass({
                         <td>Compliance:
                             <form action="">
                                 <input type="radio" name="compliance_bool" value="yes" onClick={this.handleChange}>
-                                    Yes </input>
+                                    </input>
                                 <input type="radio" name="compliance_bool" value="no" onClick={this.handleChange}>
-                                    No </input>
+                                    </input>
                             </form>
                         </td>
                     </tr>
                     <tr>
                         <td>VA Med?
                             <form>
-                                <input type="radio" name="med_bool" value="yes" onClick={this.handleChange}> Yes</input>
-                                <input type="radio" name="med_bool" value="no" onClick={this.handleChange}> No</input>
+                                <input type="radio" name="med_bool" value="yes" onClick={this.handleChange}></input>
+                                <input type="radio" name="med_bool" value="no" onClick={this.handleChange}></input>
                             </form>
                         </td>
                     </tr>
