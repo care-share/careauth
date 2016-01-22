@@ -58,11 +58,11 @@ passport.deserializeUser(function (obj, done) {
     done(null, obj);
 });
 
-// add routes (API endpoints)
 routes(server, passport);
 
 // serve static webpage files
 server.use(express.static('public'));
+
 
 var port = 3001;
 server.listen(port, function () {
