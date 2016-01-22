@@ -19,10 +19,14 @@ exports.saveMedRec = function (req, res) {
     var _id = req.body._id;
     var patient_id = req.body.patient_id;
     var created_by = req.body.created_by;
-    var foo = req.body.foo;
-    var bar = req.body.bar;
+    var name_sub: req.body.name_sub
+    var dose: req.body.dose,
+    var freq: req.body.freq,
+    var compliance_bool: req.body.compliance_bool,
+    var med_bool: req.body.med_bool,
+    var note: req.body.note,
     var timestamp = new Date();
-    if (!_id || !patient_id || !created_by || !foo || !bar) {
+    if (!_id || !patient_id || !created_by || !name_sub || !dose || !freq || !compliance_bool || !med_bool || !note) {
         respond(res, 400);
         return;
     }
@@ -31,8 +35,12 @@ exports.saveMedRec = function (req, res) {
         _id: _id,
         patient_id: patient_id,
         created_by: created_by,
-        foo: foo,
-        bar: bar,
+        name_sub: name_sub
+        dose: dose,
+        freq: freq,
+        compliance_bool: compliance_bool,
+        med_bool: med_bool,
+        note: note,
         timestamp: timestamp
     });
     model.saveQ(function () {

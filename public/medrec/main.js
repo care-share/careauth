@@ -26,14 +26,14 @@ var ViewPage = React.createClass({
         var token = this.getUrlParameter('token');
         var patient_id = this.getUrlParameter('patient_id');
         // TODO: validate that token and patient_id are not null
-          var fhir_url_base = 'http://fhir.vacareshare.org:8081/baseDstu2'; // TODO: this is hard-coded, get this from config somehow instead
+          var fhir_url_base = 'http://fhir.vacareshare.org:3000'; // TODO: this is hard-coded, get this from config somehow instead
         //var fhir_url = fhir_url_base + '/MedicationOrder?_include=MedicationOrder:medication&_format=json&_count=50&patient=' + patient_id;
         var fhir_url = fhir_url_base + '/MedicationOrder?_count=50&_format=json&_include=MedicationOrder%3Amedication&patient=' + patient_id;
         // TODO: make an AJAX call to GET 'fhir_url' (using the token in the header), get the resulting medications, and store them in the state
 	$.ajax({
-            url: '/medrecs/patient_id/' + patient_id,
+            url: fhir_url,
             dataType: 'json',
-            cache: false,
+            //cache: false,
             headers: {'X-Auth-Token': token},
             success: function (result) {
                 this.setState({
