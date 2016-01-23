@@ -27,13 +27,13 @@ var ViewPage = React.createClass({
         var patient_id = this.getUrlParameter('patient_id');
         // TODO: validate that token and patient_id are not null
         var fhir_url_base = 'http://fhir.vacareshare.org:3000'; // TODO: this is hard-coded, get this from config somehow instead
-        //var fhir_url = fhir_url_base + '/MedicationOrder?_include=MedicationOrder:medication&_format=json&_count=50&patient=' + patient_id;
-        var fhir_url = fhir_url_base + '/MedicationOrder?_count=50&_format=json&_include=MedicationOrder%3Amedication&patient=' + patient_id;
+        var fhir_url = fhir_url_base + '/MedicationOrder?_include=MedicationOrder:medication&_format=json&_count=50&patient=' + patient_id;
+        //var fhir_url = fhir_url_base + '/MedicationOrder?_count=50&_format=json&_include=MedicationOrder%3Amedication&patient=' + patient_id;
         // TODO: make an AJAX call to GET 'fhir_url' (using the token in the header), get the resulting medications, and store them in the state
         $.ajax({
             url: fhir_url,
             dataType: 'json',
-            cache: false,
+            //cache: false,
             headers: {'X-Auth-Token': token},
             success: function (result) {
                 this.setState({
@@ -49,10 +49,13 @@ var ViewPage = React.createClass({
         this.loadDataFromServer();
     },
     render: function () {
+        var token = this.getUrlParameter('token');
         return (
             <div>
                 <h1>Enter Modifications</h1>
-                <MedRecInfoList />
+                <MedRecInfoList
+                    token={token} 
+                />
             </div>
         )
     }
@@ -67,7 +70,9 @@ var MedRecInfoList = React.createClass({
     render: function () {
         return (
             <ol>
-            <MedRecInfo/>
+            <MedRecInfo 
+            token={this.props.token}
+            />
             </ol>
         );
     }
@@ -103,6 +108,38 @@ var MedRecInfo = React.createClass({
         var obj = {};
         obj[event.target.name] = event.target.value;
         this.setState(obj);
+    },
+    submitChanges: function (e) {
+        var token = this.props.token;
+        console.log('Posting to data to mongoDB');
+        // Test data:
+        var test_data = {
+                "_id": "x100",
+                "patient_id": "x200",
+                "created_by": "x300",
+                "name_sub": "Ibuprofen",
+                "dose": "10MG",
+                "freq": "twice daily",
+                "compliance_bool": false,
+                "med_bool": false,
+                "note": "no note",
+                "timestamp": new Date().getTime()
+            };
+
+        // Need to loop through entire med list to post to mongoDB
+        $.ajax({
+            type: "POST",
+            url: "/medrecs",
+            headers: {'X-Auth-Token': token},
+            data: JSON.stringify(test_data),
+            success: function () {
+                console.log('SUCCESS');
+                // reset form field to empty
+            },
+            dataType: "json",
+            contentType: "application/json"
+        });
+
     },
     render: function () {
         return (
@@ -150,6 +187,11 @@ var MedRecInfo = React.createClass({
                     <tr>
                         <td>Note: <input type="text" name="note" value={this.state.note}
                                          onChange={this.handleChange}></input></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="submit" value="submit password" onClick={this.submitChanges}></input>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
