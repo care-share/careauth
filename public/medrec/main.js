@@ -78,12 +78,15 @@ var ViewPage = React.createClass({
 var MedRecInfoList = React.createClass({
     getInitialState: function () {
         return {
+            allMedications: [],
             addHiddem: false,
             submitHidden: false
         };
     },
     handleAdd: function (){
-        console.log('Add new medication into MedRec list');
+        console.log('Add new medication into MedRec global list');
+        // TODO: changed state of newMedList, append emty MedRecInfo item
+        // render function should display updated allMedications list
     },
     handleSubmit: function (e) {
         var token = this.props.token;
@@ -132,7 +135,7 @@ var MedRecInfoList = React.createClass({
                     <tbody>
                     <tr>
                         <td>
-                            <ol> 
+                            <ol> // TODO show all medications including FHIR meds & new ones
                                 {medList.map(function(medication){ 
                                     return <MedRecInfo fhirMedications={medication} />; // display each medication
                                 })}
