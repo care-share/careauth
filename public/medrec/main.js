@@ -2,7 +2,7 @@
 var ViewPage = React.createClass({
     getInitialState: function () {
         return {
-            medication_list_response: {}
+            medication_list_response: []
         };
     },
     getUrlParameter: function (sParam) {
@@ -39,6 +39,7 @@ var ViewPage = React.createClass({
             headers: {'X-Auth-Token': token},
             success: function (result) {
                 //console.log(JSON.stringify(result.entry[0]));
+
                 var initial = 0;
                 for (var i=0;i < result.entry.length; i++){
                     if(result.entry[i].resource.resourceType==="Medication"){
@@ -49,8 +50,9 @@ var ViewPage = React.createClass({
                         var obj = this.state.medication_list_response;
                         obj[i - initial] =result.entry[i].resource.code.text;
                         this.setState(obj);
-                    }   
+                    }
                 }
+                this.setState(state);
             }.bind(this),
             error: function (xhr, status, err) {
                 console.error(this.props.source, status, err.toString());
@@ -64,9 +66,9 @@ var ViewPage = React.createClass({
         var token = this.getUrlParameter('token');
         return (
             <div>
-                <h1>Enter Modifications</h1>
+                <h1>Enter Medications</h1>
                 <MedRecInfoList
-                    fhirMedications={this.state.medication_list_response} token={token} 
+                    fhirMedications={this.state.medication_list_response} token={token}
                 />
             </div>
         )
@@ -121,6 +123,7 @@ var MedRecInfoList = React.createClass({
 
     },
     render: function () {
+
         console.log('FHIR MEDICATIONS::: ' + JSON.stringify(this.props.fhirMedications));
         // This is what the data looks like: {"0":"CHOLECALCIFEROL","1":"BACLOFEN"}
         var medicationList = this.props.fhirMedications;
@@ -145,19 +148,19 @@ var MedRecInfoList = React.createClass({
                     <tr>
                         <td>
                             <button onClick={this.handleAdd} hidden={this.state.addHidden}>add new</button>
-                        </td>                    
+                        </td>
                         <td>
                             <button onClick={this.handleSubmit} hidden={this.state.submitHidden}>submit changes</button>
                         </td>
                     </tr>
                     </tbody>
                 </table>
-             </form>              
+             </form>
         );
     }
 });
 
-//Header Enter Modifications
+//Header Enter Medications
 //Numbered List
 //header <med_name>
 //CheckBox, label "Drug name Substitution", input area
@@ -173,7 +176,7 @@ var MedRecInfoList = React.createClass({
 var MedRecInfo = React.createClass({
     getInitialState: function () {
         return {
-            med_name: 'Advil',
+            med_name: '',
             name_sub: '',
             dose: '',
             freq: '',
@@ -182,6 +185,11 @@ var MedRecInfo = React.createClass({
             note: '',
             fhir_id: ''
         };
+    },
+    componentWillReceiveProps: function (nextProps) {
+        this.setState({
+           med_name: nextProps.text
+        });
     },
     handleChange: function (event) {
         var obj = {};

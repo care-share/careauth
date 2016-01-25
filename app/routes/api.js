@@ -52,7 +52,7 @@ module.exports = function (server, passport) {
 
     // create or update a MedRec
     server.route('/medrecs')
-        .put(auth.checkToken, medrec.saveMedRec);
+        .post(auth.checkToken, medrec.saveMedRec);
 
     // delete a MedRec
     server.route('/medrecs/id/:id')
