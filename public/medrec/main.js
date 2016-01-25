@@ -66,7 +66,7 @@ var ViewPage = React.createClass({
         var token = this.getUrlParameter('token');
         return (
             <div>
-                <h1>Enter Modifications</h1>
+                <h1>Enter Medications</h1>
                 <MedRecInfoList
                     fhirMedications={this.state.medication_list_response} token={token}
                 />
@@ -157,7 +157,7 @@ var MedRecInfoList = React.createClass({
     }
 });
 
-//Header Enter Modifications
+//Header Enter Medications
 //Numbered List
 //header <med_name>
 //CheckBox, label "Drug name Substitution", input area
