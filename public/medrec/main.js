@@ -2,7 +2,8 @@
 var ViewPage = React.createClass({
     getInitialState: function () {
         return {
-            medication_list_response: {}
+            medication_list_response: {},
+            fhirMedicationList: []
         };
     },
     getUrlParameter: function (sParam) {
@@ -49,7 +50,7 @@ var ViewPage = React.createClass({
                         var obj = this.state.medication_list_response;
                         obj[i - initial] =result.entry[i].resource.code.text;
                         this.setState(obj);
-                    }
+                    }   
                 }
             }.bind(this),
             error: function (xhr, status, err) {
@@ -57,16 +58,16 @@ var ViewPage = React.createClass({
             }.bind(this)
         });
     },
-    componentDidMount: function() {
-        this.loadDataFromServer();
-    },
+    // componentWillMount: function() {
+    //     this.loadDataFromServer();
+    // },
     render: function () {
         var token = this.getUrlParameter('token');
         return (
             <div>
                 <h1>Enter Modifications</h1>
                 <MedRecInfoList
-                    token={token} 
+                    fhirMedications={{"0":"CHOLECALCIFEROL","1":"BACLOFEN","2":"URINARY DRAINAGE BAG","3":"DIAZEPAM","4":"BAG  LEG LARGE MEDLINE","5":"ERGOCALCIFEROL","6":"CAPSAICIN","7":"GABAPENTIN","8":"CATHETERIZATION TRAY W/O CATH","9":"LORAZEPAM","10":"CATHETER FOLEY","11":"SERTRALINE"}} token={token} 
                 />
             </div>
         )
@@ -80,11 +81,19 @@ var MedRecInfoList = React.createClass({
         return {};
     },
     render: function () {
+        console.log('FHIR MEDICATIONS::: ' + JSON.stringify(this.props.fhirMedications));
+        // This is what the data looks like: {"0":"CHOLECALCIFEROL","1":"BACLOFEN"}
+        var medicationList = this.props.fhirMedications;
+        var medications= Object.keys(this.props.fhirMedications);
+        var medList =[];
+        for(var i= 0; i < medications.length; i++){
+            medList.push(this.props.fhirMedications[i]);
+        }
         return (
-            <ol>
-            <MedRecInfo 
-            token={this.props.token}
-            />
+            <ol> 
+                {medList.map(function(medication){ 
+                    return <MedRecInfo fhirMedications={medication} />; // display each medication
+            })}
             </ol>
         );
     }
@@ -154,9 +163,10 @@ var MedRecInfo = React.createClass({
 
     },
     render: function () {
+        console.log('MedRecInfo::: ' + this.props.fhirMedications);
         return (
             <li>
-                <h2>{this.state.med_name}</h2>
+                <h2>{this.props.fhirMedications}</h2>
                 <table>
                     <tbody>
                     <tr>
