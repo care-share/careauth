@@ -2,7 +2,7 @@
 var ViewPage = React.createClass({
     getInitialState: function () {
         return {
-            medication_list_response: {}
+            medication_list_response: []
         };
     },
     getUrlParameter: function (sParam) {
@@ -39,18 +39,15 @@ var ViewPage = React.createClass({
             headers: {'X-Auth-Token': token},
             success: function (result) {
                 //console.log(JSON.stringify(result.entry[0]));
-                var initial = 0;
-                for (var i=0;i < result.entry.length; i++){
-                    if(result.entry[i].resource.resourceType==="Medication"){
-                        //Do work
-                        if(initial === 0){
-                            initial = i;
-                        }
-                        var obj = this.state.medication_list_response;
-                        obj[i - initial] =result.entry[i].resource.code.text;
-                        this.setState(obj);
+                var state = this.state.medication_list_response;
+                for (var i = 0; i < result.entry.length; i++) {
+                    if (result.entry[i].resource.resourceType === "Medication") {
+                        var id = result.entry[i].resource.id;
+                        var text = result.entry[i].resource.code.text;
+                        state[i] = {id: id, text: text};
                     }
                 }
+                this.setState(state);
             }.bind(this),
             error: function (xhr, status, err) {
                 console.error(this.props.source, status, err.toString());
@@ -66,7 +63,8 @@ var ViewPage = React.createClass({
             <div>
                 <h1>Enter Modifications</h1>
                 <MedRecInfoList
-                    token={token} 
+                    medList = {this.state.medication_list_response}
+                    token={token}
                 />
             </div>
         )
@@ -80,11 +78,12 @@ var MedRecInfoList = React.createClass({
         return {};
     },
     render: function () {
+        var token = this.props.token;
         return (
             <ol>
-            <MedRecInfo 
-            token={this.props.token}
-            />
+                {this.props.medList.map(function(result){
+                    return <MedRecInfo key={result.id} name = {result.text}/>
+                })}
             </ol>
         );
     }
@@ -106,7 +105,7 @@ var MedRecInfoList = React.createClass({
 var MedRecInfo = React.createClass({
     getInitialState: function () {
         return {
-            med_name: 'Advil',
+            med_name: '',
             name_sub: '',
             dose: '',
             freq: '',
@@ -115,6 +114,11 @@ var MedRecInfo = React.createClass({
             note: '',
             fhir_id: ''
         };
+    },
+    componentWillReceiveProps: function (nextProps) {
+        this.setState({
+           med_name: nextProps.text
+        });
     },
     handleChange: function (event) {
         var obj = {};
