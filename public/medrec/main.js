@@ -39,17 +39,12 @@ var ViewPage = React.createClass({
             headers: {'X-Auth-Token': token},
             success: function (result) {
                 //console.log(JSON.stringify(result.entry[0]));
-
-                var initial = 0;
-                for (var i=0;i < result.entry.length; i++){
-                    if(result.entry[i].resource.resourceType==="Medication"){
-                        //Do work
-                        if(initial === 0){
-                            initial = i;
-                        }
-                        var obj = this.state.medication_list_response;
-                        obj[i - initial] =result.entry[i].resource.code.text;
-                        this.setState(obj);
+                var state = this.state.medication_list_response;
+                for (var i = 0; i < result.entry.length; i++) {
+                    if (result.entry[i].resource.resourceType === "Medication") {
+                        var id = result.entry[i].resource.id;
+                        var text = result.entry[i].resource.code.text;
+                        state[i] = {id: id, text: text};
                     }
                 }
                 this.setState(state);
@@ -87,60 +82,64 @@ var MedRecInfoList = React.createClass({
     },
     handleAdd: function (){
         console.log('Add new medication into MedRec global list');
-        // TODO: changed state of newMedList, append emty MedRecInfo item
+        // TODO: changed state of newMedList, append empty MedRecInfo item
         // render function should display updated allMedications list
     },
     handleSubmit: function (e) {
+        e.preventDefault();
+    },
+    handleChanges: function (e) {
         var token = this.props.token;
         console.log('Should put data into mongoDB');
-        // Test data:
-        var test_data = {
-                "_id": "x100",
-                "patient_id": "x200",
-                "created_by": "x300",
-                "name_sub": "Ibuprofen",
-                "dose": "10MG",
-                "freq": "twice daily",
-                "compliance_bool": false,
-                "med_bool": false,
-                "note": "no note",
-                "timestamp": new Date().getTime()
-            };
 
-        // Need to loop through entire med list to post to mongoDB
-        $.ajax({
-            type: "POST",
-            url: "/medrecs",
-            headers: {'X-Auth-Token': token},
-            data: JSON.stringify(test_data),
-            success: function () {
-                console.log('SUCCESS');
-                // reset form field to empty
-            },
-            dataType: "json",
-            contentType: "application/json"
+        $('#myform').submit(function () {
+            var frm = $(this);
+            var dat = JSON.stringify(frm.serializeArray());
+
+            console.log("I am about to POST this:\n\n" + dat);
+            $.ajax({
+                type: "POST",
+                url: "/medrecs",
+                headers: {'X-Auth-Token': token},
+                data: dat,
+                success: function (result) {
+                    console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
+                    submit(result);
+                },
+                dataType: "json",
+                contentType: "application/json"
+            });
         });
+
+        //// Need to loop through entire med list to post to mongoDB
+        //$.ajax({
+        //    type: "POST",
+        //    url: "/medrecs",
+        //    headers: {'X-Auth-Token': token},
+        //    data: JSON.stringify(test_data),
+        //    success: function () {
+        //        console.log('SUCCESS');
+        //        // reset form field to empty
+        //    },
+        //    dataType: "json",
+        //    contentType: "application/json"
+        //});
 
     },
     render: function () {
 
-        console.log('FHIR MEDICATIONS::: ' + JSON.stringify(this.props.fhirMedications));
-        // This is what the data looks like: {"0":"CHOLECALCIFEROL","1":"BACLOFEN"}
-        var medicationList = this.props.fhirMedications;
-        var medications= Object.keys(this.props.fhirMedications);
-        var medList =[];
-        for(var i= 0; i < medications.length; i++){
-            medList.push(this.props.fhirMedications[i]);
-        }
+        var medList = this.props.fhirMedications;
+        // TODO show all medications including FHIR meds & new ones
+        // TODO add key to field
         return (
              <form id="myform" onSubmit={this.handleSubmit}>
                 <table>
                     <tbody>
                     <tr>
                         <td>
-                            <ol> // TODO show all medications including FHIR meds & new ones
+                            <ol>
                                 {medList.map(function(medication){ 
-                                    return <MedRecInfo fhirMedications={medication} />; // display each medication
+                                    return <MedRecInfo fhirMedications={medication.text} key = {medication.id}/>; // display each medication
                                 })}
                             </ol>
                         </td>
@@ -150,7 +149,7 @@ var MedRecInfoList = React.createClass({
                             <button onClick={this.handleAdd} hidden={this.state.addHidden}>add new</button>
                         </td>
                         <td>
-                            <button onClick={this.handleSubmit} hidden={this.state.submitHidden}>submit changes</button>
+                            <button onClick={this.handleChanges} hidden={this.state.submitHidden}>submit changes</button>
                         </td>
                     </tr>
                     </tbody>
@@ -185,11 +184,6 @@ var MedRecInfo = React.createClass({
             note: '',
             fhir_id: ''
         };
-    },
-    componentWillReceiveProps: function (nextProps) {
-        this.setState({
-           med_name: nextProps.text
-        });
     },
     handleChange: function (event) {
         var obj = {};

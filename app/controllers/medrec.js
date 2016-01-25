@@ -16,37 +16,32 @@ exports.findMedRecs = function (req, res) {
 };
 
 exports.saveMedRec = function (req, res) {
-    var _id = req.body._id;
-    var patient_id = req.body.patient_id;
-    var created_by = req.body.created_by;
-    var name_sub = req.body.name_sub;
-    var dose = req.body.dose;
-    var freq = req.body.freq;
-    var compliance_bool = req.body.compliance_bool;
-    var med_bool = req.body.med_bool;
-    var note = req.body.note;
-    var timestamp = new Date();
-    if (!_id || !patient_id || !created_by || !name_sub || !dose || !freq || !compliance_bool || !med_bool || !note) {
-        respond(res, 400);
-        return;
+    var update = {};
+    for (var i in req.body){
+        var key = req.body[i].name;
+        var value = req.body[i].value;
+        if (key ===  '_id' || key === 'patient_id' || key === 'created_by' || key === 'name_sub' || key === 'dose' || key === 'freq'
+            || key === 'compliance_bool' || key === 'med_bool' || key === 'note' || key === 'timestamp') {
+            update[key] = value;
+        }
     }
 
     var model = new MedRec({
-        _id: _id,
-        patient_id: patient_id,
-        created_by: created_by,
-        name_sub: name_sub,
-        dose: dose,
-        freq: freq,
-        compliance_bool: compliance_bool,
-        med_bool: med_bool,
-        note: note,
-        timestamp: timestamp
+        _id: update['_id'],
+        patient_id: update['patient_id'],
+        created_by: update['created_by'],
+        name_sub: update['name_sub'],
+        dose: update['dose'],
+        freq: update['freq'],
+        compliance_bool: update['compliance_bool'],
+        med_bool: update['med_bool'],
+        note: update['note'],
+        timestamp: update['timestamp']
     });
     model.saveQ(function () {
         respond(res, 200);
     }).catch(function (err) {
-        app.logger.error('Failed to save MedRec "%s":', _id, err);
+        app.logger.error('Failed to save MedRec "%s":', update['_id'], err);
         respond(res, 500);
     }).done();
 };
