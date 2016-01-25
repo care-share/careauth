@@ -2,8 +2,7 @@
 var ViewPage = React.createClass({
     getInitialState: function () {
         return {
-            medication_list_response: {},
-            fhirMedicationList: []
+            medication_list_response: {}
         };
     },
     getUrlParameter: function (sParam) {
@@ -58,16 +57,16 @@ var ViewPage = React.createClass({
             }.bind(this)
         });
     },
-    // componentWillMount: function() {
-    //     this.loadDataFromServer();
-    // },
+    componentDidMount: function() {
+        this.loadDataFromServer();
+    },
     render: function () {
         var token = this.getUrlParameter('token');
         return (
             <div>
                 <h1>Enter Modifications</h1>
                 <MedRecInfoList
-                    fhirMedications={{"0":"CHOLECALCIFEROL","1":"BACLOFEN","2":"URINARY DRAINAGE BAG","3":"DIAZEPAM","4":"BAG  LEG LARGE MEDLINE","5":"ERGOCALCIFEROL","6":"CAPSAICIN","7":"GABAPENTIN","8":"CATHETERIZATION TRAY W/O CATH","9":"LORAZEPAM","10":"CATHETER FOLEY","11":"SERTRALINE"}} token={token} 
+                    fhirMedications={this.state.medication_list_response} token={token} 
                 />
             </div>
         )
@@ -78,7 +77,45 @@ var ViewPage = React.createClass({
 
 var MedRecInfoList = React.createClass({
     getInitialState: function () {
-        return {};
+        return {
+            addHiddem: false,
+            submitHidden: false
+        };
+    },
+    handleAdd: function (){
+        console.log('Add new medication into MedRec list');
+    },
+    handleSubmit: function (e) {
+        var token = this.props.token;
+        console.log('Should put data into mongoDB');
+        // Test data:
+        var test_data = {
+                "_id": "x100",
+                "patient_id": "x200",
+                "created_by": "x300",
+                "name_sub": "Ibuprofen",
+                "dose": "10MG",
+                "freq": "twice daily",
+                "compliance_bool": false,
+                "med_bool": false,
+                "note": "no note",
+                "timestamp": new Date().getTime()
+            };
+
+        // Need to loop through entire med list to post to mongoDB
+        $.ajax({
+            type: "POST",
+            url: "/medrecs",
+            headers: {'X-Auth-Token': token},
+            data: JSON.stringify(test_data),
+            success: function () {
+                console.log('SUCCESS');
+                // reset form field to empty
+            },
+            dataType: "json",
+            contentType: "application/json"
+        });
+
     },
     render: function () {
         console.log('FHIR MEDICATIONS::: ' + JSON.stringify(this.props.fhirMedications));
@@ -90,11 +127,29 @@ var MedRecInfoList = React.createClass({
             medList.push(this.props.fhirMedications[i]);
         }
         return (
-            <ol> 
-                {medList.map(function(medication){ 
-                    return <MedRecInfo fhirMedications={medication} />; // display each medication
-            })}
-            </ol>
+             <form id="myform" onSubmit={this.handleSubmit}>
+                <table>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <ol> 
+                                {medList.map(function(medication){ 
+                                    return <MedRecInfo fhirMedications={medication} />; // display each medication
+                                })}
+                            </ol>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button onClick={this.handleAdd} hidden={this.state.addHidden}>add new</button>
+                        </td>                    
+                        <td>
+                            <button onClick={this.handleSubmit} hidden={this.state.submitHidden}>submit changes</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+             </form>              
         );
     }
 });
@@ -129,38 +184,6 @@ var MedRecInfo = React.createClass({
         var obj = {};
         obj[event.target.name] = event.target.value;
         this.setState(obj);
-    },
-    submitChanges: function (e) {
-        var token = this.props.token;
-        console.log('Posting to data to mongoDB');
-        // Test data:
-        var test_data = {
-                "_id": "x100",
-                "patient_id": "x200",
-                "created_by": "x300",
-                "name_sub": "Ibuprofen",
-                "dose": "10MG",
-                "freq": "twice daily",
-                "compliance_bool": false,
-                "med_bool": false,
-                "note": "no note",
-                "timestamp": new Date().getTime()
-            };
-
-        // Need to loop through entire med list to post to mongoDB
-        $.ajax({
-            type: "POST",
-            url: "/medrecs",
-            headers: {'X-Auth-Token': token},
-            data: JSON.stringify(test_data),
-            success: function () {
-                console.log('SUCCESS');
-                // reset form field to empty
-            },
-            dataType: "json",
-            contentType: "application/json"
-        });
-
     },
     render: function () {
         console.log('MedRecInfo::: ' + this.props.fhirMedications);
@@ -209,11 +232,6 @@ var MedRecInfo = React.createClass({
                     <tr>
                         <td>Note: <input type="text" name="note" value={this.state.note}
                                          onChange={this.handleChange}></input></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="submit" value="submit password" onClick={this.submitChanges}></input>
-                        </td>
                     </tr>
                     </tbody>
                 </table>
