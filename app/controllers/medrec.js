@@ -1,5 +1,8 @@
 'use strict';
 
+// import external modules
+var Q  = require('q');
+
 // import internal modules
 var app = require('../../lib/app');
 var MedRec = app.MedRec;
@@ -16,35 +19,51 @@ exports.findMedRecs = function (req, res) {
 };
 
 exports.saveMedRec = function (req, res) {
-    var update = {};
-    for (var i in req.body){
-        var key = req.body[i].name;
-        var value = req.body[i].value;
-        if (key ===  '_id' || key === 'patient_id' || key === 'created_by' || key === 'med_name' || key === 'name_sub' || key === 'dose' || key === 'freq'
-            || key === 'compliance_bool' || key === 'med_bool' || key === 'note' || key === 'timestamp') {
-            update[key] = value;
+    var saveModels = [];
+    var args = undefined;
+    var firstField = 'med_name';
+
+    function createModel() {
+        if (args !== undefined) {
+            // create a new medrec model
+            var model = new MedRec(args);
+            // add a promise to save that model to the models array
+            //saveModels.push(model.saveQ);
+            // FIXME: save an array of promises, that isnt working so we are adding a model to the array instead of a promise
+            saveModels.push(model);
         }
+        // after, reset the args to a new object
+        args = {
+            patient_id: req.body.patient_id,
+            created_by: req.user.id
+        };
     }
 
-    var model = new MedRec({
-        _id: update['_id'],
-        patient_id: update['patient_id'],
-        created_by: update['created_by'],
-        med_name: update['med_name'],
-        name_sub: update['name_sub'],
-        dose: update['dose'],
-        freq: update['freq'],
-        compliance_bool: update['compliance_bool'],
-        med_bool: update['med_bool'],
-        note: update['note'],
-        timestamp: update['timestamp']
-    });
-    model.saveQ(function () {
-        respond(res, 200);
-    }).catch(function (err) {
-        app.logger.error('Failed to save MedRec "%s":', update['_id'], err);
-        respond(res, 500);
-    }).done();
+    for (var i = 0; i < req.body.formData.length; i++) {
+        var field = req.body.formData[i];
+        if (field.name === firstField) {
+            // this is the beginning of a new set of form fields, create a new model if we can
+            createModel();
+        }
+        args[field.name] = field.value;
+    }
+    // now that the loop is over, call createModel again (needed because we end on the last form field!)
+    createModel();
+
+    //// now we have a models array that is populated...
+    //Q.allSettled(saveModels).then(function () {
+    //    respond(res, 200);
+    //}).catch(function (err) {
+    //    app.logger.error('Failed to save MedRec(s):', err);
+    //    respond(res, 500);
+    //}).done();
+    // FIXME: save an array of promises, that isnt working so we are saving like this at the moment
+    for (var i = 0; i < saveModels.length; i++) {
+        saveModels[i].saveQ().catch(function (err) {
+            app.logger.error('Failed to save MedRec:', err);
+        }).done();
+    }
+    respond(res, 200);
 };
 
 exports.deleteMedRec = function (req, res) {

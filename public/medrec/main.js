@@ -1,3 +1,18 @@
+function getUrlParameter (sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+}
+
 // skeleton React page
 var ViewPage = React.createClass({
     getInitialState: function () {
@@ -5,26 +20,12 @@ var ViewPage = React.createClass({
             medication_list_response: []
         };
     },
-    getUrlParameter: function (sParam) {
-        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-            sURLVariables = sPageURL.split('&'),
-            sParameterName,
-            i;
-
-        for (i = 0; i < sURLVariables.length; i++) {
-            sParameterName = sURLVariables[i].split('=');
-
-            if (sParameterName[0] === sParam) {
-                return sParameterName[1] === undefined ? true : sParameterName[1];
-            }
-        }
-    },
     loadDataFromServer: function() {
         // the page expects two URL parameters: 'token' and 'patient_id'
         // e.g. the URL should look like this in the browser:
         //   http://api.localhost:3000/medrec?token=abc&patient_id=xyz
-        var token = this.getUrlParameter('token');
-        var patient_id = this.getUrlParameter('patient_id');
+        var token = getUrlParameter('token');
+        var patient_id = getUrlParameter('patient_id');
         // TODO: validate that token and patient_id are not null
         var fhir_url_base = 'http://fhir.vacareshare.org:3000'; // TODO: this is hard-coded, get this from config somehow instead
         var fhir_url = fhir_url_base + '/MedicationOrder?_include=MedicationOrder:medication&_format=json&_count=50&patient=' + patient_id;
@@ -58,7 +59,7 @@ var ViewPage = React.createClass({
         this.loadDataFromServer();
     },
     render: function () {
-        var token = this.getUrlParameter('token');
+        var token = getUrlParameter('token');
         return (
             <div>
                 <h1>Enter Medications</h1>
@@ -100,14 +101,17 @@ var MedRecInfoList = React.createClass({
 
         $('#myform').submit(function () {
             var frm = $(this);
-            var dat = JSON.stringify(frm.serializeArray());
+            var dat = {
+                patient_id: getUrlParameter('patient_id'),
+                formData: frm.serializeArray()
+            };
 
             console.log("I am about to POST this:\n\n" + dat);
             $.ajax({
                 type: "POST",
                 url: "/medrecs",
                 headers: {'X-Auth-Token': token},
-                data: dat,
+                data: JSON.stringify(dat),
                 success: function (result) {
                     console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
                     submit(result);
@@ -147,7 +151,7 @@ var MedRecInfoList = React.createClass({
                     <tr>
                         <td>
                             <ol>
-                                {this.state.allMedications.map(function(medication){ 
+                                {this.state.allMedications.map(function(medication){
                                     return <MedRecInfo fhirMedications={medication.text} key={medication.id}/>; // display each medication
                                 })}
                             </ol>
@@ -204,7 +208,7 @@ var MedRecInfo = React.createClass({
         return (
             <li>
                 <input type="text" value={this.props.fhirMedications} name="med_name"
-                    onChange={this.handleChange}></input> 
+                    onChange={this.handleChange}></input>
                 <table>
                     <tbody>
                     <tr>
