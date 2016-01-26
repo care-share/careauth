@@ -76,6 +76,7 @@ var MedRecInfoList = React.createClass({
     getInitialState: function () {
         return {
             allMedications: [],
+            id: 10000000,
             addHiddem: false,
             submitHidden: false
         };
@@ -84,7 +85,9 @@ var MedRecInfoList = React.createClass({
         console.log('Add new medication into MedRec global list');
         // TODO: changed state of allMedications, append empty MedRecInfo item
         var newMed = this.state.allMedications;
-        newMed.push("");
+        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: ""});
+        var newId = this.state.id;
+        this.setState({id: newId++});
         this.setState({allMedications: newMed});
         // render function should display updated allMedications list
     },
@@ -97,7 +100,6 @@ var MedRecInfoList = React.createClass({
 
         $('#myform').submit(function () {
             var frm = $(this);
-            console.log
             var dat = JSON.stringify(frm.serializeArray());
 
             console.log("I am about to POST this:\n\n" + dat);
@@ -134,7 +136,7 @@ var MedRecInfoList = React.createClass({
         this.setState({allMedications: this.props.fhirMedications});
     },
     render: function () {
-
+        console.log(this.state.allMedications);
         //var medList = this.props.fhirMedications;
         // TODO show all medications including FHIR meds & new ones
         // TODO add key to field
@@ -146,7 +148,7 @@ var MedRecInfoList = React.createClass({
                         <td>
                             <ol>
                                 {this.state.allMedications.map(function(medication){ 
-                                    return <MedRecInfo fhirMedications={medication.text} key = {medication.id}/>; // display each medication
+                                    return <MedRecInfo fhirMedications={medication.text} key={medication.id}/>; // display each medication
                                 })}
                             </ol>
                         </td>
