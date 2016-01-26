@@ -106,7 +106,7 @@ var MedRecInfoList = React.createClass({
                 formData: frm.serializeArray()
             };
 
-            console.log("I am about to POST this:\n\n" + dat);
+            console.log("I am about to POST this:\n\n" + JSON.stringify(dat, null, 2));
             $.ajax({
                 type: "POST",
                 url: "/medrecs",
@@ -114,7 +114,7 @@ var MedRecInfoList = React.createClass({
                 data: JSON.stringify(dat),
                 success: function (result) {
                     console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
-                    submit(result);
+                    //submit(result);
                 },
                 dataType: "json",
                 contentType: "application/json"
@@ -230,20 +230,18 @@ var MedRecInfo = React.createClass({
                     <tbody>
                     <tr>
                         <td>Compliance:
-                            <form action="">
-                                <input type="radio" name="compliance_bool" value="yes" onClick={this.handleChange}>
-                                    </input>
-                                <input type="radio" name="compliance_bool" value="no" onClick={this.handleChange}>
-                                    </input>
-                            </form>
+                            <div>
+                                <label>yes <input type="radio" name="compliance_bool" value="yes" onClick={this.handleChange}></input></label>
+                                <label>no <input type="radio" name="compliance_bool" value="no" onClick={this.handleChange}></input></label>
+                            </div>
                         </td>
                     </tr>
                     <tr>
                         <td>VA Med?
-                            <form>
-                                <input type="radio" name="med_bool" value="yes" onClick={this.handleChange}></input>
-                                <input type="radio" name="med_bool" value="no" onClick={this.handleChange}></input>
-                            </form>
+                            <div>
+                                <label>yes <input type="radio" name="med_bool" value="yes" onClick={this.handleChange}></input></label>
+                                <label>no <input type="radio" name="med_bool" value="no" onClick={this.handleChange}></input></label>
+                            </div>
                         </td>
                     </tr>
                     <tr>
