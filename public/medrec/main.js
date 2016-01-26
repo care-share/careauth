@@ -82,7 +82,10 @@ var MedRecInfoList = React.createClass({
     },
     handleAdd: function (){
         console.log('Add new medication into MedRec global list');
-        // TODO: changed state of newMedList, append empty MedRecInfo item
+        // TODO: changed state of allMedications, append empty MedRecInfo item
+        var newMed = this.state.allMedications;
+        newMed.push("");
+        this.setState({allMedications: newMed});
         // render function should display updated allMedications list
     },
     handleSubmit: function (e) {
@@ -94,6 +97,7 @@ var MedRecInfoList = React.createClass({
 
         $('#myform').submit(function () {
             var frm = $(this);
+            console.log
             var dat = JSON.stringify(frm.serializeArray());
 
             console.log("I am about to POST this:\n\n" + dat);
@@ -126,9 +130,12 @@ var MedRecInfoList = React.createClass({
         //});
 
     },
+    componentDidMount: function(){
+        this.setState({allMedications: this.props.fhirMedications});
+    },
     render: function () {
 
-        var medList = this.props.fhirMedications;
+        //var medList = this.props.fhirMedications;
         // TODO show all medications including FHIR meds & new ones
         // TODO add key to field
         return (
@@ -138,7 +145,7 @@ var MedRecInfoList = React.createClass({
                     <tr>
                         <td>
                             <ol>
-                                {medList.map(function(medication){ 
+                                {this.state.allMedications.map(function(medication){ 
                                     return <MedRecInfo fhirMedications={medication.text} key = {medication.id}/>; // display each medication
                                 })}
                             </ol>
@@ -194,7 +201,8 @@ var MedRecInfo = React.createClass({
         console.log('MedRecInfo::: ' + this.props.fhirMedications);
         return (
             <li>
-                <h2>{this.props.fhirMedications}</h2>
+                <input type="text" value={this.props.fhirMedications} name="med_name"
+                    onChange={this.handleChange}></input> 
                 <table>
                     <tbody>
                     <tr>
