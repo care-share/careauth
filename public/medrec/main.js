@@ -136,10 +136,8 @@ var MedRecInfoList = React.createClass({
         this.setState({allMedications: this.props.fhirMedications});
     },
     render: function () {
-        console.log(this.state.allMedications);
+
         //var medList = this.props.fhirMedications;
-        // TODO show all medications including FHIR meds & new ones
-        // TODO add key to field
         return (
              <form id="myform" onSubmit={this.handleSubmit}>
                 <table>
