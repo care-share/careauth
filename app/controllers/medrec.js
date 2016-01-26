@@ -20,7 +20,7 @@ exports.saveMedRec = function (req, res) {
     for (var i in req.body){
         var key = req.body[i].name;
         var value = req.body[i].value;
-        if (key ===  '_id' || key === 'patient_id' || key === 'created_by' || key === 'name_sub' || key === 'dose' || key === 'freq'
+        if (key ===  '_id' ||| key === 'patient_id' || key === 'created_by' || key === 'med_name' || key === 'name_sub' || key === 'dose' || key === 'freq'
             || key === 'compliance_bool' || key === 'med_bool' || key === 'note' || key === 'timestamp') {
             update[key] = value;
         }
@@ -30,6 +30,7 @@ exports.saveMedRec = function (req, res) {
         _id: update['_id'],
         patient_id: update['patient_id'],
         created_by: update['created_by'],
+        med_name: update['med_name'],
         name_sub: update['name_sub'],
         dose: update['dose'],
         freq: update['freq'],
