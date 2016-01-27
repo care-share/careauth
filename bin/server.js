@@ -8,7 +8,8 @@ var passportOpenID = require('openidconnect-for-passport');
 
 // import internal modules
 var app = require('../lib/app');
-var proxy = require('../lib/proxy');
+var reverseProxy = require('../lib/reverse-proxy');
+var nominationProxy = require('../lib/nomination-proxy');
 var routes = require('../app/routes/api');
 
 // initialize the app object
@@ -69,5 +70,8 @@ server.listen(port, function () {
     app.logger.info('Express server listening on port %d', port);
 });
 
-// start up the proxy
-proxy.init(app);
+// start up the reverse proxy
+reverseProxy.init(app);
+
+// start up the nomination proxy
+nominationProxy.init(app);

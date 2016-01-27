@@ -4,7 +4,7 @@
 # Web settings
 ################################################################################
 
-# External TCP port for proxy to listen on for client connections
+# External TCP port for reverse proxy to listen on for client connections
 # default = 3000
 port: 3000
 
@@ -26,7 +26,7 @@ use_suite_b: false
 tls_keystore_file: tls/key-and-cert.pfx
 tls_keystore_pass: password
 
-# Targets to proxy connections for the server's subdomains
+# Targets to reverse proxy connections for the server's subdomains
 # If these are empty, the targets will be auto-generated based on the
 #   domain and port that those services listen on by default
 # If these are non-empty, they MUST be formatted as a valid URL,
