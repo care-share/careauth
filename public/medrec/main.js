@@ -83,10 +83,9 @@ var MedRecInfoList = React.createClass({
         };
     },
     handleAdd: function (){
-        console.log('Add new medication into MedRec global list');
-        // TODO: changed state of allMedications, append empty MedRecInfo item
+        // changed state of allMedications, append empty MedRecInfo item
         var newMed = this.state.allMedications;
-        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: ""});
+        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: "new medication name"});
         var newId = this.state.id;
         this.setState({id: newId++});
         this.setState({allMedications: newMed});
@@ -114,26 +113,11 @@ var MedRecInfoList = React.createClass({
                 data: JSON.stringify(dat),
                 success: function (result) {
                     console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
-                    //submit(result);
                 },
                 dataType: "json",
                 contentType: "application/json"
             });
         });
-
-        //// Need to loop through entire med list to post to mongoDB
-        //$.ajax({
-        //    type: "POST",
-        //    url: "/medrecs",
-        //    headers: {'X-Auth-Token': token},
-        //    data: JSON.stringify(test_data),
-        //    success: function () {
-        //        console.log('SUCCESS');
-        //        // reset form field to empty
-        //    },
-        //    dataType: "json",
-        //    contentType: "application/json"
-        //});
 
     },
     componentDidMount: function(){
@@ -141,7 +125,6 @@ var MedRecInfoList = React.createClass({
     },
     render: function () {
 
-        //var medList = this.props.fhirMedications;
         return (
              <form id="myform" onSubmit={this.handleSubmit}>
                 <table>
@@ -201,12 +184,25 @@ var MedRecInfo = React.createClass({
         obj[event.target.name] = event.target.value;
         this.setState(obj);
     },
+    handleMedChange: function (event) {
+        if(this.state.fhir_id == "false"){ // if not a fhir medication name field then can edit and update state
+            var obj = {};
+            obj[event.target.name] = event.target.value;
+            this.setState(obj);
+        }
+    },
+    componentDidMount: function(){
+        var isFhirMed = 'true';
+        if(this.props.fhirMedications == "new medication name"){
+            isFhirMed = 'false';
+        }
+        this.setState({med_name: this.props.fhirMedications, fhir_id: isFhirMed});
+    },
     render: function () {
-        console.log('MedRecInfo::: ' + this.props.fhirMedications);
         return (
             <li>
-                <input type="text" value={this.props.fhirMedications} name="med_name"
-                    onChange={this.handleChange}></input>
+                <input type="text" value={this.state.med_name} name="med_name"
+                                    onChange={this.handleMedChange}></input>
                 <table>
                     <tbody>
                     <tr>
