@@ -242,16 +242,10 @@ var MedRecInfo = React.createClass({
                            onChange={this.handleChange}></input>
                 </div>
                 <div className="col-xs-1">
-                    <label><input className="col-xs-12" type="radio" name="compliance_bool" value="yes" onClick={this.handleChange}></input>
-                        yes</label>
-                    <label><input type="radio" name="compliance_bool" value="no" onClick={this.handleChange}></input> no</label>
-
+                    <input className="col-xs-12" type="checkbox" name="compliance_bool" value="yes" onClick={this.handleChange}></input>
                 </div>
                 <div className="col-xs-1">
-                    <label><input type="radio" name="med_bool" value="yes" onClick={this.handleChange}></input>
-                        yes</label>
-                    <label><input type="radio" name="med_bool" value="no" onClick={this.handleChange}></input>
-                        no</label>
+                    <input className="col-xs-12" type="checkbox" name="med_bool" value="yes" onClick={this.handleChange}></input>
                 </div>
                 <div className="col-xs-2">
                     <input className="col-xs-12" type="text" name="note" value={this.state.note}
