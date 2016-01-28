@@ -18,7 +18,7 @@ COPY package.json /usr/src/app/
 RUN npm install
 
 # install bower (client-side) dependencies
-COPY bower.json /usr/src/app/
+COPY bower.json .bowerrc /usr/src/app/
 RUN bower install --allow-root
 
 # copy the rest of the application over
