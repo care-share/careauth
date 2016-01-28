@@ -231,19 +231,19 @@ var MedRecInfo = React.createClass({
         return (
 	    <div className="row">
             <div className="col-xs-2">
-                <input className="form-control" type="text" value={this.state.med_name} name="med_name"
+                <input className="form-control col-xs-2" type="text" value={this.state.med_name} name="med_name"
                                     onChange={this.handleMedChange}></input>
             </div>
             <div className="col-xs-2">
-                <input type="text" value={this.state.name_sub} name="name_sub"
+                <input className="col-xs-12" type="text" value={this.state.name_sub} name="name_sub"
                                    onChange={this.handleChange}></input>
             </div>
             <div className="col-xs-2">
-                <input type="text" value={this.state.dose} name="dose"
+                <input className="col-xs-12" type="text" value={this.state.dose} name="dose"
                                          onChange={this.handleChange}></input>  
             </div>
             <div className="col-xs-2">
-                <input type="text" value={this.state.freq} name="freq"
+                <input className="col-xs-12" type="text" value={this.state.freq} name="freq"
                                               onChange={this.handleChange}></input>
             </div>
             <div className="col-xs-1">
@@ -256,7 +256,7 @@ var MedRecInfo = React.createClass({
                                 <label><input type="radio" name="med_bool" value="no" onClick={this.handleChange}></input> no</label>
             </div>
             <div className="col-xs-2">
-                <input type="text" name="note" value={this.state.note}
+                <input className="col-xs-12" type="text" name="note" value={this.state.note}
                                          onChange={this.handleChange}></input>
             </div>
    
