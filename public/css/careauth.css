@@ -1,3 +1,36 @@
+/* Styles for med list entry */
+
+.med-list .title {
+    padding-bottom: 20px;
+}
+
+.med-list .header {
+    font-weight: bold;
+    background-color: #4bc2ca;
+}
+
+.med-list .header div {
+    /* TODO: make headers align to bottom of row */
+}
+
+.med-list .row {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.med-list .med:nth-child(even){ /* zebra striping rows */
+    background-color: #c9def2;
+}
+.med-list .med:nth-child(odd){
+    background-color: #f2f7fc;
+}
+
+.med-list .buttons {
+    padding-top: 15px;
+}
+
+/* Styles for Account Edit page */
+
 .userInfoField{
 
 }
