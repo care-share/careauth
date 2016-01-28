@@ -10,9 +10,16 @@ RUN git config --global url."https://".insteadOf git://
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-# install node dependencies
+# install the bower binary
+RUN npm -g install bower
+
+# install node (server-side) dependencies
 COPY package.json /usr/src/app/
 RUN npm install
+
+# install bower (client-side) dependencies
+COPY bower.json /usr/src/app/
+RUN bower install --allow-root
 
 # copy the rest of the application over
 COPY . /usr/src/app
