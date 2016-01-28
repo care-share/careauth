@@ -19,10 +19,10 @@
 }
 
 .med-list .med:nth-child(even){ /* zebra striping rows */
-    background-color: #eeeeee;
+    background-color: #c9def2;
 }
 .med-list .med:nth-child(odd){
-    background-color: #cccccc;
+    background-color: #f2f7fc;
 }
 
 .med-list .buttons {
