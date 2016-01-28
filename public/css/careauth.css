@@ -1,3 +1,26 @@
+/* Styles for med list entry */
+
+.med-list .row {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.med-list .row:nth-child(even){ /* zebra striping rows */
+    background-color: #dcdcdc;
+}
+.med-list .row:nth-child(odd){
+    background-color: #aaaaaa;
+}
+
+.med-list .row:nth-child(1){ /* but exclude the header */
+    background-color: white;
+}
+
+
+
+
+/* Styles for Account Edit page */
+
 .userInfoField{
 
 }

@@ -126,7 +126,7 @@ var MedRecInfoList = React.createClass({
         return (
             <form id="myform" onSubmit={this.handleSubmit}>
 
-                <div className="container">
+                <div className="container med-list">
                     <div className="row">
                         <div className="col-xs-2">
                             Medication Name
