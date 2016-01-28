@@ -126,18 +126,47 @@ var MedRecInfoList = React.createClass({
     render: function () {
 
         return (
-             <form id="myform" onSubmit={this.handleSubmit}>
-                <table>
+            <form id="myform" onSubmit={this.handleSubmit}>
+            
+                <div className="container"> 
+                    <div className="row">
+                    <div className="col-xs-2">
+                        Medication Name
+                    </div>
+                    <div className="col-xs-2">
+                        Name if Different
+                    </div>
+                    <div className="col-xs-2">
+                        Dosage  
+                    </div>
+                    <div className="col-xs-2">
+                        Frequency
+                    </div>
+                    <div className="col-xs-1">
+                        Patient Reports Compliance:
+                                
+                    </div>
+                    <div className="col-xs-1">
+                        VA Med?
+                    </div>
+                    <div className="col-xs-2">
+                        Notes
+                    </div>
+           
+            </div>
+
+
+
+
+
+
+                    {this.state.allMedications.map(function(medication){
+                        return <MedRecInfo fhirMedications={medication.text} key={medication.id}/>; // display each medication
+                    })}
+                </div>
+                        
+            <table>
                     <tbody>
-                    <tr>
-                        <td>
-                            <ol>
-                                {this.state.allMedications.map(function(medication){
-                                    return <MedRecInfo fhirMedications={medication.text} key={medication.id}/>; // display each medication
-                                })}
-                            </ol>
-                        </td>
-                    </tr>
                     <tr>
                         <td>
                             <button onClick={this.handleAdd} hidden={this.state.addHidden}>add new</button>
@@ -200,53 +229,38 @@ var MedRecInfo = React.createClass({
     },
     render: function () {
         return (
-            <li>
-                <input type="text" value={this.state.med_name} name="med_name"
+	    <div className="row">
+            <div className="col-xs-2">
+                <input className="form-control" type="text" value={this.state.med_name} name="med_name"
                                     onChange={this.handleMedChange}></input>
-                <table>
-                    <tbody>
-                    <tr>
-                        <td>Drug name substitution
-                            <input type="text" value={this.state.name_sub} name="name_sub"
+            </div>
+            <div className="col-xs-2">
+                <input type="text" value={this.state.name_sub} name="name_sub"
                                    onChange={this.handleChange}></input>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Dose: <input type="text" value={this.state.dose} name="dose"
-                                         onChange={this.handleChange}></input></td>
-                    </tr>
-                    <tr>
-                        <td>Frequency: <input type="text" value={this.state.freq} name="freq"
-                                              onChange={this.handleChange}></input></td>
-                    </tr>
-                    </tbody>
-                </table>
-                <h2>Patient Reports</h2>
-                <table>
-                    <tbody>
-                    <tr>
-                        <td>Compliance:
-                            <div>
-                                <label>yes <input type="radio" name="compliance_bool" value="yes" onClick={this.handleChange}></input></label>
-                                <label>no <input type="radio" name="compliance_bool" value="no" onClick={this.handleChange}></input></label>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>VA Med?
-                            <div>
-                                <label>yes <input type="radio" name="med_bool" value="yes" onClick={this.handleChange}></input></label>
-                                <label>no <input type="radio" name="med_bool" value="no" onClick={this.handleChange}></input></label>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Note: <input type="text" name="note" value={this.state.note}
-                                         onChange={this.handleChange}></input></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </li>
+            </div>
+            <div className="col-xs-2">
+                <input type="text" value={this.state.dose} name="dose"
+                                         onChange={this.handleChange}></input>  
+            </div>
+            <div className="col-xs-2">
+                <input type="text" value={this.state.freq} name="freq"
+                                              onChange={this.handleChange}></input>
+            </div>
+            <div className="col-xs-1">
+                <label><input type="radio" name="compliance_bool" value="yes" onClick={this.handleChange}></input> yes</label>
+                <label><input type="radio" name="compliance_bool" value="no" onClick={this.handleChange}></input> no</label>
+                        
+            </div>
+            <div className="col-xs-1">
+                                <label><input type="radio" name="med_bool" value="yes" onClick={this.handleChange}></input> yes</label>
+                                <label><input type="radio" name="med_bool" value="no" onClick={this.handleChange}></input> no</label>
+            </div>
+            <div className="col-xs-2">
+                <input type="text" name="note" value={this.state.note}
+                                         onChange={this.handleChange}></input>
+            </div>
+   
+        </div>
         );
     }
 });
