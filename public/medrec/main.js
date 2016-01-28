@@ -60,7 +60,6 @@ var ViewPage = React.createClass({
         var token = getUrlParameter('token');
         return (
             <div>
-                <h1>Enter Medications</h1>
                 <MedRecInfoList
                     fhirMedications={this.state.medication_list_response} token={token}
                 />
@@ -83,7 +82,7 @@ var MedRecInfoList = React.createClass({
     handleAdd: function () {
         // changed state of allMedications, append empty MedRecInfo item
         var newMed = this.state.allMedications;
-        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: "new medication name"});
+        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: "Additional medication"});
         var newId = this.state.id;
         this.setState({id: newId++});
         this.setState({allMedications: newMed});
@@ -127,7 +126,8 @@ var MedRecInfoList = React.createClass({
             <form id="myform" onSubmit={this.handleSubmit}>
 
                 <div className="container med-list">
-                    <div className="row">
+	        <h2 className="title">Verify patient medication list:</h2>
+                    <div className="row header">
                         <div className="col-xs-2">
                             Medication Name
                         </div>
@@ -157,21 +157,18 @@ var MedRecInfoList = React.createClass({
                     {this.state.allMedications.map(function (medication) {
                         return <MedRecInfo fhirMedications={medication.text} key={medication.id}/>; // display each medication
                     })}
-                </div>
-
-                <table>
-                    <tbody>
-                    <tr>
-                        <td>
-                            <button onClick={this.handleAdd} hidden={this.state.addHidden}>add new</button>
-                        </td>
-                        <td>
-                            <button onClick={this.handleChanges} hidden={this.state.submitHidden}>submit changes
+                    <div className="row buttons">
+		        <div className="col-xs-8"/>
+                        <div className="col-xs-2">
+                            <button className="form-control" onClick={this.handleAdd} hidden={this.state.addHidden}>add new</button>
+		        </div>
+		        <div className="col-xs-2">
+                            <button className="form-control" onClick={this.handleChanges} hidden={this.state.submitHidden}>submit changes
                             </button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                        </div>
+                    </div>
+            </div>
+
             </form>
         );
     }
@@ -224,9 +221,10 @@ var MedRecInfo = React.createClass({
     },
     render: function () {
         return (
-            <div className="row">
+            <div className="row med">
                 <div className="col-xs-2">
-                    <input className="form-control col-xs-12" type="text" value={this.state.med_name} name="med_name"
+                    <span className="original-med-name">{this.state.med_name}</span>
+                    <input className="form-control col-xs-12" type="hidden" value={this.state.med_name} name="med_name"
                            onChange={this.handleMedChange}></input>
                 </div>
                 <div className="col-xs-2">
