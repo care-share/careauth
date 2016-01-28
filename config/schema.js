@@ -44,6 +44,10 @@ module.exports = {
             "type": "string"
 //            "format": "url"
         },
+        "nomination_service": {
+            "type": "string"
+//            "format": "url"
+        },
 
         // Database settings
         "db": {

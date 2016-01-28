@@ -37,6 +37,10 @@ proxy_fhir:             '' # fhir.domain
 proxy_openid:           '' # openid.domain
 proxy_api:              '' # api.domain
 
+# Target for nomination proxy connection, it MUST be formatted as a valid URL,
+#   e.g. 'http://localhost:7293'
+nomination_service: 'http://localhost:7293'
+
 ################################################################################
 # Database settings
 ################################################################################
