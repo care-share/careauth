@@ -46,7 +46,9 @@ exports.saveMedEntries = function (req, res) {
             // this is the beginning of a new set of form fields, create a new model if we can
             createModel();
         }
-        args[field.name] = field.value;
+        if (field.value !== undefined && field.value !== null && field.value !== '') {
+            args[field.name] = field.value;
+        }
     }
     // now that the loop is over, call createModel again (needed because we end on the last form field!)
     createModel();
