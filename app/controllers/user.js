@@ -132,7 +132,7 @@ exports.changeUserInfo = function (req, res) {
     for(var i in req.body){
         var key = req.body[i].name;
         var value = req.body[i].value;
-        if(key === 'name_first' || key === 'name_last' || key === 'email' || key === 'phone') {
+        if(key === 'name_first' || key === 'name_last' || key === 'email' || key === 'phone' || key === 'contact_pref') {
             update[key] = value;
         }
     }

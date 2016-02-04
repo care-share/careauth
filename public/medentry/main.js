@@ -110,7 +110,7 @@ var MedEntryInfoList = React.createClass({
         var token = this.props.token;
         console.log('Should put data into mongoDB');
 
-        $('#myform').submit(function () {
+        $('#myform').unbind('submit').bind('submit',function () {
             var frm = $(this);
             var dat = {
                 patient_id: getUrlParameter('patient_id'),
@@ -169,14 +169,10 @@ var MedEntryInfoList = React.createClass({
                     <div className='row buttons'>
                         <div className='col-xs-8'></div>
                         <div className='col-xs-2'>
-                            <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
-                                new
-                            </button>
+                            <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add new</button>
                         </div>
                         <div className='col-xs-2'>
-                            <button className='form-control' onClick={this.handleChanges}
-                                    hidden={this.state.submitHidden}>submit changes
-                            </button>
+                            <button className='form-control' onClick={this.handleChanges} hidden={this.state.submitHidden}>submit changes</button>
                         </div>
                     </div>
                 </div>

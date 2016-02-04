@@ -1,7 +1,7 @@
 /**
  * Created by Collin McRae
- * ver: 0.7
- * last modified: 1/19/2016
+ * ver: 0.8
+ * last modified: 2/02/2016
  */
 
 //TODO: Add documentation for new elements, update documentation for old elements
@@ -155,6 +155,7 @@ var UserInfoList = React.createClass({
         var userid = this.state.id;
         var token = this.props.token;
         var reactObj = this;
+        var prefurl = "users/" + userid + "/contact_pref/" + this.state.contact_pref;
 
         function submit() {
             reactObj.loadServerData();
@@ -268,6 +269,7 @@ var UserInfoList = React.createClass({
                             </td>
                         </tr>
                         <UserPreferences pref={this.state.contact_pref}
+                                         handleChange = {this.handleChange}
                                          class="userInfoField editableField"
                                          placeholder="Select your contact preference"/>
                         <tr>
@@ -299,14 +301,14 @@ var UserInfoList = React.createClass({
 
 var UserPreferences = React.createClass({
     handleChange: function (change) {
-        this.props.onUpdate('contact_pref', change.target.value);
+        this.props.handleChange(change);
     },
     render: function () {
         return (
 
             <tr>
                 <td>Contact Preference:</td>
-                <td><select value={this.props.pref} className={this.props.class} onChange={this.handleChange} disabled>
+                <td><select value={this.props.pref} className={this.props.class} name="contact_pref" onChange={this.handleChange} disabled>
                     <option type="text" value="never">Never</option>
                     <option type="text" value="once a day">Once a day</option>
                     <option type="text" value="immediately">Immediately</option>
@@ -420,7 +422,7 @@ var ProfilePicture = React.createClass({
     },
     handleChange: function (e) {
         var userid = this.props.userid;
-        var url = '/users/' + userid + '/picture/';
+        var url = '/profile/users/' + userid + '/picture';
         var token = this.props.token;
         $("#pictureForm").submit(function (e) {
             var formObj = $(this);
@@ -436,15 +438,17 @@ var ProfilePicture = React.createClass({
                 processData: false,
                 success: function (data, textStatus, jqXHR) {
                     //TODO add success message
+                    console.log("Success! Picture has been updated!");
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
+                    console.log("Error: " +errorThrown);
                     //TODO add error message
                 }
             });
             e.preventDefault(); //Prevent Default action.
             // e.unbind();
         });
-        $("#pictureForm").submit();
+        //$("#pictureForm").submit();
         console.log(this.props.data[this.props.keyName]);
         this.forceUpdate();
     },

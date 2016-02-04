@@ -91,7 +91,7 @@ module.exports = function (server, passport) {
     // updates all of user's information
     // params:
     // * id: id of user to be updated
-    server.route('/users/:id/update')
+    server.route('/profile/users/:id/update')
         .post(auth.checkAdminOrOwnerToken, user.changeUserInfo);
 
     // adds or removes a role from a user
@@ -127,29 +127,17 @@ module.exports = function (server, passport) {
     server.route('/users/:id/password')
         .post(auth.checkAdminOrOwnerToken, user.changeUserPassword);
 
-    // updates a user's contact preference
-    // params:
-    // * email: email of user to change
-    // * pref: new contact preference for user
-    server.route('/users/:id/contact_pref/:pref')
-        .put(auth.checkAdminOrOwnerToken, user.changeUserPref);
-
-    // deletes a user's contact preference
-    // params:
-    // * email: email of user to change
-    server.route('/users/:id/contact_pref')
-        .delete(auth.checkAdminOrOwnerToken, user.removeUserPref);
 
     // updates a user's profile picture
     // params:
     // * email: email of user to change
     // * pictureLocation:location of new profile picture
-    server.route('/users/:id/picture')
+    server.route('/profile/users/:id/picture')
         .post(auth.checkAdminOrOwnerToken,upload.single('image'),user.changeUserPicture);
 
     // deletes a user's profile picture
     // params:
     // * email: email of user to change
-    server.route('/users/:id/picture')
+    server.route('profile/users/:id/picture')
         .delete(auth.checkAdminOrOwnerToken, user.removeUserPicture);
 };
