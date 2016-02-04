@@ -46,17 +46,17 @@ module.exports = function (server, passport) {
     // MEDREC CONTROLLER
     ///////////////////////////////////////////////////////////////////////////
 
-    // gets a list of MedRecs for a given FHIR user
-    server.route('/medrecs/patient_id/:patient_id')
-        .get(auth.checkToken, medrec.findMedRecs);
+    // gets a list of MedEntries for a given FHIR user
+    server.route('/medentries/patient_id/:patient_id')
+        .get(auth.checkToken, medrec.findMedEntries);
 
-    // create or update a MedRec
-    server.route('/medrecs')
-        .post(auth.checkToken, medrec.saveMedRec);
+    // create multiple MedEntry models
+    server.route('/medentries')
+        .post(auth.checkToken, medrec.saveMedEntries);
 
-    // delete a MedRec
-    server.route('/medrecs/id/:id')
-        .delete(auth.checkToken, medrec.deleteMedRec);
+    // delete a MedEntry
+    server.route('/medentries/id/:id')
+        .delete(auth.checkToken, medrec.deleteMedEntry);
 
     ///////////////////////////////////////////////////////////////////////////
     // USER CONTROLLER

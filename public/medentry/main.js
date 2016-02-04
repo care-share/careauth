@@ -13,7 +13,6 @@ function getUrlParameter(sParam) {
     }
 }
 
-// skeleton React page
 var ViewPage = React.createClass({
     getInitialState: function () {
         return {
@@ -23,14 +22,13 @@ var ViewPage = React.createClass({
     loadDataFromServer: function () {
         // the page expects two URL parameters: 'token' and 'patient_id'
         // e.g. the URL should look like this in the browser:
-        //   http://api.localhost:3000/medrec?token=abc&patient_id=xyz
+        //   http://api.domain:3000/medentry?token=abc&patient_id=xyz
         var token = getUrlParameter('token');
         var patient_id = getUrlParameter('patient_id');
         // TODO: validate that token and patient_id are not null
         var fhir_url_base = window.location.origin.replace('api.', 'fhir.');
         var fhir_url = fhir_url_base + '/MedicationOrder?_include=MedicationOrder:medication&_format=json&_count=50&patient=' + patient_id;
 
-        //Patient ID to use: 1452917292723-444-44-4444
         $.ajax({
             url: fhir_url,
             dataType: 'json',
@@ -40,7 +38,7 @@ var ViewPage = React.createClass({
                 //console.log(JSON.stringify(result.entry[0]));
                 var state = this.state.medication_list_response;
                 for (var i = 0; i < result.entry.length; i++) {
-                    if (result.entry[i].resource.resourceType === "Medication") {
+                    if (result.entry[i].resource.resourceType === 'Medication') {
                         var id = result.entry[i].resource.id;
                         var text = result.entry[i].resource.code.text;
                         state[i] = {id: id, text: text};
@@ -60,7 +58,7 @@ var ViewPage = React.createClass({
         var token = getUrlParameter('token');
         return (
             <div>
-                <MedRecInfoList
+                <MedEntryInfoList
                     fhirMedications={this.state.medication_list_response} token={token}
                 />
             </div>
@@ -68,9 +66,7 @@ var ViewPage = React.createClass({
     }
 });
 
-//TODO create add button to add another MedRecInfo
-
-var MedRecInfoList = React.createClass({
+var MedEntryInfoList = React.createClass({
     getInitialState: function () {
         return {
             allMedications: [],
@@ -80,9 +76,9 @@ var MedRecInfoList = React.createClass({
         };
     },
     handleAdd: function () {
-        // changed state of allMedications, append empty MedRecInfo item
+        // changed state of allMedications, append empty MedEntryInfo item
         var newMed = this.state.allMedications;
-        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: "Additional medication"});
+        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: 'Additional medication'});
         var newId = this.state.id;
         this.setState({id: newId++});
         this.setState({allMedications: newMed});
@@ -102,73 +98,69 @@ var MedRecInfoList = React.createClass({
                 formData: frm.serializeArray()
             };
 
-            console.log("I am about to POST this:\n\n" + JSON.stringify(dat, null, 2));
+            console.log('I am about to POST this:\n\n' + JSON.stringify(dat, null, 2));
             $.ajax({
-                type: "POST",
-                url: "/medrecs",
+                type: 'POST',
+                url: '/medentries',
                 headers: {'X-Auth-Token': token},
                 data: JSON.stringify(dat),
                 success: function (result) {
                     console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
                 },
-                dataType: "json",
-                contentType: "application/json"
+                dataType: 'json',
+                contentType: 'application/json'
             });
         });
-
     },
     componentDidMount: function () {
         this.setState({allMedications: this.props.fhirMedications});
     },
     render: function () {
-
         return (
-            <form id="myform" onSubmit={this.handleSubmit}>
-
-                <div className="container med-list">
-	        <h2 className="title">Verify patient medication list:</h2>
-                    <div className="row header">
-                        <div className="col-xs-2">
+            <form id='myform' onSubmit={this.handleSubmit}>
+                <div className='container med-list'>
+                    <h2 className='title'>Verify patient medication list:</h2>
+                    <div className='row header'>
+                        <div className='col-xs-2'>
                             Medication Name
                         </div>
-                        <div className="col-xs-2">
+                        <div className='col-xs-2'>
                             Name if Different
                         </div>
-                        <div className="col-xs-2">
+                        <div className='col-xs-2'>
                             Dosage
                         </div>
-                        <div className="col-xs-2">
+                        <div className='col-xs-2'>
                             Frequency
                         </div>
-                        <div className="col-xs-1">
+                        <div className='col-xs-1'>
                             Patient Reports Compliance:
-
                         </div>
-                        <div className="col-xs-1">
+                        <div className='col-xs-1'>
                             VA Med?
                         </div>
-                        <div className="col-xs-2">
+                        <div className='col-xs-2'>
                             Notes
                         </div>
-
                     </div>
 
-
                     {this.state.allMedications.map(function (medication) {
-                        return <MedRecInfo fhirMedications={medication.text} key={medication.id}/>; // display each medication
+                        return <MedEntryInfo fhirMedications={medication.text} key={medication.id}/>; // display each medication
                     })}
-                    <div className="row buttons">
-		        <div className="col-xs-8"/>
-                        <div className="col-xs-2">
-                            <button className="form-control" onClick={this.handleAdd} hidden={this.state.addHidden}>add new</button>
-		        </div>
-		        <div className="col-xs-2">
-                            <button className="form-control" onClick={this.handleChanges} hidden={this.state.submitHidden}>submit changes
+                    <div className='row buttons'>
+                        <div className='col-xs-8'/>
+                        <div className='col-xs-2'>
+                            <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
+                                new
+                            </button>
+                        </div>
+                        <div className='col-xs-2'>
+                            <button className='form-control' onClick={this.handleChanges}
+                                    hidden={this.state.submitHidden}>submit changes
                             </button>
                         </div>
                     </div>
-            </div>
-
+                </div>
             </form>
         );
     }
@@ -177,17 +169,17 @@ var MedRecInfoList = React.createClass({
 //Header Enter Medications
 //Numbered List
 //header <med_name>
-//CheckBox, label "Drug name Substitution", input area
-//label "Dose: ", input area
-//label "Frequency: ", input area
-//header "Patient Reports"
-//label "Compliance: " radio yes/no (change to yes/no slider)
-//label "VA Med?: " radio yes/no (change to yes/no slider)
-//label "Note: " input area (large)
+//CheckBox, label 'Drug name Substitution', input area
+//label 'Dose: ', input area
+//label 'Frequency: ', input area
+//header 'Patient Reports'
+//label 'Compliance: ' radio yes/no (change to yes/no slider)
+//label 'VA Med?: ' radio yes/no (change to yes/no slider)
+//label 'Note: ' input area (large)
 
 //TODO add hidden FHIR id value to POST when submitting
 
-var MedRecInfo = React.createClass({
+var MedEntryInfo = React.createClass({
     getInitialState: function () {
         return {
             med_name: '',
@@ -206,7 +198,7 @@ var MedRecInfo = React.createClass({
         this.setState(obj);
     },
     handleMedChange: function (event) {
-        if (this.state.fhir_id == "false") { // if not a fhir medication name field then can edit and update state
+        if (this.state.fhir_id == 'false') { // if not a fhir medication name field then can edit and update state
             var obj = {};
             obj[event.target.name] = event.target.value;
             this.setState(obj);
@@ -214,46 +206,47 @@ var MedRecInfo = React.createClass({
     },
     componentDidMount: function () {
         var isFhirMed = 'true';
-        if (this.props.fhirMedications == "new medication name") {
+        if (this.props.fhirMedications == 'new medication name') {
             isFhirMed = 'false';
         }
         this.setState({med_name: this.props.fhirMedications, fhir_id: isFhirMed});
     },
     render: function () {
         return (
-            <div className="row med">
-                <div className="col-xs-2">
-                    <span className="original-med-name">{this.state.med_name}</span>
-                    <input className="form-control col-xs-12" type="hidden" value={this.state.med_name} name="med_name"
+            <div className='row med'>
+                <div className='col-xs-2'>
+                    <span className='original-med-name'>{this.state.med_name}</span>
+                    <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                            onChange={this.handleMedChange}></input>
                 </div>
-                <div className="col-xs-2">
-                    <input className="col-xs-12" type="text" value={this.state.name_sub} name="name_sub"
+                <div className='col-xs-2'>
+                    <input className='col-xs-12' type='text' value={this.state.name_sub} name='name_sub'
                            onChange={this.handleChange}></input>
                 </div>
-                <div className="col-xs-2">
-                    <input className="col-xs-12" type="text" value={this.state.dose} name="dose"
+                <div className='col-xs-2'>
+                    <input className='col-xs-12' type='text' value={this.state.dose} name='dose'
                            onChange={this.handleChange}></input>
                 </div>
-                <div className="col-xs-2">
-                    <input type="text" value={this.state.freq} name="freq"
+                <div className='col-xs-2'>
+                    <input type='text' value={this.state.freq} name='freq'
                            onChange={this.handleChange}></input>
                 </div>
-                <div className="col-xs-1">
-                    <input className="col-xs-12" type="checkbox" name="compliance_bool" value="yes" onClick={this.handleChange}></input>
+                <div className='col-xs-1'>
+                    <input className='col-xs-12' type='checkbox' name='compliance_bool' value='yes'
+                           onClick={this.handleChange}></input>
                 </div>
-                <div className="col-xs-1">
-                    <input className="col-xs-12" type="checkbox" name="med_bool" value="yes" onClick={this.handleChange}></input>
+                <div className='col-xs-1'>
+                    <input className='col-xs-12' type='checkbox' name='med_bool' value='yes'
+                           onClick={this.handleChange}></input>
                 </div>
-                <div className="col-xs-2">
-                    <input className="col-xs-12" type="text" name="note" value={this.state.note}
+                <div className='col-xs-2'>
+                    <input className='col-xs-12' type='text' name='note' value={this.state.note}
                            onChange={this.handleChange}></input>
                 </div>
             </div>
         );
     }
 });
-
 
 /**
  * Renders the entire page
