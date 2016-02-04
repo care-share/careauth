@@ -1,7 +1,7 @@
 'use strict';
 
 // import external modules
-var Q  = require('q');
+var HTTP = require('q-io/http');
 
 // import internal modules
 var app = require('../../lib/app');
@@ -28,17 +28,32 @@ exports.findMedRecs = function (req, res) {
             //    }
             //  then, loop through all MedicationOrders, for each one: parse the MedicationOrder.medicationReference.reference to get the Medication ID it refers to
             //  finally, use the Medication ID to get the Medication Text from the map, and use that to set the MedicationOrder.medicationReference.display
-
-            // TODO: after that, loop MedRec data response, and transform the array data into wrappers like so:
-            //{
-            //    MedEntry: {},
-            //    Medication: {},
-            //    MedicationOrder: {},
-            //    MedRec: {}
-            //}
-            // TODO: after that, return the array of all wrapped elements
-            var wrappedData = [];
-            respond(res, 200, wrappedData);
+            var modifiedMedOrders = [];
+            url = 'hardcoded transcript API URL'; // TODO: eventually store this in config
+            var body = {
+                patientId: query.patient_id,
+                hh: medEntries,
+                va: modifiedMedOrders
+            };
+            return HTTP.request({
+                url: url,
+                method: 'POST', // not sure what method, I assume it will be POST
+                headers: {'Content-Type': 'application/json'},
+                body: [JSON.stringify(body)]
+            }).then(function (medRecs) {
+                // TODO: after that, loop MedRec data response, and transform the array data into wrappers like so:
+                //{
+                //    MedEntry: {},
+                //    Medication: {},
+                //    MedicationOrder: {},
+                //    MedRec: {}
+                //}
+                // TODO: after that, return the array of all wrapped elements
+                var wrappedData = [];
+                respond(res, 200, wrappedData);
+            }, function (err) {
+                throw new Error('Error when contacting TranScript server: ' + err.message);
+            });
         }, function (err) {
             throw new Error('Error when contacting FHIR server: ' + err.message);
         });
