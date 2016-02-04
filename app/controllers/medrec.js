@@ -23,10 +23,12 @@ exports.saveMedEntries = function (req, res) {
     var saveModels = [];
     var args = undefined;
     var firstField = 'med_name';
+    var timestamp = new Date(); // so all models are saved at the exact same time
 
     function createModel() {
         if (args !== undefined) {
             // create a new MedEntry model
+            args.timestamp = timestamp;
             var model = new MedEntry(args);
             // add a promise to save that model to the models array
             //saveModels.push(model.saveQ);

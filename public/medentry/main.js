@@ -36,12 +36,31 @@ var ViewPage = React.createClass({
             headers: {'X-Auth-Token': token},
             success: function (result) {
                 //console.log(JSON.stringify(result.entry[0]));
-                var state = this.state.medication_list_response;
+                var state = this.state.medication_list_response; // array
+                var map = {};
+                var medOrders = [];
                 for (var i = 0; i < result.entry.length; i++) {
-                    if (result.entry[i].resource.resourceType === 'Medication') {
+                    var resType = result.entry[i].resource.resourceType;
+                    if (resType === 'Medication') {
                         var id = result.entry[i].resource.id;
                         var text = result.entry[i].resource.code.text;
                         state[i] = {id: id, text: text};
+                        map[id] = i;
+                    } else if (resType === 'MedicationOrder') {
+                        medOrders.push(result.entry[i].resource);
+                    }
+                }
+                // loop through MedicationOrder resources and set the orderId for each medication
+                for (var j = 0; j < medOrders.length; j++) {
+                    if (medOrders[j].medicationReference) {
+                        var ref = medOrders[j].medicationReference.reference;
+                        if (ref) {
+                            var medicationId = ref.split('/')[1];
+                            var medication = state[map[medicationId]];
+                            if (medication) {
+                                medication.orderId = medOrders[j].id;
+                            }
+                        }
                     }
                 }
                 this.setState(state);
@@ -145,10 +164,10 @@ var MedEntryInfoList = React.createClass({
                     </div>
 
                     {this.state.allMedications.map(function (medication) {
-                        return <MedEntryInfo fhirMedications={medication.text} key={medication.id}/>; // display each medication
+                        return <MedEntryInfo fhirMedications={medication.text} key={medication.id} medId={medication.id} orderId={medication.orderId}/>; // display each medication
                     })}
                     <div className='row buttons'>
-                        <div className='col-xs-8'/>
+                        <div className='col-xs-8'></div>
                         <div className='col-xs-2'>
                             <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
                                 new
@@ -182,6 +201,8 @@ var MedEntryInfoList = React.createClass({
 var MedEntryInfo = React.createClass({
     getInitialState: function () {
         return {
+            med_id: '', // FHIR ID of this Medication (if applicable)
+            order_id: '', // FHIR ID of the MedicationOrder that references this Medication (if applicable)
             med_name: '',
             name_sub: '',
             dose: '',
@@ -189,7 +210,7 @@ var MedEntryInfo = React.createClass({
             complianceBool: '',
             medBool: '',
             note: '',
-            fhir_id: ''
+            is_fhir_med: false
         };
     },
     handleChange: function (event) {
@@ -198,51 +219,59 @@ var MedEntryInfo = React.createClass({
         this.setState(obj);
     },
     handleMedChange: function (event) {
-        if (this.state.fhir_id == 'false') { // if not a fhir medication name field then can edit and update state
+        if (this.state.is_fhir_med === false) { // if not a fhir medication name field then can edit and update state
             var obj = {};
             obj[event.target.name] = event.target.value;
             this.setState(obj);
         }
     },
     componentDidMount: function () {
-        var isFhirMed = 'true';
+        var isFhirMed = true;
         if (this.props.fhirMedications == 'new medication name') {
-            isFhirMed = 'false';
+            isFhirMed = false;
         }
-        this.setState({med_name: this.props.fhirMedications, fhir_id: isFhirMed});
+        this.setState({
+            med_id: this.props.medId,
+            order_id: this.props.orderId,
+            med_name: this.props.fhirMedications,
+            is_fhir_med: isFhirMed
+        });
     },
     render: function () {
+        // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
         return (
             <div className='row med'>
                 <div className='col-xs-2'>
                     <span className='original-med-name'>{this.state.med_name}</span>
                     <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
-                           onChange={this.handleMedChange}></input>
+                           onChange={this.handleMedChange} />
                 </div>
                 <div className='col-xs-2'>
                     <input className='col-xs-12' type='text' value={this.state.name_sub} name='name_sub'
-                           onChange={this.handleChange}></input>
+                           onChange={this.handleChange} />
                 </div>
                 <div className='col-xs-2'>
                     <input className='col-xs-12' type='text' value={this.state.dose} name='dose'
-                           onChange={this.handleChange}></input>
+                           onChange={this.handleChange} />
                 </div>
                 <div className='col-xs-2'>
                     <input type='text' value={this.state.freq} name='freq'
-                           onChange={this.handleChange}></input>
+                           onChange={this.handleChange} />
                 </div>
                 <div className='col-xs-1'>
                     <input className='col-xs-12' type='checkbox' name='compliance_bool' value='yes'
-                           onClick={this.handleChange}></input>
+                           onClick={this.handleChange} />
                 </div>
                 <div className='col-xs-1'>
                     <input className='col-xs-12' type='checkbox' name='med_bool' value='yes'
-                           onClick={this.handleChange}></input>
+                           onClick={this.handleChange} />
                 </div>
                 <div className='col-xs-2'>
                     <input className='col-xs-12' type='text' name='note' value={this.state.note}
-                           onChange={this.handleChange}></input>
+                           onChange={this.handleChange} />
                 </div>
+                <input type='hidden' value={this.state.med_id} name='medication_id' />
+                <input type='hidden' value={this.state.order_id} name='medication_order_id' />
             </div>
         );
     }
