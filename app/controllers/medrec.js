@@ -8,6 +8,46 @@ var app = require('../../lib/app');
 var MedEntry = app.MedEntry;
 var respond = require('../../lib/utils').respond;
 
+// API: GET /medrecs/patient_id/:patient_id
+exports.findMedRecs = function (req, res) {
+    // get MedEntry models from Mongo
+    var query = {patient_id: req.params.patient_id};
+    MedEntry.find(query).lean().execQ().then(function (medEntries) {
+        // get MedicationOrder/Medication models from FHIR
+        var url = app.config.get('proxy_fhir') + '/MedicationOrder?_include=MedicationOrder:medication&_format=json&_count=50&patient=' + query.patient_id;
+        app.logger.verbose('nomination-proxy: Making request to FHIR server: GET', url);
+        return HTTP.read(url).then(function (value) {
+            var fhirData = JSON.parse(value);
+            // TODO: get MedRec data from the TranScript API
+            //  NOTE: the input for TranScript API should have the medication name in MedicationOrder.medicationReference.display
+            //  however, we can't be sure our FHIR data is formed like that
+            //  so you need to do an intermediary step, first loop through all Medications and get the Medication.code.text; make a map like so:
+            //    {
+            //        medicationId: medicationText,
+            //        ...
+            //    }
+            //  then, loop through all MedicationOrders, for each one: parse the MedicationOrder.medicationReference.reference to get the Medication ID it refers to
+            //  finally, use the Medication ID to get the Medication Text from the map, and use that to set the MedicationOrder.medicationReference.display
+
+            // TODO: after that, loop MedRec data response, and transform the array data into wrappers like so:
+            //{
+            //    MedEntry: {},
+            //    Medication: {},
+            //    MedicationOrder: {},
+            //    MedRec: {}
+            //}
+            // TODO: after that, return the array of all wrapped elements
+            var wrappedData = [];
+            respond(res, 200, wrappedData);
+        }, function (err) {
+            throw new Error('Error when contacting FHIR server: ' + err.message);
+        });
+    }).catch(function (err) {
+        app.logger.error('Failed to find MedRecs for Patient "%s":', query.patient_id, err);
+        respond(res, 500);
+    }).done();
+};
+
 exports.findMedEntries = function (req, res) {
     var query = {patient_id: req.params.patient_id};
     MedEntry.find(query).lean().execQ().then(function (result) {
