@@ -181,17 +181,6 @@ var MedEntryInfoList = React.createClass({
     }
 });
 
-//Header Enter Medications
-//Numbered List
-//header <med_name>
-//CheckBox, label 'Drug name Substitution', input area
-//label 'Dose: ', input area
-//label 'Frequency: ', input area
-//header 'Patient Reports'
-//label 'Compliance: ' radio yes/no (change to yes/no slider)
-//label 'VA Med?: ' radio yes/no (change to yes/no slider)
-//label 'Note: ' input area (large)
-
 //TODO add hidden FHIR id value to POST when submitting
 
 var MedEntryInfo = React.createClass({
@@ -203,15 +192,19 @@ var MedEntryInfo = React.createClass({
             name_sub: '',
             dose: '',
             freq: '',
-            complianceBool: '',
-            medBool: '',
+            compliance_bool: false,
+            med_bool: false,
             note: '',
             is_fhir_med: false
         };
     },
     handleChange: function (event) {
         var obj = {};
-        obj[event.target.name] = event.target.value;
+        var value = event.target.value;
+        if (event.target.type === 'checkbox') {
+            value = (value === 'true');
+        }
+        obj[event.target.name] = value;
         this.setState(obj);
     },
     handleMedChange: function (event) {
@@ -231,6 +224,10 @@ var MedEntryInfo = React.createClass({
             order_id: this.props.orderId,
             med_name: this.props.fhirMedications,
             is_fhir_med: isFhirMed
+        });
+        $('.js-check').bootstrapToggle({
+            on: 'yes',
+            off: 'no'
         });
     },
     render: function () {
@@ -255,11 +252,11 @@ var MedEntryInfo = React.createClass({
                            onChange={this.handleChange} />
                 </div>
                 <div className='col-xs-1'>
-                    <input className='col-xs-12' type='checkbox' name='compliance_bool' value='yes'
+                    <input className='col-xs-12 js-check' type='checkbox' name='compliance_bool' value='true'
                            onClick={this.handleChange} />
                 </div>
                 <div className='col-xs-1'>
-                    <input className='col-xs-12' type='checkbox' name='med_bool' value='yes'
+                    <input className='col-xs-12 js-check' type='checkbox' name='med_bool' value='true'
                            onClick={this.handleChange} />
                 </div>
                 <div className='col-xs-2'>
@@ -268,6 +265,7 @@ var MedEntryInfo = React.createClass({
                 </div>
                 <input type='hidden' value={this.state.med_id} name='medication_id' />
                 <input type='hidden' value={this.state.order_id} name='medication_order_id' />
+                <div type='hidden' value='Submitted successfully!' name='submit_success'></div>
             </div>
         );
     }

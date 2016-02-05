@@ -137,7 +137,6 @@ exports.changeUserInfo = function (req, res) {
         }
     }
     updateUser(res, {_id: req.params.id}, update, true);
-    //TODO Need to add contact preferences
 };
 
 exports.changeUserPassword = function (req, res) {
