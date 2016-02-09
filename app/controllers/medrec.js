@@ -18,47 +18,62 @@ exports.findMedRecs = function (req, res) {
         app.logger.verbose('nomination-proxy: Making request to FHIR server: GET', url);
         return HTTP.read(url).then(function (value) {
             var fhirData = JSON.parse(value);
-            // TODO: get MedRec data from the TranScript API
-            //  NOTE: the input for TranScript API should have the medication name in MedicationOrder.medicationReference.display
-            //  however, we can't be sure our FHIR data is formed like that
-            //  so you need to do an intermediary step, first loop through all Medications and get the Medication.code.text; make a map like so:
-            //    {
-            //        medicationId: medicationText,
-            //        ...
-            //    }
-            //  then, loop through all MedicationOrders, for each one: parse the MedicationOrder.medicationReference.reference to get the Medication ID it refers to
-            //  finally, use the Medication ID to get the Medication Text from the map, and use that to set the MedicationOrder.medicationReference.display
-            var modifiedMedOrders = [];
+            // NOTE: the input for TranScript API should have the medication name in MedicationOrder.medicationReference.display
+            // however, we can't be sure our FHIR data is formed like that
+            // so, we loop through all MedicationOrders and the Medications they refer to, setting the attribute manually
+            var medNameMap = {};
+            var medOrders = [];
+            for (var i = 0; i < fhirData.entry.length; i++) {
+                var resource = fhirData.entry[i].resource;
+                if (resource.resourceType === 'Medication') {
+                    if (resource.id && resource.code && resource.code.text) {
+                        medNameMap[resource.id] = resource.code.text;
+                    }
+                } else if (resource.resourceType === 'MedicationOrder') {
+                    delete resource.meta; // delete unneeded metadata attribute
+                    medOrders.push(resource);
+                }
+            }
+            for (var j = 0; j < medOrders.length; j++) {
+                var medOrder = medOrders[j];
+                if (medOrder.medicationReference && medOrder.medicationReference.reference) {
+                    var medId = medOrder.medicationReference.reference.split('/')[1];
+                    medOrder.medicationReference.display = medNameMap[medId];
+                }
+            }
             url = 'hardcoded transcript API URL'; // TODO: eventually store this in config
             var body = {
-                patientId: query.patient_id,
+                patientId: req.params.patient_id,
                 hh: medEntries,
-                va: modifiedMedOrders
+                va: medOrders
             };
-            return HTTP.request({
-                url: url,
-                method: 'POST', // not sure what method, I assume it will be POST
-                headers: {'Content-Type': 'application/json'},
-                body: [JSON.stringify(body)]
-            }).then(function (medRecs) {
+            // TODO: remove this response once we contact the TranScript API!
+            respond(res, 200, body);
+
+            // TODO: get MedRec data from the TranScript API
+            //return HTTP.request({
+            //    url: url,
+            //    method: 'POST', // not sure what method, I assume it will be POST
+            //    headers: {'Content-Type': 'application/json'},
+            //    body: [JSON.stringify(body)]
+            //}).then(function (medRecs) {
                 // TODO: after that, loop MedRec data response, and transform the array data into wrappers like so:
                 //{
                 //    MedEntry: {},
-                //    Medication: {},
                 //    MedicationOrder: {},
                 //    MedRec: {}
                 //}
                 // TODO: after that, return the array of all wrapped elements
-                var wrappedData = [];
-                respond(res, 200, wrappedData);
-            }, function (err) {
-                throw new Error('Error when contacting TranScript server: ' + err.message);
-            });
+                //var wrappedData = [];
+                //respond(res, 200, wrappedData);
+            //}, function (err) {
+            //    throw new Error('Error when contacting TranScript server: ' + err.message);
+            //});
         }, function (err) {
             throw new Error('Error when contacting FHIR server: ' + err.message);
         });
     }).catch(function (err) {
-        app.logger.error('Failed to find MedRecs for Patient "%s":', query.patient_id, err);
+        app.logger.error('Failed to find MedRecs for Patient "%s":', req.params.patient_id, err);
         respond(res, 500);
     }).done();
 };
