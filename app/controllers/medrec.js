@@ -100,12 +100,16 @@ exports.saveMedEntries = function (req, res) {
             // create a new MedEntry model
             args.timestamp = timestamp;
 
-            if(args.name_sub != ''){
-                args.med_name = args.name_sub;
+            // reconcile medication name (or substituted name) that is submitted by user
+            if(args.name_sub && args.name_sub.length > 0){
+                args.name = args.name_sub;
+            } else {
+                args.name = args.med_name;
             }
+            delete args.med_name;
+            delete args.name_sub;
 
             var model = new MedEntry(args);
-            //app.logger.silly('args: ' + JSON.stringify(model));
             // add a promise to save that model to the models array
             //saveModels.push(model.saveQ);
             // FIXME: save an array of promises, that isnt working so we are adding a model to the array instead of a promise
