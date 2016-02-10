@@ -47,6 +47,10 @@ module.exports = function (server, passport) {
     ///////////////////////////////////////////////////////////////////////////
 
     // gets a list of MedEntries for a given FHIR user
+    server.route('/medrecs/patient_id/:patient_id')
+        .get(auth.checkToken, medrec.findMedRecs);
+
+    // gets a list of MedEntries for a given FHIR user
     server.route('/medentries/patient_id/:patient_id')
         .get(auth.checkToken, medrec.findMedEntries);
 
