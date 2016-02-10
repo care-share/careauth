@@ -41,16 +41,37 @@ exports.findMedRecs = function (req, res) {
                     medOrder.medicationReference.display = medNameMap[medId];
                 }
             }
-            url = 'hardcoded transcript API URL'; // TODO: eventually store this in config
-            var body = {
-                patientId: req.params.patient_id,
-                hh: medEntries,
-                va: medOrders
-            };
+
+            // THIS IS STUB CODE
             // TODO: remove this response once we contact the TranScript API!
-            respond(res, 200, body);
+            var medOrderIdMap = {};
+            for (var k = 0; k < medOrders.length; k++) {
+                var medOrder = medOrders[k];
+                medOrderIdMap[medOrder.id] = medOrder;
+            }
+            var temp = [];
+            for (var l = 0; l < medEntries.length; l++) {
+                var medEntry = medEntries[l];
+                var medOrder = medOrderIdMap[medEntry.medication_order_id];
+                temp.push({
+                    homeMed: medEntry,
+                    ehrMed: medOrder,
+                    status: 'active',
+                    discrepancy: {
+                        name: true,
+                        dose: false
+                    }
+                });
+            }
+            respond(res, 200, temp);
 
             // TODO: get MedRec data from the TranScript API
+            //url = 'hardcoded transcript API URL'; // TODO: eventually store this in config
+            //var body = {
+            //    patientId: req.params.patient_id,
+            //    hh: medEntries,
+            //    va: medOrders
+            //};
             //return HTTP.request({
             //    url: url,
             //    method: 'POST', // not sure what method, I assume it will be POST
@@ -59,9 +80,10 @@ exports.findMedRecs = function (req, res) {
             //}).then(function (medRecs) {
                 // TODO: after that, loop MedRec data response, and transform the array data into wrappers like so:
                 //{
-                //    MedEntry: {},
-                //    MedicationOrder: {},
-                //    MedRec: {}
+                //    homeMed: {},
+                //    ehrMed: {},
+                //    status: 'foo',
+                //    discrepancy: {}
                 //}
                 // TODO: after that, return the array of all wrapped elements
                 //var wrappedData = [];
