@@ -97,7 +97,7 @@ var MedEntryInfoList = React.createClass({
     handleAdd: function () {
         // changed state of allMedications, append empty MedEntryInfo item
         var newMed = this.state.allMedications;
-        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: 'Additional medication'});
+        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: ''});
         var newId = this.state.id;
         this.setState({id: newId++});
         this.setState({allMedications: newMed});
@@ -109,6 +109,7 @@ var MedEntryInfoList = React.createClass({
     handleChanges: function (e) {
         var token = this.props.token;
         console.log('Should put data into mongoDB');
+        //If name_sub exists, replace name
 
         $('#myform').unbind('submit').bind('submit',function () {
             var frm = $(this);
@@ -144,7 +145,7 @@ var MedEntryInfoList = React.createClass({
                             Medication Name
                         </div>
                         <div className='col-xs-2'>
-                            Name if Different
+                            Not Found
                         </div>
                         <div className='col-xs-2'>
                             Dosage
@@ -156,7 +157,7 @@ var MedEntryInfoList = React.createClass({
                             Patient Reports Compliance:
                         </div>
                         <div className='col-xs-1'>
-                            VA Med?
+                            Non VA Med
                         </div>
                         <div className='col-xs-2'>
                             Notes
@@ -164,7 +165,11 @@ var MedEntryInfoList = React.createClass({
                     </div>
 
                     {this.state.allMedications.map(function (medication) {
-                        return <MedEntryInfo fhirMedications={medication.text} key={medication.id} medId={medication.id} orderId={medication.orderId}/>; // display each medication
+                        return <MedEntryInfo fhirMedications={medication.text}
+                                             key={medication.id}
+                                             medId={medication.id}
+                                             orderId={medication.orderId}
+                        />; // display each medication
                     })}
                     <div className='row buttons'>
                         <div className='col-xs-8'></div>
@@ -195,14 +200,16 @@ var MedEntryInfo = React.createClass({
             compliance_bool: false,
             med_bool: false,
             note: '',
-            is_fhir_med: false
+            is_fhir_med: false,
+            placeholder: '',
+            not_found_bool: false
         };
     },
     handleChange: function (event) {
         var obj = {};
         var value = event.target.value;
         if (event.target.type === 'checkbox') {
-            value = (value === 'true');
+            value = (value === 'false');
         }
         obj[event.target.name] = value;
         this.setState(obj);
@@ -216,15 +223,19 @@ var MedEntryInfo = React.createClass({
     },
     componentDidMount: function () {
         var isFhirMed = true;
-        if (this.props.fhirMedications == 'new medication name') {
+        var placeText = 'alternative name';
+        if (this.props.fhirMedications == '') {
             isFhirMed = false;
+            placeText = 'medication name';
         }
         this.setState({
             med_id: this.props.medId,
             order_id: this.props.orderId,
             med_name: this.props.fhirMedications,
-            is_fhir_med: isFhirMed
+            is_fhir_med: isFhirMed,
+            placeholder: placeText
         });
+        //This creates the Bootstrap Toggles
         $('.js-check').bootstrapToggle({
             on: 'yes',
             off: 'no'
@@ -238,30 +249,32 @@ var MedEntryInfo = React.createClass({
                     <span className='original-med-name'>{this.state.med_name}</span>
                     <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                            onChange={this.handleMedChange} />
-                </div>
-                <div className='col-xs-2'>
                     <input className='col-xs-12' type='text' value={this.state.name_sub} name='name_sub'
-                           onChange={this.handleChange} />
+                           onChange={this.handleChange} placeholder={this.state.placeholder}/>
                 </div>
                 <div className='col-xs-2'>
+                    <input className='col-xs-12' type='checkbox' name='not_found_bool' value={this.state.not_found_bool}
+                           onClick={this.handleChange} />
+                </div>
+                <div className='col-xs-2' hidden={this.state.not_found_bool}>
                     <input className='col-xs-12' type='text' value={this.state.dose} name='dose'
-                           onChange={this.handleChange} />
+                           onChange={this.handleChange} disabled={this.state.not_found_bool} />
                 </div>
-                <div className='col-xs-2'>
+                <div className='col-xs-2' hidden={this.state.not_found_bool}>
                     <input type='text' value={this.state.freq} name='freq'
-                           onChange={this.handleChange} />
+                           onChange={this.handleChange} disabled={this.state.not_found_bool}/>
                 </div>
-                <div className='col-xs-1'>
+                <div className='col-xs-1' hidden={this.state.not_found_bool}>
                     <input className='col-xs-12 js-check' type='checkbox' name='compliance_bool' value='true'
                            onClick={this.handleChange} />
                 </div>
-                <div className='col-xs-1'>
+                <div className='col-xs-1' hidden={this.state.not_found_bool}>
                     <input className='col-xs-12 js-check' type='checkbox' name='med_bool' value='true'
-                           onClick={this.handleChange} />
+                           onClick={this.handleChange} disabled={this.state.not_found_bool} />
                 </div>
-                <div className='col-xs-2'>
+                <div className='col-xs-2' hidden={this.state.not_found_bool}>
                     <input className='col-xs-12' type='text' name='note' value={this.state.note}
-                           onChange={this.handleChange} />
+                           onChange={this.handleChange} disabled={this.state.not_found_bool} />
                 </div>
                 <input type='hidden' value={this.state.med_id} name='medication_id' />
                 <input type='hidden' value={this.state.order_id} name='medication_order_id' />
