@@ -144,7 +144,7 @@ var MedEntryInfoList = React.createClass({
                         <div className='col-xs-2'>
                             Medication Name
                         </div>
-                        <div className='col-xs-2'>
+                        <div className='col-xs-1'>
                             Not Found
                         </div>
                         <div className='col-xs-2'>
@@ -240,6 +240,27 @@ var MedEntryInfo = React.createClass({
             on: 'yes',
             off: 'no'
         });
+        //This creates the Select2 form
+        //QD    every day
+        //QOD    every other day
+        //QAM    every morning
+        //QPM    every afternoon
+        //QHS    every evening
+        //BID    twice per day
+        //TID    three times per day
+        //QID    four times per day
+        //PRN    as needed
+        //QW    every week
+        //Q[digit]H    every x hours
+        //AC    with meals
+
+        //var data = [{id: 0, text: 'QD'},{id: 1, text: 'QOD'},{id: 2, text: 'QAM'},{id: 3, text: 'QPM'},{id: 4, text: 'QHS'},
+        //                {id: 5, text: 'BID'},{id: 6, text: 'TID'},{id: 7, text: 'QID'},{id: 8, text: 'PRN'},
+        //                {id: 9, text: 'QW'},{id: 10, text: 'AC'}];
+        //$('.js-select-multiple').select2({
+        //    data: data
+        //});
+
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
@@ -252,7 +273,7 @@ var MedEntryInfo = React.createClass({
                     <input className='col-xs-12' type='text' value={this.state.name_sub} name='name_sub'
                            onChange={this.handleChange} placeholder={this.state.placeholder}/>
                 </div>
-                <div className='col-xs-2'>
+                <div className='col-xs-1'>
                     <input className='col-xs-12' type='checkbox' name='not_found_bool' value={this.state.not_found_bool}
                            onClick={this.handleChange} />
                 </div>
@@ -261,8 +282,8 @@ var MedEntryInfo = React.createClass({
                            onChange={this.handleChange} disabled={this.state.not_found_bool} />
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found_bool}>
-                    <input type='text' value={this.state.freq} name='freq'
-                           onChange={this.handleChange} disabled={this.state.not_found_bool}/>
+                    <input className='col-xs-12' type='text' value={this.state.freq} name='freq'
+                           onChange={this.handleChange} disabled={this.state.not_found_bool} />
                 </div>
                 <div className='col-xs-1' hidden={this.state.not_found_bool}>
                     <input className='col-xs-12 js-check' type='checkbox' name='compliance_bool' value='true'
@@ -273,8 +294,8 @@ var MedEntryInfo = React.createClass({
                            onClick={this.handleChange} disabled={this.state.not_found_bool} />
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found_bool}>
-                    <input className='col-xs-12' type='text' name='note' value={this.state.note}
-                           onChange={this.handleChange} disabled={this.state.not_found_bool} />
+                    <textarea className='col-xs-12' type='text' name='note' value={this.state.note}
+                              rows="1" onChange={this.handleChange} disabled={this.state.not_found_bool}/>
                 </div>
                 <input type='hidden' value={this.state.med_id} name='medication_id' />
                 <input type='hidden' value={this.state.order_id} name='medication_order_id' />
