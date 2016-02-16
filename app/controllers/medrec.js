@@ -174,13 +174,26 @@ exports.saveMedEntries = function (req, res) {
 };
 
 exports.changeMedEntry = function (req, res) {
+    // expects a body that's formatted like so:
+    // [{action: 'foo', hhNotes: 'bar', vaNotes: 'baz'}]
+    if (!req.body || !req.body[0]) {
+        respond(res, 400);
+        return;
+    }
+
     // rudimentary validation of attributes
     // only allow action, hhNotes, and vaNotes attributes to be changed
-    var update = {
-        action: req.body.action ? req.body.action : '',
-        hhNotes: req.body.hhNotes ? req.body.hhNotes : '',
-        vaNotes: req.body.vaNotes ? req.body.vaNotes : ''
-    };
+    var body = req.body[0];
+    var update = {};
+    if (body.action) {
+        update.action = body.action;
+    }
+    if (body.hhNotes) {
+        update.hhNotes = body.hhNotes;
+    }
+    if (body.vaNotes) {
+        update.vaNotes = body.vaNotes;
+    }
 
     updateMedEntry(res, {_id: req.params.id}, update, true);
 };
