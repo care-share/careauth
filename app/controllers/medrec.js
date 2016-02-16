@@ -173,16 +173,29 @@ exports.saveMedEntries = function (req, res) {
     respond(res, 200);
 };
 
-exports.deleteMedEntry = function (req, res) {
-    var query = {_id: req.params.id};
-    MedEntry.findOneAndRemoveQ({_id: req.params.id}).then(function (result) {
-        if (result) {
-            respond(res, 200);
-        } else {
-            respond(res, 404);
-        }
-    }).catch(function (err) {
-        app.logger.error('Failed to delete MedEntry "%s":', query._id, err);
-        respond(res, 500);
-    }).done();
+exports.changeMedEntry = function (req, res) {
+    // rudimentary validation of attributes
+    // only allow action, hhNotes, and vaNotes attributes to be changed
+    var update = {
+        action: req.body.action ? req.body.action : '',
+        hhNotes: req.body.hhNotes ? req.body.hhNotes : '',
+        vaNotes: req.body.vaNotes ? req.body.vaNotes : ''
+    };
+
+    updateMedEntry(res, {_id: req.params.id}, update, true);
 };
+
+// local methods
+function updateMedEntry(res, query, update, replyWithResult) {
+    return MedEntry.findOneAndUpdateQ(query, update, replyWithResult ? {new: true} : undefined)
+        .then(function (result) {
+            if (result) {
+                respond(res, 200, replyWithResult ? result : undefined);
+            } else {
+                respond(res, 404);
+            }
+        }).catch(function (err) {
+            app.logger.error('Failed to update MedEntry:', err);
+            respond(res, 500);
+        }).done();
+}

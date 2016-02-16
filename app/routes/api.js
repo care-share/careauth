@@ -58,9 +58,9 @@ module.exports = function (server, passport) {
     server.route('/medentries')
         .post(auth.checkToken, medrec.saveMedEntries);
 
-    // delete a MedEntry
-    server.route('/medentries/id/:id')
-        .delete(auth.checkToken, medrec.deleteMedEntry);
+    // update a MedEntry
+    server.route('/medentries/:id')
+        .put(auth.checkToken, medrec.changeMedEntry);
 
     ///////////////////////////////////////////////////////////////////////////
     // USER CONTROLLER
