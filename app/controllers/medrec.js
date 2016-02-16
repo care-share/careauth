@@ -175,15 +175,15 @@ exports.saveMedEntries = function (req, res) {
 
 exports.changeMedEntry = function (req, res) {
     // expects a body that's formatted like so:
-    // [{action: 'foo', hhNotes: 'bar', vaNotes: 'baz'}]
-    if (!req.body || !req.body[0]) {
+    // {medentry: {action: 'foo', hhNotes: 'bar', vaNotes: 'baz'}}
+    if (!req.body || !req.body.medentry) {
         respond(res, 400);
         return;
     }
 
     // rudimentary validation of attributes
     // only allow action, hhNotes, and vaNotes attributes to be changed
-    var body = req.body[0];
+    var body = req.body.medentry;
     var update = {};
     if (body.action) {
         update.action = body.action;
