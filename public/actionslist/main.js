@@ -16,7 +16,7 @@ function getUrlParameter(sParam) {
 var ViewPage = React.createClass({
     getInitialState: function () {
         return {
-            medication_list_response: []
+            medicationPairListResponse: []
         };
     },
     loadDataFromServer: function () {
@@ -27,22 +27,25 @@ var ViewPage = React.createClass({
         var patient_id = getUrlParameter('patient_id');
         // TODO: validate that token and patient_id are not null
  
-        var mongodbPath = '/medentries/patient_id/' + patient_id;
+        // var mongodbPath = '/medentries/patient_id/' + patient_id;
+        var medRecPath = '/medrecs/patient_id/' + patient_id;
 
-        console.log('Requesting data from mongoDB at: ' + mongodbPath);
+        console.log('Requesting data from mongoDB at: ' + medRecPath);
         $.ajax({
             type: 'GET',
-            url: mongodbPath,
+            url: medRecPath,
             dataType: 'json',
             headers: {'X-Auth-Token': token},
             success: function (result) {
                 console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
-                var data = [];
+                var data = this.state.medicationPairListResponse;
                 for(var i = 0; i < result.data.length; i++){
-                    data.push(result.data[i]);
+                    if(result.data[i].homeMed.action){
+                         data.push(result.data[i]);
+                    }
                 }
                 console.log('data = ' + JSON.stringify(data));
-                this.setState({medication_list_response: data});
+                this.setState(data);
             }.bind(this),
             error: function (xhr, status, err) {
                 console.error(this.props.source, status, err.toString());
@@ -57,7 +60,7 @@ var ViewPage = React.createClass({
         return (
             <div>
                 <ActionInfoList
-                    Medications={this.state.medication_list_response} token={token}
+                    MedicationPairs={this.state.medicationPairListResponse} token={token}
                 />
             </div>
         )
@@ -67,17 +70,14 @@ var ViewPage = React.createClass({
 var ActionInfoList = React.createClass({
     getInitialState: function () {
         return {
-            allMedications: [],
-            id: 10000000,
-            addHiddem: false,
-            submitHidden: false
+            allMedications: []
         };
     },
     componentDidMount: function () {
-        this.setState({allMedications: this.props.Medications});
+        this.setState({allMedications: this.props.MedicationPairs});
     },
     render: function () {
-        console.log('all meds:' + this.state.allMedications);
+        console.log('all meds:' + this.state.allMedications + this.props.token);
         return (
                 <div className='container med-list'>
                     <h2 className='title'>Actions list:</h2>
@@ -95,6 +95,13 @@ var ActionInfoList = React.createClass({
                             Home Health Actions Required
                         </div>
                     </div>
+                    {this.state.allMedications.map(function (medication) {
+                        return <ActionInfo Medications={medication.homeMed.name}
+                                             key={medication.id}
+                                             medId={medication.id}
+                                             orderId={medication.orderId}
+                        />; // display each medication
+                    })}
                 </div>
         );
     }
@@ -104,15 +111,26 @@ var ActionInfoList = React.createClass({
 var ActionInfo = React.createClass({
     getInitialState: function () {
         return {
+            homeMedName : '',
+            homeMedDose : '',
+            action : ''
         };
     },
     componentDidMount: function () {
-
+        this.setState({
+            homeMedName: this.props.Medications
+        });
     },
     render: function () {
-        // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
+        // IMPORTANT NOTE: for server-side processing to work correctly, homeMedName MUST be the first form field!
         return (
-            <div> placeholder
+            <div className='row med'>
+                <div className='col-xs-2'>
+                    <span className='original-med-name'>{this.state.homeMedName}</span>
+                    <input className='form-control col-xs-12' type='hidden' value={this.state.homeMedName} name='homeMedName'/>
+                    <input className='col-xs-12' type='text' value={this.state.homeMedDose} name='homeMedDose'
+                            placeholder={this.state.placeholder}/>
+                </div>
             </div>
         );
     }
