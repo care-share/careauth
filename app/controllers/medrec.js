@@ -102,8 +102,8 @@ exports.findMedRecs = function (req, res) {
 
 exports.findMedEntries = function (req, res) {
     // use query below to find the timestamp of the most recent MedEntry for patient_id X, created_by Y, and action != '':
-    //      var query = {patient_id: req.params.patient_id, created_by: req.user.id, action: {$exists: true}};
-    var query = {patient_id: req.params.patient_id, created_by: req.user.id};
+    var query = {patient_id: req.params.patient_id, created_by: req.user.id, action: {$exists: true}};
+    //var query = {patient_id: req.params.patient_id, created_by: req.user.id};
     var sortquery = {timestamp: -1};
     // db.medentries.find({patient_id: "1452917292723-444-44-4444", created_by: "56956a31c823716f0ba7881c"}).sort({timestamp: -1})
 
@@ -114,10 +114,7 @@ exports.findMedEntries = function (req, res) {
         var recentTime = result[0].timestamp.getTime();
         for(var i=0; i < result.length; i++){
             if(result[i].timestamp.getTime() == recentTime){
-                console.log('recent time:' + recentTime + JSON.stringify(result[i]));
                 data.push(result[i]);
-            }else{
-                console.log('recent time does not match' + result[i].timestamp);
             }
         }
 
