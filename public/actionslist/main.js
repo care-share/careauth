@@ -77,7 +77,8 @@ var ActionInfoList = React.createClass({
         this.setState({allMedications: this.props.MedicationPairs});
     },
     render: function () {
-        console.log('all meds:' + this.state.allMedications + this.props.token);
+        //console.log('all meds:' + this.state.allMedications + this.props.token);
+        
         return (
                 <div className='container med-list'>
                     <h2 className='title'>Actions list:</h2>
@@ -85,7 +86,7 @@ var ActionInfoList = React.createClass({
                         <div className='col-xs-2'>
                             VA Medication
                         </div>
-                        <div className='col-xs-1'>
+                        <div className='col-xs-2'>
                             Home Health 
                         </div>
                         <div className='col-xs-2'>
@@ -97,6 +98,9 @@ var ActionInfoList = React.createClass({
                     </div>
                     {this.state.allMedications.map(function (medication) {
                         return <ActionInfo Medications={medication.homeMed.name}
+                                            hhMedDose={medication.homeMed.dose}
+                                            hhMedNote={medication.homeMed.note}
+                                            action={medication.homeMed.action}
                                              key={medication.id}
                                              medId={medication.id}
                                              orderId={medication.orderId}
@@ -113,12 +117,18 @@ var ActionInfo = React.createClass({
         return {
             homeMedName : '',
             homeMedDose : '',
-            action : ''
+            homeMedNote : '',
+            action : '',
+            ehrMedName : ''
         };
     },
     componentDidMount: function () {
         this.setState({
-            homeMedName: this.props.Medications
+            homeMedName : this.props.Medications,
+            homeMedDose : this.props.hhMedDose,
+            homeMedNote : this.props.hhMedNote,
+            action : this.props.action,
+            ehrMedName : this.props.ehrMed
         });
     },
     render: function () {
@@ -126,10 +136,18 @@ var ActionInfo = React.createClass({
         return (
             <div className='row med'>
                 <div className='col-xs-2'>
+                    <span className='original-med-name'>{this.state.ehrMedName}</span>
+                    <span className='col-xs-12'>{this.state.homeMedDose}</span>
+                </div>
+                <div className='col-xs-2'>
                     <span className='original-med-name'>{this.state.homeMedName}</span>
-                    <input className='form-control col-xs-12' type='hidden' value={this.state.homeMedName} name='homeMedName'/>
-                    <input className='col-xs-12' type='text' value={this.state.homeMedDose} name='homeMedDose'
-                            placeholder={this.state.placeholder}/>
+                    <span className='col-xs-12'>{this.state.homeMedDose}</span>
+                </div>
+                <div className='col-xs-2'>
+                    <span className='original-med-name'>{this.state.action}</span>
+                </div>
+                <div className='col-xs-2'>
+                    <span className='original-med-name'>{this.state.homeMedNote}</span>
                 </div>
             </div>
         );
