@@ -46,13 +46,17 @@ module.exports = function (server, passport) {
     // MEDREC CONTROLLER
     ///////////////////////////////////////////////////////////////////////////
 
-    // gets a list of MedEntries for a given FHIR user
+    // accessed by VA users
+    // returns all of the OUTSTANDING MedPairs for a given Patient
+    // format: [{homeMed: MedPair, ehrMed: MedicationOrder, status: String, discrepancy: {attr1: Boolean, attr2: Boolean, ...}}]
     server.route('/medrecs/patient_id/:patient_id')
-        .get(auth.checkToken, medrec.findMedRecs);
+        .get(auth.checkToken, medrec.findMedRec);
 
-    // gets a list of MedEntries for a given FHIR user
-    server.route('/medentries/patient_id/:patient_id')
-        .get(auth.checkToken, medrec.findMedEntries);
+    // accessed by Home Health users
+    // returns all of the COMPLETED MedPairs for a given Patient, that were created by the logged-in User
+    // format: [{homeMed: MedPair, ehrMed: MedicationOrder}]
+    server.route('/actionlist/patient_id/:patient_id')
+        .get(auth.checkToken, medrec.findActionList);
 
     // create multiple MedEntry models
     server.route('/medentries')
