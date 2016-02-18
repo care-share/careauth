@@ -26,9 +26,9 @@ var ViewPage = React.createClass({
         var token = getUrlParameter('token');
         var patient_id = getUrlParameter('patient_id');
         // TODO: validate that token and patient_id are not null
- 
+
         // var mongodbPath = '/medentries/patient_id/' + patient_id;
-        var medRecPath = '/medrecs/patient_id/' + patient_id;
+        var medRecPath = '/actionlist/patient_id/' + patient_id;
 
         console.log('Requesting data from mongoDB at: ' + medRecPath);
         $.ajax({
@@ -50,7 +50,7 @@ var ViewPage = React.createClass({
             error: function (xhr, status, err) {
                 console.error(this.props.source, status, err.toString());
             }.bind(this)
-        });        
+        });
     },
     componentDidMount: function () {
         this.loadDataFromServer();
@@ -78,7 +78,7 @@ var ActionInfoList = React.createClass({
     },
     render: function () {
         //console.log('all meds:' + this.state.allMedications + this.props.token);
-        
+
         return (
                 <div className='container med-list'>
                     <h2 className='title'>Actions list:</h2>
@@ -87,7 +87,7 @@ var ActionInfoList = React.createClass({
                             VA Medication
                         </div>
                         <div className='col-xs-2'>
-                            Home Health 
+                            Home Health
                         </div>
                         <div className='col-xs-2'>
                             Decision
