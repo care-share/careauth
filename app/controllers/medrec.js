@@ -63,6 +63,8 @@ exports.findMedRecs = function (req, res) {
                     }
                 });
             }
+
+            console.log(temp);
             respond(res, 200, temp);
 
             // TODO: get MedRec data from the TranScript API

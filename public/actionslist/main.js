@@ -78,7 +78,9 @@ var ActionInfoList = React.createClass({
     },
     render: function () {
         //console.log('all meds:' + this.state.allMedications + this.props.token);
-        
+        if(this.state.allMedications[0]){
+            console.log('is VA med: ' + JSON.stringify(this.state.allMedications[0].ehrMed.medicationReference.display));
+        }
         return (
                 <div className='container med-list'>
                     <h2 className='title'>Actions list:</h2>

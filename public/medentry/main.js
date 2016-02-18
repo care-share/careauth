@@ -136,6 +136,7 @@ var MedEntryInfoList = React.createClass({
         this.setState({allMedications: this.props.fhirMedications});
     },
     render: function () {
+        console.log(this.state.allMedications);
         return (
             <form id='myform' onSubmit={this.handleSubmit}>
                 <div className='container med-list'>
