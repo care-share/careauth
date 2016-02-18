@@ -49,7 +49,7 @@ var ViewPage = React.createClass({
                         data[i].ehrMed = temp;
                     }
                 }
-                console.log('data = ' + JSON.stringify(data));
+
                 this.setState(data);
             }.bind(this),
             error: function (xhr, status, err) {
@@ -82,10 +82,6 @@ var ActionInfoList = React.createClass({
         this.setState({allMedications: this.props.MedicationPairs});
     },
     render: function () {
-        if(this.state.allMedications[0]){
-            console.log('is VA med: ' + JSON.stringify(this.state.allMedications[0].ehrMed.medicationReference.display));
-        }
-
         return (
                 <div className='container med-list'>
                     <h2 className='title'>Actions list:</h2>
