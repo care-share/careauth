@@ -90,7 +90,7 @@ var MedEntryInfoList = React.createClass({
         return {
             allMedications: [],
             id: 10000000,
-            addHiddem: false,
+            addHidden: false,
             submitHidden: false
         };
     },
@@ -111,7 +111,7 @@ var MedEntryInfoList = React.createClass({
         console.log('Should put data into mongoDB');
         //If name_sub exists, replace name
 
-        $('#myform').unbind('submit').bind('submit',function () {
+        $('#myform').unbind('submit').bind('submit', function () {
             var frm = $(this);
             var dat = {
                 patient_id: getUrlParameter('patient_id'),
@@ -175,10 +175,14 @@ var MedEntryInfoList = React.createClass({
                     <div className='row buttons'>
                         <div className='col-xs-8'></div>
                         <div className='col-xs-2'>
-                            <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add new</button>
+                            <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
+                                new
+                            </button>
                         </div>
                         <div className='col-xs-2'>
-                            <button className='form-control' onClick={this.handleChanges} hidden={this.state.submitHidden}>submit changes</button>
+                            <button className='form-control' onClick={this.handleChanges}
+                                    hidden={this.state.submitHidden}>submit changes
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -203,7 +207,7 @@ var MedEntryInfo = React.createClass({
             note: '',
             is_fhir_med: false,
             placeholder: '',
-            not_found_bool: false
+            not_found: false
         };
     },
     handleChange: function (event) {
@@ -270,36 +274,37 @@ var MedEntryInfo = React.createClass({
                 <div className='col-xs-2'>
                     <span className='original-med-name'>{this.state.med_name}</span>
                     <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
-                           onChange={this.handleMedChange} />
+                           onChange={this.handleMedChange}/>
                     <input className='col-xs-12' type='text' value={this.state.name_sub} name='name_sub'
-                           onChange={this.handleChange} placeholder={this.state.placeholder}/>
+                           onChange={this.handleChange} placeholder={this.state.placeholder}
+                           hidden={this.state.not_found} disabled={this.state.not_found}/>
                 </div>
                 <div className='col-xs-1'>
-                    <input className='col-xs-12' type='checkbox' name='not_found_bool' value={this.state.not_found_bool}
-                           onClick={this.handleChange} />
+                    <input className='col-xs-12' type='checkbox' name='not_found' value={this.state.not_found}
+                           hidden={!this.state.is_fhir_med} onClick={this.handleChange}/>
                 </div>
-                <div className='col-xs-2' hidden={this.state.not_found_bool}>
+                <div className='col-xs-2' hidden={this.state.not_found}>
                     <input className='col-xs-12' type='text' value={this.state.dose} name='dose'
-                           onChange={this.handleChange} disabled={this.state.not_found_bool} />
+                           onChange={this.handleChange} disabled={this.state.not_found}/>
                 </div>
-                <div className='col-xs-2' hidden={this.state.not_found_bool}>
+                <div className='col-xs-2' hidden={this.state.not_found}>
                     <input className='col-xs-12' type='text' value={this.state.freq} name='freq'
-                           onChange={this.handleChange} disabled={this.state.not_found_bool} />
+                           onChange={this.handleChange} disabled={this.state.not_found}/>
                 </div>
-                <div className='col-xs-1' hidden={this.state.not_found_bool}>
+                <div className='col-xs-1' hidden={this.state.not_found}>
                     <input className='col-xs-12 js-check' type='checkbox' name='compliance_bool' value='true'
-                           onClick={this.handleChange} />
+                           onClick={this.handleChange}/>
                 </div>
-                <div className='col-xs-1' hidden={this.state.not_found_bool}>
+                <div className='col-xs-1' hidden={this.state.not_found}>
                     <input className='col-xs-12 js-check' type='checkbox' name='med_bool' value='true'
-                           onClick={this.handleChange} disabled={this.state.not_found_bool} />
+                           onClick={this.handleChange} disabled={this.state.not_found}/>
                 </div>
-                <div className='col-xs-2' hidden={this.state.not_found_bool}>
+                <div className='col-xs-2' hidden={this.state.not_found}>
                     <textarea className='col-xs-12' type='text' name='note' value={this.state.note}
-                              rows="1" onChange={this.handleChange} disabled={this.state.not_found_bool}/>
+                              rows="1" onChange={this.handleChange} disabled={this.state.not_found}/>
                 </div>
-                <input type='hidden' value={this.state.med_id} name='medication_id' />
-                <input type='hidden' value={this.state.order_id} name='medication_order_id' />
+                <input type='hidden' value={this.state.med_id} name='medication_id'/>
+                <input type='hidden' value={this.state.order_id} name='medication_order_id'/>
                 <div type='hidden' value='Submitted successfully!' name='submit_success'></div>
             </div>
         );
