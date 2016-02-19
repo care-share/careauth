@@ -27,7 +27,6 @@ var ViewPage = React.createClass({
         var patient_id = getUrlParameter('patient_id');
         // TODO: validate that token and patient_id are not null
 
-        // var mongodbPath = '/medentries/patient_id/' + patient_id;
         var medRecPath = '/actionlist/patient_id/' + patient_id;
 
         console.log('Requesting data from mongoDB at: ' + medRecPath);
@@ -40,11 +39,17 @@ var ViewPage = React.createClass({
                 console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
                 var data = this.state.medicationPairListResponse;
                 for(var i = 0; i < result.data.length; i++){
-                    if(result.data[i].homeMed.action){
-                         data.push(result.data[i]);
+                    data[i] = result.data[i];
+
+                    // if medication does not exist in EHR then ehrMed is undefined
+                    // which causes a problem when passing to React child components 
+                    // therefore assigning empty data to ehr obj 
+                    if(!result.data[i].ehrMed){ 
+                        var temp = JSON.parse('{"medicationReference": {"display": ""},"dosageInstruction": [{"text": ""}]}');
+                        data[i].ehrMed = temp;
                     }
                 }
-                console.log('data = ' + JSON.stringify(data));
+
                 this.setState(data);
             }.bind(this),
             error: function (xhr, status, err) {
@@ -77,16 +82,14 @@ var ActionInfoList = React.createClass({
         this.setState({allMedications: this.props.MedicationPairs});
     },
     render: function () {
-        //console.log('all meds:' + this.state.allMedications + this.props.token);
-
         return (
                 <div className='container med-list'>
                     <h2 className='title'>Actions list:</h2>
                     <div className='row header'>
-                        <div className='col-xs-2'>
+                        <div className='col-xs-3'>
                             VA Medication
                         </div>
-                        <div className='col-xs-2'>
+                        <div className='col-xs-3'>
                             Home Health
                         </div>
                         <div className='col-xs-2'>
@@ -101,9 +104,9 @@ var ActionInfoList = React.createClass({
                                             hhMedDose={medication.homeMed.dose}
                                             hhMedNote={medication.homeMed.note}
                                             action={medication.homeMed.action}
-                                             key={medication.id}
-                                             medId={medication.id}
-                                             orderId={medication.orderId}
+                                            vaMed={medication.ehrMed.medicationReference.display}
+                                            vaMedDose={medication.ehrMed.dosageInstruction[0].text}
+                                             key={medication.homeMed._id}
                         />; // display each medication
                     })}
                 </div>
@@ -119,7 +122,8 @@ var ActionInfo = React.createClass({
             homeMedDose : '',
             homeMedNote : '',
             action : '',
-            ehrMedName : ''
+            ehrMedName : '',
+            ehrMedDose : ''
         };
     },
     componentDidMount: function () {
@@ -128,18 +132,18 @@ var ActionInfo = React.createClass({
             homeMedDose : this.props.hhMedDose,
             homeMedNote : this.props.hhMedNote,
             action : this.props.action,
-            ehrMedName : this.props.ehrMed
+            ehrMedName : this.props.vaMed,
+            ehrMedDose : this.props.vaMedDose
         });
     },
     render: function () {
-        // IMPORTANT NOTE: for server-side processing to work correctly, homeMedName MUST be the first form field!
         return (
             <div className='row med'>
-                <div className='col-xs-2'>
+                <div className='col-xs-3'>
                     <span className='original-med-name'>{this.state.ehrMedName}</span>
-                    <span className='col-xs-12'>{this.state.homeMedDose}</span>
+                    <span className='col-xs-12'>{this.state.ehrMedDose}</span>
                 </div>
-                <div className='col-xs-2'>
+                <div className='col-xs-3'>
                     <span className='original-med-name'>{this.state.homeMedName}</span>
                     <span className='col-xs-12'>{this.state.homeMedDose}</span>
                 </div>
