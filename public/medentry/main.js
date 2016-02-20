@@ -111,6 +111,7 @@ var MedEntryInfoList = React.createClass({
         console.log('Should put data into mongoDB');
         //If name_sub exists, replace name
 
+
         $('#myform').unbind('submit').bind('submit', function () {
             var frm = $(this);
             var dat = {
@@ -126,6 +127,9 @@ var MedEntryInfoList = React.createClass({
                 data: JSON.stringify(dat),
                 success: function (result) {
                     console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
+                    //Unhides success message on successful submit
+                    $('.success-message').removeAttr('hidden');
+                    $('.container.med-list').attr('hidden', 'true');
                 },
                 dataType: 'json',
                 contentType: 'application/json'
@@ -186,6 +190,7 @@ var MedEntryInfoList = React.createClass({
                         </div>
                     </div>
                 </div>
+                <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
             </form>
         );
     }
@@ -305,7 +310,6 @@ var MedEntryInfo = React.createClass({
                 </div>
                 <input type='hidden' value={this.state.med_id} name='medication_id'/>
                 <input type='hidden' value={this.state.order_id} name='medication_order_id'/>
-                <div type='hidden' value='Submitted successfully!' name='submit_success'></div>
             </div>
         );
     }

@@ -29,6 +29,10 @@
     padding-top: 15px;
 }
 
+.success-message {
+    background-color: #00A000;
+}
+
 /* Styles for Account Edit page */
 
 .userInfoField{
