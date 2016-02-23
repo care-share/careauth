@@ -38,15 +38,14 @@ var ViewPage = React.createClass({
             success: function (result) {
                 console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
                 var data = this.state.medicationPairListResponse;
-                for(var i = 0; i < result.data.length; i++){
+                for (var i = 0; i < result.data.length; i++) {
                     data[i] = result.data[i];
 
                     // if medication does not exist in EHR then ehrMed is undefined
-                    // which causes a problem when passing to React child components 
-                    // therefore assigning empty data to ehr obj 
-                    if(!result.data[i].ehrMed){ 
-                        var temp = JSON.parse('{"medicationReference": {"display": ""},"dosageInstruction": [{"text": ""}]}');
-                        data[i].ehrMed = temp;
+                    // which causes a problem when passing to React child components
+                    // therefore assigning empty data to ehr obj
+                    if (!result.data[i].ehrMed) {
+                        data[i].ehrMed = {"medicationReference": {"display": ""},"dosageInstruction": [{"text": ""}]};
                     }
                 }
 
@@ -83,33 +82,33 @@ var ActionInfoList = React.createClass({
     },
     render: function () {
         return (
-                <div className='container med-list'>
-                    <h2 className='title'>Actions list:</h2>
-                    <div className='row header'>
-                        <div className='col-xs-3'>
-                            VA Medication
-                        </div>
-                        <div className='col-xs-3'>
-                            Home Health
-                        </div>
-                        <div className='col-xs-2'>
-                            Decision
-                        </div>
-                        <div className='col-xs-2'>
-                            Home Health Actions Required
-                        </div>
+            <div className='container med-list'>
+                <h2 className='title'>Actions list:</h2>
+                <div className='row header'>
+                    <div className='col-xs-3'>
+                        VA Medication
                     </div>
-                    {this.state.allMedications.map(function (medication) {
-                        return <ActionInfo Medications={medication.homeMed.name}
-                                            hhMedDose={medication.homeMed.dose}
-                                            hhMedNote={medication.homeMed.note}
-                                            action={medication.homeMed.action}
-                                            vaMed={medication.ehrMed.medicationReference.display}
-                                            vaMedDose={medication.ehrMed.dosageInstruction[0].text}
-                                             key={medication.homeMed._id}
-                        />; // display each medication
-                    })}
+                    <div className='col-xs-3'>
+                        Home Health
+                    </div>
+                    <div className='col-xs-2'>
+                        Decision
+                    </div>
+                    <div className='col-xs-2'>
+                        Home Health Actions Required
+                    </div>
                 </div>
+                {this.state.allMedications.map(function (medication) {
+                    return <ActionInfo Medications={medication.homeMed.name}
+                                       hhMedDose={medication.homeMed.dose}
+                                       hhMedNote={medication.homeMed.note}
+                                       action={medication.homeMed.hhNotes}
+                                       vaMed={medication.ehrMed.medicationReference.display}
+                                       vaMedDose={medication.ehrMed.dosageInstruction[0].text}
+                                       key={medication.homeMed._id}
+                    />; // display each medication
+                })}
+            </div>
         );
     }
 });
@@ -118,22 +117,22 @@ var ActionInfoList = React.createClass({
 var ActionInfo = React.createClass({
     getInitialState: function () {
         return {
-            homeMedName : '',
-            homeMedDose : '',
-            homeMedNote : '',
-            action : '',
-            ehrMedName : '',
-            ehrMedDose : ''
+            homeMedName: '',
+            homeMedDose: '',
+            homeMedNote: '',
+            action: '',
+            ehrMedName: '',
+            ehrMedDose: ''
         };
     },
     componentDidMount: function () {
         this.setState({
-            homeMedName : this.props.Medications,
-            homeMedDose : this.props.hhMedDose,
-            homeMedNote : this.props.hhMedNote,
-            action : this.props.action,
-            ehrMedName : this.props.vaMed,
-            ehrMedDose : this.props.vaMedDose
+            homeMedName: this.props.Medications,
+            homeMedDose: this.props.hhMedDose,
+            homeMedNote: this.props.hhMedNote,
+            action: this.props.action,
+            ehrMedName: this.props.vaMed,
+            ehrMedDose: this.props.vaMedDose
         });
     },
     render: function () {
