@@ -50,7 +50,7 @@ module.exports = function (server, passport) {
     // returns all of the OUTSTANDING MedPairs for a given Patient
     // format: [{homeMed: MedPair, ehrMed: MedicationOrder, status: String, discrepancy: {attr1: Boolean, attr2: Boolean, ...}}]
     server.route('/medrecs/patient_id/:patient_id')
-        .get(auth.checkToken, medrec.findMedRec);
+        .get(auth.checkToken, medrec.getMedRecForPatient);
 
     // accessed by Home Health users
     // returns all of the COMPLETED MedPairs for a given Patient, that were created by the logged-in User

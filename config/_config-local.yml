@@ -41,6 +41,10 @@ proxy_api:              '' # api.domain
 #   e.g. 'http://localhost:7293'
 nomination_service: 'http://localhost:7293'
 
+# Target for TranScript API calls, it MUST be formatted as a valid URL,
+#   e.g. 'http://localhost:3003'
+transcript_service: 'http://localhost:3003'
+
 ################################################################################
 # Database settings
 ################################################################################

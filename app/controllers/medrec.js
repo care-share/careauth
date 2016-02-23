@@ -2,7 +2,6 @@
 
 // import external modules
 var HTTP = require('q-io/http');
-var Q = require('q');
 
 // import internal modules
 var app = require('../../lib/app');
@@ -10,7 +9,7 @@ var MedEntry = app.MedEntry;
 var respond = require('../../lib/utils').respond;
 
 // API: GET /medrecs/patient_id/:patient_id
-exports.findMedRec = function (req, res) {
+exports.getMedRecForPatient = function (req, res) {
     // get MedEntry models from Mongo
     var query = {patient_id: req.params.patient_id, action: {$exists: false}};
     MedEntry.find(query).lean().execQ().then(function (medEntries) {
@@ -19,7 +18,7 @@ exports.findMedRec = function (req, res) {
             return;
         }
         return findMedOrders(req.params.patient_id).then(function (medOrders) {
-            return findMedRec(medEntries, medOrders).then(function (combined) {
+            return findMedRec(req.params.patient_id, medEntries, medOrders).then(function (combined) {
                 respond(res, 200, combined);
             });
         });
@@ -46,8 +45,8 @@ exports.findActionList = function (req, res) {
         // loop through to get the most recent MedEntries
         var medEntries = [];
         var recentTime = result[0].timestamp.getTime();
-        for(var i=0; i < result.length; i++){
-            if(result[i].timestamp.getTime() === recentTime){
+        for (var i = 0; i < result.length; i++) {
+            if (result[i].timestamp.getTime() === recentTime) {
                 medEntries.push(result[i]);
             }
         }
@@ -74,7 +73,7 @@ exports.saveMedEntries = function (req, res) {
             args.timestamp = timestamp;
 
             // reconcile medication name (or substituted name) that is submitted by user
-            if(args.name_sub && args.name_sub.length > 0){
+            if (args.name_sub && args.name_sub.length > 0) {
                 args.name = args.name_sub;
             } else {
                 args.name = args.med_name;
@@ -153,7 +152,7 @@ exports.changeMedEntry = function (req, res) {
 function findMedOrders(patient_id) {
     // get MedicationOrder/Medication models from FHIR
     var url = app.config.get('proxy_fhir') + '/MedicationOrder?_include=MedicationOrder:medication&_format=json&_count=50&patient=' + patient_id;
-    app.logger.verbose('nomination-proxy: Making request to FHIR server: GET', url);
+    app.logger.verbose('Making request to FHIR server: GET', url);
 
     return HTTP.read(url).then(function (value) {
         var fhirData = JSON.parse(value);
@@ -186,46 +185,61 @@ function findMedOrders(patient_id) {
     });
 }
 
-function findMedRec(medEntries, medOrders) {
-    // THIS IS STUB CODE
-    // TODO: remove this response once we contact the TranScript API!
-    var combined = mapMedEntries(medEntries, medOrders);
-    for (var i = 0; i < combined.length; i++) {
-        var obj = combined[i];
-        obj.status = 'active';
-        obj.discrepancy = {
-            name: true,
-            dose: false
-        };
-    }
-    return Q.resolve(combined);
+function findMedRec(patient_id, medEntries, medOrders) {
+    // get HH/VA medication list discrepancies from TranScript API
+    var url = app.config.get('transcript_service') + '/list_pair/align.json';
+    app.logger.verbose('Making request to TranScript API: POST', url);
 
-    // TODO: get MedRec data from the TranScript API
-    //url = 'hardcoded transcript API URL'; // TODO: eventually store this in config
-    //var body = {
-    //    patientId: req.params.patient_id,
-    //    hh: medEntries,
-    //    va: medOrders
-    //};
-    //return HTTP.request({
-    //    url: url,
-    //    method: 'POST', // not sure what method, I assume it will be POST
-    //    headers: {'Content-Type': 'application/json'},
-    //    body: [JSON.stringify(body)]
-    //}).then(function (medRecs) {
-    // TODO: after that, loop MedRec data response, and transform the array data into wrappers like so:
-    //{
-    //    homeMed: {},
-    //    ehrMed: {},
-    //    status: 'foo',
-    //    discrepancy: {}
-    //}
-    // TODO: after that, return the array of all wrapped elements
-    //var wrappedData = [];
-    //respond(res, 200, wrappedData);
-    //}, function (err) {
-    //    throw new Error('Error when contacting TranScript server: ' + err.message);
-    //});
+    var medPairs = mapMedEntries(medEntries, medOrders);
+    var hh = [], va = [];
+    for (var i = 0; i < medPairs.length; i++) {
+        hh.push(medPairs[i].homeMed);
+        if (medPairs[i].ehrMed) {
+            va.push(medPairs[i].ehrMed);
+        }
+    }
+
+    var body = {
+        listpair: {
+            patientId: patient_id,
+            hh: hh,
+            va: va
+        }
+    };
+    var bodyString = JSON.stringify(body);
+    return HTTP.read({
+        url: url,
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': bodyString.length
+        }, body: [bodyString]
+    }).then(function (response) {
+        var data = JSON.parse(response);
+        var medRecs = data.medsRecon;
+        if (medRecs) {
+            // returns an array of combined MedEntries, MedOrders, and TranScript alignment info
+            // not every MedEntry will have a MedOrder associated with it
+            // (e.g. for each object in the resulting array, 'homeMed' will be defined but 'ehrMed' may be undefined)
+            var medRecMap = {};
+            for (var i = 0; i < medRecs.length; i++) {
+                var value = medRecs[i];
+                medRecMap[value.hhId] = value;
+            }
+            for (var j = 0; j < medPairs.length; j++) {
+                var medPair = medPairs[j];
+                var medRec = medRecMap[medPair.homeMed._id];
+                if (medRec) {
+                    medPair.status = medRec.status;
+                    medPair.discrepancy = medRec.discrepancy;
+                }
+            }
+            return medPairs;
+        }
+        throw new Error('Error when parsing TranScript API result: bad data');
+    }, function (err) {
+        throw new Error('Error when contacting TranScript API: ' + err.message);
+    });
 }
 
 // returns an array of combined MedEntries and MedOrders
@@ -233,13 +247,13 @@ function findMedRec(medEntries, medOrders) {
 // (e.g. for each object in the resulting array, 'homeMed' will be defined but 'ehrMed' may be undefined)
 function mapMedEntries(medEntries, medOrders) {
     var medOrderIdMap = {};
-    for (var k = 0; k < medOrders.length; k++) {
-        var value = medOrders[k];
+    for (var i = 0; i < medOrders.length; i++) {
+        var value = medOrders[i];
         medOrderIdMap[value.id] = value;
     }
     var temp = [];
-    for (var l = 0; l < medEntries.length; l++) {
-        var medEntry = medEntries[l];
+    for (var j = 0; j < medEntries.length; j++) {
+        var medEntry = medEntries[j];
         var medOrder = medOrderIdMap[medEntry.medication_order_id];
         temp.push({
             homeMed: medEntry,

@@ -48,6 +48,10 @@ module.exports = {
             "type": "string"
 //            "format": "url"
         },
+        "transcript_service": {
+            "type": "string"
+//            "format": "url"
+        },
 
         // Database settings
         "db": {
