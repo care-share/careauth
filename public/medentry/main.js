@@ -1,3 +1,4 @@
+
 function getUrlParameter(sParam) {
     var sPageURL = decodeURIComponent(window.location.search.substring(1)),
         sURLVariables = sPageURL.split('&'),
@@ -228,7 +229,7 @@ var MedEntryInfo = React.createClass({
     },
     componentDidMount: function () {
         var isFhirMed = true;
-        var placeText = 'alternative name';
+        var placeText = 'enter alternative name';
         if (this.props.fhirMedications == '') {
             isFhirMed = false;
             placeText = 'medication name';
@@ -275,7 +276,7 @@ var MedEntryInfo = React.createClass({
                     <span className='original-med-name'>{this.state.med_name}</span>
                     <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                            onChange={this.handleMedChange}/>
-                    <input className='col-xs-12' type='text' value={this.state.name_sub} name='name_sub'
+                    <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub} name='name_sub'
                            onChange={this.handleChange} placeholder={this.state.placeholder}
                            hidden={this.state.not_found} disabled={this.state.not_found}/>
                 </div>
