@@ -281,8 +281,8 @@ var MedEntryInfo = React.createClass({
                            hidden={this.state.not_found} disabled={this.state.not_found}/>
                 </div>
                 <div className='col-xs-1'>
-                    <input className='col-xs-12' type='checkbox' name='not_found' value={this.state.not_found}
-                           hidden={!this.state.is_fhir_med} onClick={this.handleChange}/>
+                    <input className='col-xs-12' type="checkbox" defaultChecked name='not_found' value={this.state.not_found}
+                           hidden={!this.state.is_fhir_med} onChange={this.handleChange}/>
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
                     <input className='col-xs-12' type='text' value={this.state.dose} name='dose'
