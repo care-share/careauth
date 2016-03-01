@@ -239,9 +239,9 @@ var MedEntryInfo = React.createClass({
         var result = '';
         for(var i = 0; i < freq.length; i++) {
             if( i !== 0)
-                result = result + ',' + freq[i].value;
+                result = result + ',' + freq[i].label;
             else
-                result = freq[i].value;
+                result = freq[i].label;
         }
         this.setState({
             freq : result
@@ -266,27 +266,18 @@ var MedEntryInfo = React.createClass({
             on: 'yes',
             off: 'no'
         });
-        //This creates the selectize form
-        //QD    every day
-        //QOD    every other day
-        //QAM    every morning
-        //QPM    every afternoon
-        //QHS    every evening
-        //BID    twice per day
-        //TID    three times per day
-        //QID    four times per day
-        //PRN    as needed
-        //QW    every week
-        //Q[digit]H    every x hours
-        //AC    with meals
-
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
         var self = this,
-            options = ['QD','QOD','QAM','QHS','BID','TID','QID','PRN','QW','AC'].map(function(freq){
-                return {label: freq, value: freq}
-            });
+            options = [
+                {label: 'QD', value: 'every day'},{label: 'QOD', value: 'every other day'},
+                {label: 'QAM', value: 'every morning'},{label: 'QPM', value: 'every afternoon'},
+                {label: 'QHS', value: 'every evening'},{label: 'BID', value: 'two times per day'},
+                {label: 'TID', value: 'three times per day'},{label: 'QID', value: 'four times per day'},
+                {label: 'PRN', value: 'as needed'},{label: 'QW', value: 'every week'},
+                {label: 'AC', value: 'with meals'}
+            ];
         return (
             <div className='row med'>
                 <div className='col-xs-2'>
@@ -306,7 +297,15 @@ var MedEntryInfo = React.createClass({
                            onChange={this.handleChange} disabled={this.state.not_found}/>
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
-                    <MultiSelect className='col-xs-12' placeholder='Select frequencies' options={options} onValuesChange={this.onFreqChange} />
+                    <MultiSelect className='col-xs-12' placeholder='Select frequencies' options={options} onValuesChange={this.onFreqChange}
+                        renderOption = {function(item){
+                            return <div>
+                                <span style={{marginRight: 4, verticalAlign: 'middle', width: 24, fontWeight: 'bold'}}>{item.label}</span>
+                                <span>{item.value}</span>
+                            </div>
+                        }}
+
+                    />
                     <input type='hidden' value={this.state.freq} name='freq'/>
                 </div>
                 <div className='col-xs-1' hidden={this.state.not_found}>
