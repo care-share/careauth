@@ -1,3 +1,7 @@
+//Includes React Selectize MultiSelect
+//MultiSelect = require('react-selectize').MultiSelect;
+var MultiSelect = reactSelectize.MultiSelect;
+
 function getUrlParameter(sParam) {
     var sPageURL = decodeURIComponent(window.location.search.substring(1)),
         sURLVariables = sPageURL.split('&'),
@@ -231,6 +235,18 @@ var MedEntryInfo = React.createClass({
             this.setState(obj);
         }
     },
+    onFreqChange: function (freq) {
+        var result = '';
+        for(var i = 0; i < freq.length; i++) {
+            if( i !== 0)
+                result = result + ',' + freq[i].value;
+            else
+                result = freq[i].value;
+        }
+        this.setState({
+            freq : result
+        });
+    },
     componentDidMount: function () {
         var isFhirMed = true;
         var placeText = 'alternative name';
@@ -250,7 +266,7 @@ var MedEntryInfo = React.createClass({
             on: 'yes',
             off: 'no'
         });
-        //This creates the Select2 form
+        //This creates the selectize form
         //QD    every day
         //QOD    every other day
         //QAM    every morning
@@ -264,16 +280,13 @@ var MedEntryInfo = React.createClass({
         //Q[digit]H    every x hours
         //AC    with meals
 
-        //var data = [{id: 0, text: 'QD'},{id: 1, text: 'QOD'},{id: 2, text: 'QAM'},{id: 3, text: 'QPM'},{id: 4, text: 'QHS'},
-        //                {id: 5, text: 'BID'},{id: 6, text: 'TID'},{id: 7, text: 'QID'},{id: 8, text: 'PRN'},
-        //                {id: 9, text: 'QW'},{id: 10, text: 'AC'}];
-        //$('.js-select-multiple').select2({
-        //    data: data
-        //});
-
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
+        var self = this,
+            options = ['QD','QOD','QAM','QHS','BID','TID','QID','PRN','QW','AC'].map(function(freq){
+                return {label: freq, value: freq}
+            });
         return (
             <div className='row med'>
                 <div className='col-xs-2'>
@@ -293,8 +306,8 @@ var MedEntryInfo = React.createClass({
                            onChange={this.handleChange} disabled={this.state.not_found}/>
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
-                    <input className='col-xs-12' type='text' value={this.state.freq} name='freq'
-                           onChange={this.handleChange} disabled={this.state.not_found}/>
+                    <MultiSelect className='col-xs-12' placeholder='Select frequencies' options={options} onValuesChange={this.onFreqChange} />
+                    <input type='hidden' value={this.state.freq} name='freq'/>
                 </div>
                 <div className='col-xs-1' hidden={this.state.not_found}>
                     <input className='col-xs-12 js-check' type='checkbox' name='compliance_bool' value='true'
@@ -314,6 +327,9 @@ var MedEntryInfo = React.createClass({
         );
     }
 });
+
+//<input className='col-xs-12' type='text' value={this.state.freq} name='freq'
+//       onChange={this.handleChange} disabled={this.state.not_found}/>
 
 /**
  * Renders the entire page
