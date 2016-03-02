@@ -216,7 +216,8 @@ var MedEntryInfo = React.createClass({
             note: '',
             is_fhir_med: false,
             placeholder: '',
-            not_found: false
+            not_found: false,
+            freq_array: []
         };
     },
     handleChange: function (event) {
@@ -235,16 +236,17 @@ var MedEntryInfo = React.createClass({
             this.setState(obj);
         }
     },
-    onFreqChange: function (freq) {
+    freqOnChange: function (freq) {
         var result = '';
-        for(var i = 0; i < freq.length; i++) {
-            if( i !== 0)
+        for (var i = 0; i < freq.length; i++) {
+            if (i !== 0)
                 result = result + ',' + freq[i].label;
             else
                 result = freq[i].label;
         }
         this.setState({
-            freq : result
+            freq: result,
+            freq_array: freq
         });
     },
     componentDidMount: function () {
@@ -271,11 +273,11 @@ var MedEntryInfo = React.createClass({
         // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
         var self = this,
             options = [
-                {label: 'QD', value: 'every day'},{label: 'QOD', value: 'every other day'},
-                {label: 'QAM', value: 'every morning'},{label: 'QPM', value: 'every afternoon'},
-                {label: 'QHS', value: 'every evening'},{label: 'BID', value: 'two times per day'},
-                {label: 'TID', value: 'three times per day'},{label: 'QID', value: 'four times per day'},
-                {label: 'PRN', value: 'as needed'},{label: 'QW', value: 'every week'},
+                {label: 'QD', value: 'every day'}, {label: 'QOD', value: 'every other day'},
+                {label: 'QAM', value: 'every morning'}, {label: 'QPM', value: 'every afternoon'},
+                {label: 'QHS', value: 'every evening'}, {label: 'BID', value: 'two times per day'},
+                {label: 'TID', value: 'three times per day'}, {label: 'QID', value: 'four times per day'},
+                {label: 'PRN', value: 'as needed'}, {label: 'QW', value: 'every week'},
                 {label: 'AC', value: 'with meals'}
             ];
         return (
@@ -297,13 +299,67 @@ var MedEntryInfo = React.createClass({
                            onChange={this.handleChange} disabled={this.state.not_found}/>
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
-                    <MultiSelect className='col-xs-12' placeholder='Select frequencies' options={options} onValuesChange={this.onFreqChange}
-                        renderOption = {function(item){
-                            return <div>
-                                <span style={{marginRight: 4, verticalAlign: 'middle', width: 24, fontWeight: 'bold'}}>{item.label}</span>
-                                <span>{item.value}</span>
-                            </div>
-                        }}
+                    <MultiSelect className='col-xs-12' style={{width: '100% !important'}} placeholder='Select freq' options={options}
+                                 onValuesChange={this.freqOnChange}
+                                 values={this.state.freq_array}
+                                 filterOptions={function(options, values, search){
+                                    /**
+                                    * filterOptions: method for search elements in options array via value or label
+                                    * returns an array of option objects to be represented by dropdown
+                                    *
+                                    * @param options: array of option objects, each containing a label and value field
+                                    * passed in from render method of MedEntryInfo
+                                    * @param values: array of currently selected option objects
+                                    * passed in from MedEntryInfo state via freq_array
+                                    * @param search: string of term to be found in options
+                                    */
+
+                                    //Values must be searched with lowSearch, labels must be searched with upSearch
+                                    var lowSearch = search.toLowerCase();
+                                    var upSearch = search.toUpperCase();
+
+                                    //arrA is an array for holding search terms which match option values
+                                    //chain goes through options one option obj at a time
+                                    var arrA = _.chain(options)
+                                        //if an option is not present within the option array, reject
+                                        .reject(function(option){
+                                            return self.state.freq_array.map(function(frequency){
+                                                return frequency.label;
+                                            }).indexOf(option.label) > -1
+                                        })
+                                        //if a lowSearch match is found in option, add to return array
+                                        .filter(function(option){
+                                            return option.value.match(lowSearch) !== null;
+                                        })
+                                        .first(100)
+                                        .value();
+
+                                    //arrB is an array for holding search terms which match option labels
+                                    var arrB = _.chain(options)
+
+                                        .reject(function(option){
+                                            return self.state.freq_array.map(function(frequency){
+                                                return frequency.value;
+                                            }).indexOf(option.value) > -1
+                                        })
+                                        .filter(function(option){
+                                            return option.label.indexOf(upSearch) == 0;
+                                        })
+                                        .first(100)
+                                        .value();
+                                    //if arrA has any elements in it, return arrA else return arrB
+                                    if (arrA.length > 0)
+                                        return arrA;
+                                    else
+                                        return arrB;
+                                 }}
+
+                                 renderOption={function(item){
+                                 return <div>
+                                    <span style={{marginRight: 4, verticalAlign: 'middle', width: 24, fontWeight: 'bold'}}>{item.label}</span>
+                                    <span>{item.value}</span>
+                                 </div>
+                                 }}
 
                     />
                     <input type='hidden' value={this.state.freq} name='freq'/>

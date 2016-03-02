@@ -23,10 +23,10 @@
     "jquery": "~2.1.4",
     "jwt-decode": "~1.4.0",
     "react": "~0.14.3",
-    "validator-js": "~4.4.1",
     "bootstrap": "~3.3.6",
     "bootstrap-toggle": "~2.2.1",
     "react-selectize": "https://npmcdn.com/react-selectize@0.8.1/bower.zip#~0.8.1",
-    "prelude-ls": "1.1.2"
+    "prelude-ls": "1.1.2",
+    "underscore": "~1.8.3"
   }
 }
