@@ -217,7 +217,8 @@ var MedEntryInfo = React.createClass({
             is_fhir_med: false,
             placeholder: '',
             not_found: false,
-            freq_array: []
+            freq_array: [],
+            alt_hidden: true
         };
     },
     handleChange: function (event) {
@@ -249,6 +250,13 @@ var MedEntryInfo = React.createClass({
             freq_array: freq
         });
     },
+    alternateMedClick: function(){
+        console.log('clicked!');
+        var invert = !(this.state.alt_hidden);
+        this.setState({
+            alt_hidden : invert
+        });
+    },
     componentDidMount: function () {
         var isFhirMed = true;
         var placeText = 'alternative name';
@@ -261,7 +269,8 @@ var MedEntryInfo = React.createClass({
             order_id: this.props.orderId,
             med_name: this.props.fhirMedications,
             is_fhir_med: isFhirMed,
-            placeholder: placeText
+            placeholder: placeText,
+            alt_hidden: isFhirMed
         });
         //This creates the Bootstrap Toggles
         $('.js-check').bootstrapToggle({
@@ -284,11 +293,14 @@ var MedEntryInfo = React.createClass({
             <div className='row med'>
                 <div className='col-xs-2'>
                     <span className='original-med-name'>{this.state.med_name}</span>
+                    <div>
                     <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                            onChange={this.handleMedChange}/>
+                    <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Alternate Name</a>
                     <input className='col-xs-12' type='text' value={this.state.name_sub} name='name_sub'
                            onChange={this.handleChange} placeholder={this.state.placeholder}
-                           hidden={this.state.not_found} disabled={this.state.not_found}/>
+                           hidden={this.state.not_found || this.state.alt_hidden} disabled={this.state.not_found}/>
+                    </div>
                 </div>
                 <div className='col-xs-1'>
                     <input className='col-xs-12' type='checkbox' name='not_found' value={this.state.not_found}
