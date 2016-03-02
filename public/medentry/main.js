@@ -295,11 +295,11 @@ var MedEntryInfo = React.createClass({
                     <span className='original-med-name'>{this.state.med_name}</span>
                     <div>
                     <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
-                           onChange={this.handleMedChange}/>
+                           onChange={this.handleMedChange} />
                     <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Alternate Name</a>
-                    <input className='col-xs-12' type='text' value={this.state.name_sub} name='name_sub'
-                           onChange={this.handleChange} placeholder={this.state.placeholder}
-                           hidden={this.state.not_found || this.state.alt_hidden} disabled={this.state.not_found}/>
+                    <input className='col-xs-12 frequency' type='text' value={this.state.name_sub} name='name_sub'
+                           onChange={this.handleChange} placeholder={this.state.placeholder} required
+                           hidden={this.state.not_found || this.state.alt_hidden} disabled={this.state.not_found || this.state.alt_hidden}/>
                     </div>
                 </div>
                 <div className='col-xs-1'>
@@ -307,7 +307,7 @@ var MedEntryInfo = React.createClass({
                            hidden={!this.state.is_fhir_med} onClick={this.handleChange}/>
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
-                    <input className='col-xs-12' type='text' value={this.state.dose} name='dose'
+                    <input className='col-xs-12' type='text' value={this.state.dose} name='dose' required
                            onChange={this.handleChange} disabled={this.state.not_found}/>
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
@@ -374,7 +374,7 @@ var MedEntryInfo = React.createClass({
                                  }}
 
                     />
-                    <input type='hidden' value={this.state.freq} name='freq'/>
+                    <input type='text' value={this.state.freq} name='freq' hidden='true' required />
                 </div>
                 <div className='col-xs-1' hidden={this.state.not_found}>
                     <input className='col-xs-12 js-check' type='checkbox' name='compliance_bool' value='true'
