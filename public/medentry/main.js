@@ -115,6 +115,7 @@ var MedEntryInfoList = React.createClass({
         console.log('Should put data into mongoDB');
         //If name_sub exists, replace name
 
+        //Add Freq validation here
 
         $('#myform').unbind('submit').bind('submit', function () {
             var frm = $(this);
@@ -150,7 +151,7 @@ var MedEntryInfoList = React.createClass({
                 <div className='container med-list'>
                     <h2 className='title'>Verify patient medication list:</h2>
                     <div className='row header'>
-                        <div className='col-xs-2'>
+                        <div className='col-xs-3'>
                             Medication Name
                         </div>
                         <div className='col-xs-1'>
@@ -251,7 +252,6 @@ var MedEntryInfo = React.createClass({
         });
     },
     alternateMedClick: function(){
-        console.log('clicked!');
         var invert = !(this.state.alt_hidden);
         this.setState({
             alt_hidden : invert
@@ -291,14 +291,15 @@ var MedEntryInfo = React.createClass({
             ];
         return (
             <div className='row med'>
-                <div className='col-xs-2'>
+                <div className='col-xs-3'>
                     <span className='original-med-name'>{this.state.med_name}</span>
                     <div>
                     <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                            onChange={this.handleMedChange} />
                     <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Alternate Name</a>
-                    <input className='col-xs-12 frequency' type='text' value={this.state.name_sub} name='name_sub'
+                    <input className='col-xs-12' type='text' value={this.state.name_sub} name='name_sub'
                            onChange={this.handleChange} placeholder={this.state.placeholder} required
+                           style = {{background: 'inherit'}}
                            hidden={this.state.not_found || this.state.alt_hidden} disabled={this.state.not_found || this.state.alt_hidden}/>
                     </div>
                 </div>
@@ -308,12 +309,12 @@ var MedEntryInfo = React.createClass({
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
                     <input className='col-xs-12' type='text' value={this.state.dose} name='dose' required
-                           onChange={this.handleChange} disabled={this.state.not_found}/>
+                           onChange={this.handleChange} disabled={this.state.not_found} style = {{background: 'inherit'}} />
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
                     <MultiSelect className='col-xs-12' style={{width: '100% !important'}} placeholder='Select freq' options={options}
                                  onValuesChange={this.freqOnChange}
-                                 values={this.state.freq_array}
+                                 values={this.state.freq_array} theme='bootstrap3'
                                  filterOptions={function(options, values, search){
                                     /**
                                     * filterOptions: method for search elements in options array via value or label
@@ -374,7 +375,7 @@ var MedEntryInfo = React.createClass({
                                  }}
 
                     />
-                    <input type='text' value={this.state.freq} name='freq' hidden='true' required />
+                    <input type='text' value={this.state.freq} name='freq' hidden />
                 </div>
                 <div className='col-xs-1' hidden={this.state.not_found}>
                     <input className='col-xs-12 js-check' type='checkbox' name='compliance_bool' value='true'
@@ -386,7 +387,8 @@ var MedEntryInfo = React.createClass({
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
                     <textarea className='col-xs-12' type='text' name='note' value={this.state.note}
-                              rows="1" onChange={this.handleChange} disabled={this.state.not_found}/>
+                              rows="1" onChange={this.handleChange} disabled={this.state.not_found}
+                              style = {{background: 'inherit'}} />
                 </div>
                 <input type='hidden' value={this.state.med_id} name='medication_id'/>
                 <input type='hidden' value={this.state.order_id} name='medication_order_id'/>
@@ -395,8 +397,6 @@ var MedEntryInfo = React.createClass({
     }
 });
 
-//<input className='col-xs-12' type='text' value={this.state.freq} name='freq'
-//       onChange={this.handleChange} disabled={this.state.not_found}/>
 
 /**
  * Renders the entire page
