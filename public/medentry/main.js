@@ -158,7 +158,7 @@ var MedEntryInfoList = React.createClass({
                             Patient Reports Compliance:
                         </div>
                         <div className='col-xs-1'>
-                            Non VA Med
+                            Prescriber
                         </div>
                         <div className='col-xs-2'>
                             Notes
@@ -203,7 +203,9 @@ var MedEntryInfo = React.createClass({
             dose: '',
             freq: '',
             compliance_bool: true,
-            med_bool: false,
+            noncompliance_note: '',
+            med_bool: true,
+            prescriber_note: '',
             note: '',
             is_fhir_med: false,
             placeholder: '',
@@ -268,6 +270,19 @@ var MedEntryInfo = React.createClass({
             //console.log(this, " fired onChange");
             myMedEntryInfo1.handleChange(evt);
         });
+
+        $( this.refs.prescriberInput).bootstrapToggle({
+            on: 'VA',
+            off: 'other'
+        });
+        var myMedEntryInfo2 = this;
+        $( this.refs.prescriberInput).on("change", function(evt) { 
+            //console.log(this, " fired onChange");
+            myMedEntryInfo2.handleChange(evt);
+        });
+
+        $(this.refs.prescriberNote).focus();
+
         //This creates the Select2 form
         //QD    every day
         //QOD    every other day
@@ -317,12 +332,14 @@ var MedEntryInfo = React.createClass({
                 <div className='col-xs-1' hidden={this.state.not_found}>
                     <input ref='complianceInput' className='col-xs-12' type='checkbox' defaultChecked data-toggle='toggle' data-on='yes' data-off='no' name='compliance_bool' value={this.state.compliance_bool}
                            onClick={this.handleChange}/>
-                    <textarea className='col-xs-12' type='text' name='compliance_note' value=''
-                        rows="1" onChange={this.handleChange} hidden={this.state.compliance_bool}/>
+                    <textarea className='col-xs-12' type='text' value={this.state.compliance_note} name='noncompliance_note'
+                        rows="1" onChange={this.handleChange} placeholder='please expain' hidden={this.state.compliance_bool}/>
                 </div>
                 <div className='col-xs-1' hidden={this.state.not_found}>
-                    <input className='col-xs-12 js-check' type='checkbox' name='med_bool' value='true'
+                    <input ref='prescriberInput' className='col-xs-12' type='checkbox' type='checkbox' defaultChecked name='med_bool' value={this.state.med_bool}
                            onClick={this.handleChange} disabled={this.state.not_found}/>
+                    <textarea ref='prescriberNote' className='col-xs-12' type='text' value={this.state.prescriber_note} name='prescriber_note'
+                        rows="1" onChange={this.handleChange} placeholder='please enter prescriber' hidden={this.state.med_bool}/>
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
                     <textarea className='col-xs-12' type='text' name='note' value={this.state.note}
