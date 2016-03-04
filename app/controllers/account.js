@@ -48,6 +48,7 @@ exports.login = function (req, res) {
     Account.createUserToken(req.user.email)
         .then(function (result) {
             var obj = {
+                _id: req.user._id,
                 email: result.email,
                 name_first: result.name_first,
                 name_last: result.name_last,
