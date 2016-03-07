@@ -154,8 +154,7 @@ var MedEntryInfoList = React.createClass({
                         <div className='col-xs-3'>
                             Medication Name
                         </div>
-                        <div className='col-xs-1'>
-                            Not Found
+                        <div className='col-xs-2'>
                         </div>
                         <div className='col-xs-2'>
                             Dosage
@@ -167,7 +166,7 @@ var MedEntryInfoList = React.createClass({
                             Patient Reports Compliance:
                         </div>
                         <div className='col-xs-1'>
-                            Non VA Med
+                            Prescriber
                         </div>
                         <div className='col-xs-2'>
                             Notes
@@ -212,8 +211,10 @@ var MedEntryInfo = React.createClass({
             name_sub: '',
             dose: '',
             freq: '',
-            compliance_bool: false,
-            med_bool: false,
+            compliance_bool: true,
+            noncompliance_note: '',
+            med_bool: true,
+            prescriber_note: '',
             note: '',
             is_fhir_med: false,
             placeholder: '',
@@ -229,7 +230,9 @@ var MedEntryInfo = React.createClass({
             value = (value === 'false');
         }
         obj[event.target.name] = value;
-        this.setState(obj);
+        this.setState(obj, function(){
+            console.log('new value: ' + JSON.stringify(obj));
+        });
     },
     handleMedChange: function (event) {
         if (this.state.is_fhir_med === false) { // if not a fhir medication name field then can edit and update state
@@ -259,7 +262,7 @@ var MedEntryInfo = React.createClass({
     },
     componentDidMount: function () {
         var isFhirMed = true;
-        var placeText = 'alternative name';
+        var placeText = 'enter alternative name';
         if (this.props.fhirMedications == '') {
             isFhirMed = false;
             placeText = 'medication name';
@@ -272,10 +275,53 @@ var MedEntryInfo = React.createClass({
             placeholder: placeText,
             alt_hidden: isFhirMed
         });
+
+        //This creates the Select2 form
+        //QD    every day
+        //QOD    every other day
+        //QAM    every morning
+        //QPM    every afternoon
+        //QHS    every evening
+        //BID    twice per day
+        //TID    three times per day
+        //QID    four times per day
+        //PRN    as needed
+        //QW    every week
+        //Q[digit]H    every x hours
+        //AC    with meals
+
+        //var data = [{id: 0, text: 'QD'},{id: 1, text: 'QOD'},{id: 2, text: 'QAM'},{id: 3, text: 'QPM'},{id: 4, text: 'QHS'},
+        //                {id: 5, text: 'BID'},{id: 6, text: 'TID'},{id: 7, text: 'QID'},{id: 8, text: 'PRN'},
+        //                {id: 9, text: 'QW'},{id: 10, text: 'AC'}];
+        //$('.js-select-multiple').select2({
+        //    data: data
+        //});
+
         //This creates the Bootstrap Toggles
-        $('.js-check').bootstrapToggle({
-            on: 'yes',
-            off: 'no'
+        // $('.js-check').bootstrapToggle({
+        //     on: 'yes',
+        //     off: 'no'
+        // });
+
+        // this does not work because of scope issue
+        // $(".js-check").on("change", function(evt) { 
+        //     console.debug(this, " fired onChange");
+        //     MedEntryInfo.handleChange(evt);
+        // });
+
+        //debugger;
+        $( this.refs.toggleInput).bootstrapToggle();
+        var myMedEntryInfo = this;
+        $( this.refs.toggleInput).on("change", function(evt) { 
+            //console.log(this, " fired onChange");
+            myMedEntryInfo.handleChange(evt);
+        });
+
+        $( this.refs.complianceInput).bootstrapToggle();
+        var myMedEntryInfo1 = this;
+        $( this.refs.complianceInput).on("change", function(evt) { 
+            //console.log(this, " fired onChange");
+            myMedEntryInfo1.handleChange(evt);
         });
     },
     render: function () {
@@ -303,9 +349,9 @@ var MedEntryInfo = React.createClass({
                            hidden={this.state.not_found || this.state.alt_hidden} disabled={this.state.not_found || this.state.alt_hidden}/>
                     </div>
                 </div>
-                <div className='col-xs-1'>
-                    <input className='col-xs-12' type='checkbox' name='not_found' value={this.state.not_found}
-                           hidden={!this.state.is_fhir_med} onClick={this.handleChange}/>
+                <div className='col-xs-2'>
+                    <input ref='toggleInput' className='col-xs-12' type='checkbox'defaultChecked data-toggle='toggle' data-on='found' data-off='missing' name='not_found' value={this.state.not_found}
+                           hidden={!this.state.is_fhir_med} onChange={this.handleChange}/>
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
                     <input className='col-xs-12' type='text' value={this.state.dose} name='dose' required
@@ -378,12 +424,16 @@ var MedEntryInfo = React.createClass({
                     <input type='text' value={this.state.freq} name='freq' hidden />
                 </div>
                 <div className='col-xs-1' hidden={this.state.not_found}>
-                    <input className='col-xs-12 js-check' type='checkbox' name='compliance_bool' value='true'
+                    <input ref='complianceInput' className='col-xs-12' type='checkbox' defaultChecked data-toggle='toggle' data-on='yes' data-off='no' name='compliance_bool' value={this.state.compliance_bool}
                            onClick={this.handleChange}/>
+                    <textarea className='col-xs-12' type='text' value={this.state.compliance_note} name='noncompliance_note'
+                        rows="1" onChange={this.handleChange} placeholder='please expain' hidden={this.state.compliance_bool}/>
                 </div>
                 <div className='col-xs-1' hidden={this.state.not_found}>
-                    <input className='col-xs-12 js-check' type='checkbox' name='med_bool' value='true'
+                    <input ref='prescriberInput' className='col-xs-12' type='checkbox' type='checkbox' defaultChecked name='med_bool' value={this.state.med_bool}
                            onClick={this.handleChange} disabled={this.state.not_found}/>
+                    <textarea ref='prescriberNote' className='col-xs-12' type='text' value={this.state.prescriber_note} name='prescriber_note'
+                        rows="1" onChange={this.handleChange} placeholder='please enter prescriber' hidden={this.state.med_bool}/>
                 </div>
                 <div className='col-xs-2' hidden={this.state.not_found}>
                     <textarea className='col-xs-12' type='text' name='note' value={this.state.note}

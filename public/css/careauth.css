@@ -59,3 +59,11 @@
 .editableField{
 
 }
+
+/* Styles for MedEntry page */
+
+.alternativeName {
+    background-color:inherit; /* make field less prominent */
+    padding-left: 0px;  /* no spacing to align with EHR medication name */
+    padding-right: 0px;
+}
