@@ -323,6 +323,18 @@ var MedEntryInfo = React.createClass({
             //console.log(this, " fired onChange");
             myMedEntryInfo1.handleChange(evt);
         });
+
+        $( this.refs.prescriberInput).bootstrapToggle({
+            on: 'VA',
+            off: 'other'
+        });
+        var myMedEntryInfo2 = this;
+        $( this.refs.prescriberInput).on("change", function(evt) { 
+            //console.log(this, " fired onChange");
+            myMedEntryInfo2.handleChange(evt);
+        });
+
+        $(this.refs.prescriberNote).focus();
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
@@ -343,7 +355,7 @@ var MedEntryInfo = React.createClass({
                     <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                            onChange={this.handleMedChange} />
                     <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Alternate Name</a>
-                    <input className='col-xs-12' type='text' value={this.state.name_sub} name='name_sub'
+                    <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub} name='name_sub'
                            onChange={this.handleChange} placeholder={this.state.placeholder} required
                            style = {{background: 'inherit'}}
                            hidden={this.state.not_found || this.state.alt_hidden} disabled={this.state.not_found || this.state.alt_hidden}/>
