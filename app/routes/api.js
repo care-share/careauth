@@ -12,6 +12,7 @@ module.exports = function (server, passport) {
     var account = require('../controllers/account');
     var auth = require('../controllers/auth');
     var user = require('../controllers/user');
+    var comm = require('../controllers/comm');
     var medrec = require('../controllers/medrec');
     var multer = require('multer');
     //var upload = multer({ dest: './public/avatars'});
@@ -41,6 +42,18 @@ module.exports = function (server, passport) {
 
     server.route('/auth/logout')
         .post(auth.checkToken, account.logout);
+
+    ///////////////////////////////////////////////////////////////////////////
+    // COMM CONTROLLER
+    ///////////////////////////////////////////////////////////////////////////
+
+    server.route('/comms')
+        .get(auth.checkToken, comm.getComms)
+        .post(auth.checkToken, comm.createComm);
+
+    server.route('/comms/:id')
+        .put(auth.checkToken, comm.updateComm)
+        .delete(auth.checkToken, comm.deleteComm);
 
     ///////////////////////////////////////////////////////////////////////////
     // MEDREC CONTROLLER
