@@ -22,7 +22,7 @@ exports.getComms = function (req, res) {
     }
 
     // get Comm models from Mongo
-    Comm.find(query).sort('-timestamp').limit(limit).lean().execQ().then(function (comms) {
+    Comm.find(query).sort('timestamp').limit(limit).lean().execQ().then(function (comms) {
         respond(res, 200, comms);
     }).catch(function (err) {
         app.logger.error('Failed to find Comms for query "%s":', JSON.stringify(query), err);
