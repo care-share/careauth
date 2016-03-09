@@ -8,30 +8,40 @@ var respond = require('../../lib/utils').respond;
 // API: GET /comm ? careplan_id|patient_id|resource_id [& limit]
 exports.getComms = function (req, res) {
     var query = {};
-    if (req.query.careplan_id) {
-        query.careplan_id = req.query.careplan_id;
-    } else if (req.query.patient_id) {
-        query.patient_id = req.query.patient_id;
-    } else if (req.query.resource_id) {
-        query.resource_id = req.query.resource_id;
-    } else {
+    // query must specify a careplan_id, patient_id, or resource_id
+    if (!addToQuery(req, query, 'careplan_id')
+        && !addToQuery(req, query, 'patient_id')
+        && !addToQuery(req, query, 'resource_id')) {
         respond(res, 400); // bad request
         return;
     }
 
-    var options = {sort: {timestamp: -1}};
+    var limit = 1000;
     if (req.query.limit) {
-        options.limit = req.query.limit;
+        limit = req.query.limit;
     }
 
     // get Comm models from Mongo
-    Comm.find(query).lean().execQ().then(function (comms) {
+    Comm.find(query).sort('-timestamp').limit(limit).lean().execQ().then(function (comms) {
         respond(res, 200, comms);
     }).catch(function (err) {
         app.logger.error('Failed to find Comms for query "%s":', JSON.stringify(query), err);
         respond(res, 500);
     }).done();
 };
+
+function addToQuery(req, query, attr) {
+    var param = req.query[attr];
+    if (param) {
+        if (param.constructor === Array) {
+            query[attr] = { '$in': param };
+        } else {
+            query[attr] = param;
+        }
+        return true;
+    }
+    return false;
+}
 
 // API: POST /comm
 exports.createComm = function (req, res) {
