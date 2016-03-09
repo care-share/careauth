@@ -22,7 +22,8 @@ exports.getComms = function (req, res) {
     }
 
     // get Comm models from Mongo
-    Comm.find(query).sort('timestamp').limit(limit).lean().execQ().then(function (comms) {
+    var select = '-__v -dest._id'; // exclude unnecessary fields
+    Comm.find(query, select).sort('timestamp').limit(limit).lean().execQ().then(function (comms) {
         respond(res, 200, comms);
     }).catch(function (err) {
         app.logger.error('Failed to find Comms for query "%s":', JSON.stringify(query), err);
@@ -56,6 +57,22 @@ exports.createComm = function (req, res) {
     delete args.timestamp;
     // set the src user ID
     args.src_user_id = req.user.id;
+
+    // the src user has already seen this comm
+    var found = false;
+    if (args.dest) {
+        for (var i = 0; i < args.dest.length; i++) {
+            if (args.dest[i].user_id === req.user.id) {
+                found = true;
+                break;
+            }
+        }
+    } else {
+        args.dest = [];
+    }
+    if (!found) {
+        args.dest.push({user_id: req.user.id, seen: true});
+    }
 
     var model = new Comm(args);
     model.saveQ().then(function (result) {
