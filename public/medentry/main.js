@@ -119,6 +119,7 @@ var MedEntryInfoList = React.createClass({
 
         $('#myform').unbind('submit').bind('submit', function () {
             var frm = $(this);
+            debugger;
             var dat = {
                 patient_id: getUrlParameter('patient_id'),
                 formData: frm.serializeArray()
@@ -148,53 +149,60 @@ var MedEntryInfoList = React.createClass({
         console.log(this.state.allMedications);
         return (
             <form id='myform' onSubmit={this.handleSubmit}>
-                <div className='container med-list'>
-                    <h2 className='title'>Verify patient medication list:</h2>
-                    <div className='row header'>
-                        <div className='col-xs-3'>
-                            Medication Name
-                        </div>
-                        <div className='col-xs-2'>
-                        </div>
-                        <div className='col-xs-2'>
-                            Dosage
-                        </div>
-                        <div className='col-xs-2'>
-                            Frequency
-                        </div>
-                        <div className='col-xs-1'>
-                            Patient Reports Compliance:
-                        </div>
-                        <div className='col-xs-1'>
-                            Prescriber
-                        </div>
-                        <div className='col-xs-2'>
-                            Notes
-                        </div>
+            <div className='col-sm-12'>
+                <div className='panel panel-default'>
+                    <div className='panel-heading'>
+                        <h2 className='panel-title'>Verify patient medication list:</h2>
                     </div>
-
-                    {this.state.allMedications.map(function (medication) {
-                        return <MedEntryInfo fhirMedications={medication.text}
-                                             key={medication.id}
-                                             medId={medication.id}
-                                             orderId={medication.orderId}
-                        />; // display each medication
-                    })}
-                    <div className='row buttons'>
-                        <div className='col-xs-8'></div>
-                        <div className='col-xs-2'>
-                            <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
-                                new
-                            </button>
+                    <table className="table table-hover">
+                        <thead>
+                        <tr>
+                            <th className='col-xs-2'>
+                                Medication Name
+                            </th>
+                            <th className='col-xs-1'>
+                            </th>
+                            <th className='col-xs-2'>
+                                Dosage
+                            </th>
+                            <th className='col-xs-2'>
+                                Frequency
+                            </th>
+                            <th className='col-xs-2'>
+                                Patient Reports Compliance:
+                            </th>
+                            <th className='col-xs-1'>
+                                Prescriber
+                            </th>
+                            <th className='col-xs-2'>
+                                Notes
+                            </th>
+                        </tr>
+                        </thead>
+                    </table>
+                        {this.state.allMedications.map(function (medication) {
+                            return <MedEntryInfo fhirMedications={medication.text}
+                                                 key={medication.id}
+                                                 medId={medication.id}
+                                                 orderId={medication.orderId}
+                            />; // display each medication
+                        })}
+                        <div className='row buttons'>
+                            <div className='col-xs-8'></div>
+                            <div className='col-xs-2'>
+                                <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
+                                    new
+                                </button>
+                            </div>
+                            <div className='col-xs-2'>
+                                <button className='form-control' onClick={this.handleChanges}
+                                        hidden={this.state.submitHidden}>submit changes
+                                </button>
+                            </div>
                         </div>
-                        <div className='col-xs-2'>
-                            <button className='form-control' onClick={this.handleChanges}
-                                    hidden={this.state.submitHidden}>submit changes
-                            </button>
-                        </div>
-                    </div>
+                    <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
                 </div>
-                <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
+            </div>
             </form>
         );
     }
@@ -349,7 +357,7 @@ var MedEntryInfo = React.createClass({
             ];
         return (
             <div className='row med'>
-                <div className='col-xs-3'>
+                <div className='col-xs-2'>
                     <span className='original-med-name'>{this.state.med_name}</span>
                     <div>
                     <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
@@ -361,7 +369,7 @@ var MedEntryInfo = React.createClass({
                            hidden={this.state.not_found || this.state.alt_hidden} disabled={this.state.not_found || this.state.alt_hidden}/>
                     </div>
                 </div>
-                <div className='col-xs-2'>
+                <div className='col-xs-1'>
                     <input ref='toggleInput' className='col-xs-12' type='checkbox'defaultChecked data-toggle='toggle' data-on='found' data-off='missing' name='not_found' value={this.state.not_found}
                            hidden={!this.state.is_fhir_med} onChange={this.handleChange}/>
                 </div>
