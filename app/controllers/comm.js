@@ -2,6 +2,7 @@
 
 // import internal modules
 var app = require('../../lib/app');
+var Account = app.Account;
 var Comm = app.Comm;
 var respond = require('../../lib/utils').respond;
 
@@ -55,8 +56,6 @@ exports.createComm = function (req, res) {
     // don't allow _id or timestamp to be set
     delete args._id;
     delete args.timestamp;
-    // set the src user ID
-    args.src_user_id = req.user.id;
 
     // the src user has already seen this comm
     var found = false;
@@ -74,9 +73,20 @@ exports.createComm = function (req, res) {
         args.dest.push({user_id: req.user.id, seen: true});
     }
 
-    var model = new Comm(args);
-    model.saveQ().then(function (result) {
-        respond(res, 200, result);
+    Account.findOneQ({_id: req.user.id}).then(function (user) {
+        if (!user) {
+            respond(res, 404);
+            return;
+        }
+        // set the src user info
+        args.src_user_id = req.user.id;
+        args.src_user_name_first = user.name_first;
+        args.src_user_name_last = user.name_last;
+        // save the model
+        var model = new Comm(args);
+        return model.saveQ().then(function (result) {
+            respond(res, 200, result);
+        });
     }).catch(function (err) {
         app.logger.error('Failed to create Comm:', err);
         respond(res, 500);
@@ -99,8 +109,8 @@ exports.updateComm = function (req, res) {
         new: true // return updated document from operation
     };
     // don't allow _id or timestamp to be set
-    delete update._id;
-    //delete update.timestamp;
+    delete args._id;
+    delete args.timestamp;
 
     Comm.findOneAndUpdateQ(query, update, options)
         .then(function (result) {
