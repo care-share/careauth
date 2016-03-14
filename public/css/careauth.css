@@ -60,10 +60,27 @@
 
 }
 
-/* Styles for MedEntry page */
+/* Styles for MedEntry Page */
 
 .alternativeName {
     background-color:inherit; /* make field less prominent */
     padding-left: 0px;  /* no spacing to align with EHR medication name */
     padding-right: 0px;
 }
+
+.med-list-container{
+    overflow-y: auto; 
+    height: 6vh
+}
+
+.focusWhenVisible{ /* for compliance and prescriber field */
+    outline: thin dotted;
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px;
+}
+
+.removePadding{ /* remove padding of Frequency dropdown */
+    padding-left: 0px;
+}
+
+/* End of Styles for MedEntry Page */

@@ -119,7 +119,6 @@ var MedEntryInfoList = React.createClass({
 
         $('#myform').unbind('submit').bind('submit', function () {
             var frm = $(this);
-            debugger;
             var dat = {
                 patient_id: getUrlParameter('patient_id'),
                 formData: frm.serializeArray()
@@ -135,7 +134,7 @@ var MedEntryInfoList = React.createClass({
                     console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
                     //Unhides success message on successful submit
                     $('.success-message').removeAttr('hidden');
-                    $('.container.med-list').attr('hidden', 'true');
+                    $('.panel.panel-default').attr('hidden', 'true');
                 },
                 dataType: 'json',
                 contentType: 'application/json'
@@ -165,13 +164,13 @@ var MedEntryInfoList = React.createClass({
                             <th className='col-xs-2'>
                                 Dosage
                             </th>
-                            <th className='col-xs-2'>
+                            <th className='col-xs-1'>
                                 Frequency
                             </th>
                             <th className='col-xs-2'>
                                 Patient Reports Compliance:
                             </th>
-                            <th className='col-xs-1'>
+                            <th className='col-xs-2'>
                                 Prescriber
                             </th>
                             <th className='col-xs-2'>
@@ -180,6 +179,8 @@ var MedEntryInfoList = React.createClass({
                         </tr>
                         </thead>
                     </table>
+                    <table className='table table-striped table-hover'>
+                    <tbody>                  
                         {this.state.allMedications.map(function (medication) {
                             return <MedEntryInfo fhirMedications={medication.text}
                                                  key={medication.id}
@@ -187,22 +188,24 @@ var MedEntryInfoList = React.createClass({
                                                  orderId={medication.orderId}
                             />; // display each medication
                         })}
-                        <div className='row buttons'>
-                            <div className='col-xs-8'></div>
-                            <div className='col-xs-2'>
-                                <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
-                                    new
-                                </button>
-                            </div>
-                            <div className='col-xs-2'>
-                                <button className='form-control' onClick={this.handleChanges}
-                                        hidden={this.state.submitHidden}>submit changes
-                                </button>
-                            </div>
-                        </div>
-                    <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
+                    </tbody>
+                    </table>                                       
                 </div>
             </div>
+            <div className='panel panel-default'>
+                <div className='col-xs-8'></div>
+                <div className='col-xs-2'>
+                    <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
+                        new
+                    </button>
+                </div>
+                <div className='col-xs-2'>
+                    <button className='form-control' onClick={this.handleChanges}
+                            hidden={this.state.submitHidden}>submit changes
+                    </button>
+                </div>
+            </div>               
+            <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
             </form>
         );
     }
@@ -311,12 +314,6 @@ var MedEntryInfo = React.createClass({
         //     off: 'no'
         // });
 
-        // this does not work because of scope issue
-        // $(".js-check").on("change", function(evt) { 
-        //     console.debug(this, " fired onChange");
-        //     MedEntryInfo.handleChange(evt);
-        // });
-
         //debugger;
         $( this.refs.toggleInput).bootstrapToggle();
         var myMedEntryInfo = this;
@@ -341,8 +338,6 @@ var MedEntryInfo = React.createClass({
             //console.log(this, " fired onChange");
             myMedEntryInfo2.handleChange(evt);
         });
-
-        $(this.refs.prescriberNote).focus();
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
@@ -356,113 +351,123 @@ var MedEntryInfo = React.createClass({
                 {label: 'AC', value: 'with meals'}
             ];
         return (
-            <div className='row med'>
-                <div className='col-xs-2'>
-                    <span className='original-med-name'>{this.state.med_name}</span>
-                    <div>
-                    <input className='form-control col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
-                           onChange={this.handleMedChange} />
-                    <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Alternate Name</a>
-                    <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub} name='name_sub'
-                           onChange={this.handleChange} placeholder={this.state.placeholder} required
-                           style = {{background: 'inherit'}}
-                           hidden={this.state.not_found || this.state.alt_hidden} disabled={this.state.not_found || this.state.alt_hidden}/>
-                    </div>
+            <tr>  
+            <td className='col-xs-2'>
+                <span className='original-med-name'>{this.state.med_name}</span>
+                <div>
+                <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
+                       onChange={this.handleMedChange} />
+                <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Alternate Name</a>
+                <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub} name='name_sub'
+                       onChange={this.handleChange} placeholder={this.state.placeholder} required
+                       style = {{background: 'inherit'}}
+                       hidden={this.state.not_found || this.state.alt_hidden} disabled={this.state.not_found || this.state.alt_hidden}/>
                 </div>
-                <div className='col-xs-1'>
-                    <input ref='toggleInput' className='col-xs-12' type='checkbox'defaultChecked data-toggle='toggle' data-on='found' data-off='missing' name='not_found' value={this.state.not_found}
-                           hidden={!this.state.is_fhir_med} onChange={this.handleChange}/>
-                </div>
-                <div className='col-xs-2' hidden={this.state.not_found}>
-                    <input className='col-xs-12' type='text' value={this.state.dose} name='dose' required
-                           onChange={this.handleChange} disabled={this.state.not_found} style = {{background: 'inherit'}} />
-                </div>
-                <div className='col-xs-2' hidden={this.state.not_found}>
-                    <MultiSelect className='col-xs-12' style={{width: '100% !important'}} placeholder='Select freq' options={options}
-                                 onValuesChange={this.freqOnChange}
-                                 values={this.state.freq_array} theme='bootstrap3'
-                                 filterOptions={function(options, values, search){
-                                    /**
-                                    * filterOptions: method for search elements in options array via value or label
-                                    * returns an array of option objects to be represented by dropdown
-                                    *
-                                    * @param options: array of option objects, each containing a label and value field
-                                    * passed in from render method of MedEntryInfo
-                                    * @param values: array of currently selected option objects
-                                    * passed in from MedEntryInfo state via freq_array
-                                    * @param search: string of term to be found in options
-                                    */
-
-                                    //Values must be searched with lowSearch, labels must be searched with upSearch
-                                    var lowSearch = search.toLowerCase();
-                                    var upSearch = search.toUpperCase();
-
-                                    //arrA is an array for holding search terms which match option values
-                                    //chain goes through options one option obj at a time
-                                    var arrA = _.chain(options)
-                                        //if an option is not present within the option array, reject
-                                        .reject(function(option){
-                                            return self.state.freq_array.map(function(frequency){
-                                                return frequency.label;
-                                            }).indexOf(option.label) > -1
-                                        })
-                                        //if a lowSearch match is found in option, add to return array
-                                        .filter(function(option){
-                                            return option.value.match(lowSearch) !== null;
-                                        })
-                                        .first(100)
-                                        .value();
-
-                                    //arrB is an array for holding search terms which match option labels
-                                    var arrB = _.chain(options)
-
-                                        .reject(function(option){
-                                            return self.state.freq_array.map(function(frequency){
-                                                return frequency.value;
-                                            }).indexOf(option.value) > -1
-                                        })
-                                        .filter(function(option){
-                                            return option.label.indexOf(upSearch) == 0;
-                                        })
-                                        .first(100)
-                                        .value();
-                                    //if arrA has any elements in it, return arrA else return arrB
-                                    if (arrA.length > 0)
-                                        return arrA;
-                                    else
-                                        return arrB;
-                                 }}
-
-                                 renderOption={function(item){
-                                 return <div>
-                                    <span style={{marginRight: 4, verticalAlign: 'middle', width: 24, fontWeight: 'bold'}}>{item.label}</span>
-                                    <span>{item.value}</span>
-                                 </div>
-                                 }}
-
-                    />
-                    <input type='text' value={this.state.freq} name='freq' hidden />
-                </div>
-                <div className='col-xs-1' hidden={this.state.not_found}>
-                    <input ref='complianceInput' className='col-xs-12' type='checkbox' defaultChecked data-toggle='toggle' data-on='yes' data-off='no' name='compliance_bool' value={this.state.compliance_bool}
-                           onClick={this.handleChange}/>
-                    <textarea className='col-xs-12' type='text' value={this.state.compliance_note} name='noncompliance_note'
-                        rows="1" onChange={this.handleChange} placeholder='please expain' hidden={this.state.compliance_bool}/>
-                </div>
-                <div className='col-xs-1' hidden={this.state.not_found}>
-                    <input ref='prescriberInput' className='col-xs-12' type='checkbox' type='checkbox' defaultChecked name='med_bool' value={this.state.med_bool}
-                           onClick={this.handleChange} disabled={this.state.not_found}/>
-                    <textarea ref='prescriberNote' className='col-xs-12' type='text' value={this.state.prescriber_note} name='prescriber_note'
-                        rows="1" onChange={this.handleChange} placeholder='please enter prescriber' hidden={this.state.med_bool}/>
-                </div>
-                <div className='col-xs-2' hidden={this.state.not_found}>
-                    <textarea className='col-xs-12' type='text' name='note' value={this.state.note}
-                              rows="1" onChange={this.handleChange} disabled={this.state.not_found}
-                              style = {{background: 'inherit'}} />
-                </div>
-                <input type='hidden' value={this.state.med_id} name='medication_id'/>
-                <input type='hidden' value={this.state.order_id} name='medication_order_id'/>
+            </td>
+            <td className='col-xs-1'>
+                <input ref='toggleInput' className='col-xs-12' type='checkbox'defaultChecked data-toggle='toggle' data-on='found' data-off='missing' name='not_found' value={this.state.not_found}
+                       hidden={!this.state.is_fhir_med} onChange={this.handleChange}/>
+            </td>
+            <td className='col-xs-2'>
+            <div hidden={this.state.not_found}>
+                <input className='col-xs-12' type='text' value={this.state.dose} name='dose' required
+                       onChange={this.handleChange} disabled={this.state.not_found} style = {{background: 'inherit'}} />
             </div>
+            </td>
+            <td className='col-xs-1' >
+            <div hidden={this.state.not_found}>
+                <MultiSelect className='col-xs-12 removePadding' style={{width: '100% !important'}} placeholder='Freq' options={options}
+                             onValuesChange={this.freqOnChange}
+                             values={this.state.freq_array} theme='bootstrap3'
+                             filterOptions={function(options, values, search){
+                                /**
+                                * filterOptions: method for search elements in options array via value or label
+                                * returns an array of option objects to be represented by dropdown
+                                *
+                                * @param options: array of option objects, each containing a label and value field
+                                * passed in from render method of MedEntryInfo
+                                * @param values: array of currently selected option objects
+                                * passed in from MedEntryInfo state via freq_array
+                                * @param search: string of term to be found in options
+                                */
+
+                                //Values must be searched with lowSearch, labels must be searched with upSearch
+                                var lowSearch = search.toLowerCase();
+                                var upSearch = search.toUpperCase();
+
+                                //arrA is an array for holding search terms which match option values
+                                //chain goes through options one option obj at a time
+                                var arrA = _.chain(options)
+                                    //if an option is not present within the option array, reject
+                                    .reject(function(option){
+                                        return self.state.freq_array.map(function(frequency){
+                                            return frequency.label;
+                                        }).indexOf(option.label) > -1
+                                    })
+                                    //if a lowSearch match is found in option, add to return array
+                                    .filter(function(option){
+                                        return option.value.match(lowSearch) !== null;
+                                    })
+                                    .first(100)
+                                    .value();
+
+                                //arrB is an array for holding search terms which match option labels
+                                var arrB = _.chain(options)
+
+                                    .reject(function(option){
+                                        return self.state.freq_array.map(function(frequency){
+                                            return frequency.value;
+                                        }).indexOf(option.value) > -1
+                                    })
+                                    .filter(function(option){
+                                        return option.label.indexOf(upSearch) == 0;
+                                    })
+                                    .first(100)
+                                    .value();
+                                //if arrA has any elements in it, return arrA else return arrB
+                                if (arrA.length > 0)
+                                    return arrA;
+                                else
+                                    return arrB;
+                             }}
+
+                             renderOption={function(item){
+                             return <div>
+                                <span style={{marginRight: 4, verticalAlign: 'middle', width: 24, fontWeight: 'bold'}}>{item.label}</span>
+                                <span>{item.value}</span>
+                             </div>
+                             }}
+
+                />
+                <input type='text' value={this.state.freq} name='freq' hidden />
+            </div>
+            </td>
+            <td className='col-xs-2'>
+            <div hidden={this.state.not_found}>
+                <input ref='complianceInput' className='col-xs-12' type='checkbox' defaultChecked data-toggle='toggle' data-on='yes' data-off='no' name='compliance_bool' value={this.state.compliance_bool}
+                       onClick={this.handleChange}/>
+                <textarea className='col-xs-12 focusWhenVisible' type='text' value={this.state.compliance_note} name='noncompliance_note'
+                    rows="1" onChange={this.handleChange} placeholder='please expain' hidden={this.state.compliance_bool} />
+            </div>
+            </td>
+            <td className='col-xs-2' hidden={this.state.not_found}>
+            <div hidden={this.state.not_found}>
+                <input ref='prescriberInput' className='col-xs-12' type='checkbox' type='checkbox' defaultChecked name='med_bool' value={this.state.med_bool}
+                       onClick={this.handleChange} disabled={this.state.not_found}/>
+                <textarea className='col-xs-12 focusWhenVisible' type='text' value={this.state.prescriber_note} name='prescriber_note'
+                    rows="1" onChange={this.handleChange} placeholder='please enter prescriber' hidden={this.state.med_bool}/>
+            </div>
+            </td>
+            <td className='col-xs-2' hidden={this.state.not_found}>
+            <div hidden={this.state.not_found}>
+                <textarea className='col-xs-12' type='text' name='note' value={this.state.note}
+                          rows="1" onChange={this.handleChange} disabled={this.state.not_found}
+                          style = {{background: 'inherit'}} />
+            </div>              
+            </td>
+            <input type='hidden' value={this.state.med_id} name='medication_id'/>
+            <input type='hidden' value={this.state.order_id} name='medication_order_id'/>
+            </tr>                        
         );
     }
 });
