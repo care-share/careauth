@@ -82,32 +82,44 @@ var ActionInfoList = React.createClass({
     },
     render: function () {
         return (
-            <div className='container med-list'>
-                <h2 className='title'>Actions list:</h2>
-                <div className='row header'>
-                    <div className='col-xs-3'>
-                        VA Medication
+            <div className='col-sm-10'>
+                <div className='panel panel-default'>
+                    <div className='panel-heading'>
+                        <h2 className='panel-title'>Actions list</h2>
                     </div>
-                    <div className='col-xs-3'>
-                        Home Health
-                    </div>
-                    <div className='col-xs-2'>
-                        Decision
-                    </div>
-                    <div className='col-xs-2'>
-                        Home Health Actions Required
-                    </div>
+                    <table className="table table-hover">
+                        <thead>
+                        <tr>
+                            <th className='col-xs-3'>
+                                VA Medication
+                            </th>
+                            <th className='col-xs-3'>
+                                Home Health
+                            </th>
+                            <th className='col-xs-2'>
+                                Decision
+                            </th>
+                            <th className='col-xs-2'>
+                                Home Health Actions Required
+                            </th>
+                        </tr>
+                        </thead>
+                    </table>
+                    <table className='table table-striped table-hover'>
+                    <tbody> 
+                        {this.state.allMedications.map(function (medication) {
+                            return <ActionInfo Medications={medication.homeMed.name}
+                                               hhMedDose={medication.homeMed.dose}
+                                               hhMedNote={medication.homeMed.note}
+                                               action={medication.homeMed.hhNotes}
+                                               vaMed={medication.ehrMed.medicationReference.display}
+                                               vaMedDose={medication.ehrMed.dosageInstruction[0].text}
+                                               key={medication.homeMed._id}
+                            />; // display each medication
+                        })}
+                   </tbody>
+                    </table>                                       
                 </div>
-                {this.state.allMedications.map(function (medication) {
-                    return <ActionInfo Medications={medication.homeMed.name}
-                                       hhMedDose={medication.homeMed.dose}
-                                       hhMedNote={medication.homeMed.note}
-                                       action={medication.homeMed.hhNotes}
-                                       vaMed={medication.ehrMed.medicationReference.display}
-                                       vaMedDose={medication.ehrMed.dosageInstruction[0].text}
-                                       key={medication.homeMed._id}
-                    />; // display each medication
-                })}
             </div>
         );
     }
@@ -137,22 +149,22 @@ var ActionInfo = React.createClass({
     },
     render: function () {
         return (
-            <div className='row med'>
-                <div className='col-xs-3'>
+            <tr>
+                <td className='col-xs-3'>
                     <span className='original-med-name'>{this.state.ehrMedName}</span>
                     <span className='col-xs-12'>{this.state.ehrMedDose}</span>
-                </div>
-                <div className='col-xs-3'>
+                </td>
+                <td className='col-xs-3'>
                     <span className='original-med-name'>{this.state.homeMedName}</span>
                     <span className='col-xs-12'>{this.state.homeMedDose}</span>
-                </div>
-                <div className='col-xs-2'>
+                </td>
+                <td className='col-xs-2'>
                     <span className='original-med-name'>{this.state.action}</span>
-                </div>
-                <div className='col-xs-2'>
+                </td>
+                <td className='col-xs-2'>
                     <span className='original-med-name'>{this.state.homeMedNote}</span>
-                </div>
-            </div>
+                </td>
+            </tr>
         );
     }
 });
