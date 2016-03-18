@@ -8,6 +8,32 @@ var app = require('../../lib/app');
 var MedEntry = app.MedEntry;
 var respond = require('../../lib/utils').respond;
 
+// API: POST /medpairs/patient_id/:patient_id
+exports.getMedPairForMedEntry = function (req, res) {
+    // expects a body that's formatted like so:
+    // {medentry: {name: 'foo', dose: 'bar', freq: 'baz'}, medorder: {...}}
+    if (!req.body || !req.body.medentry || !req.body.medorder) {
+        respond(res, 400);
+        return;
+    }
+
+    var medEntry = req.body.medentry;
+    var medOrder = req.body.medorder;
+    medEntry._id = 'foo'; // doesn't matter for a single draft entry
+    medEntry.medication_order_id = medOrder.id;
+
+    findMedRec(req.params.patient_id, [medEntry], [medOrder]).then(function (combined) {
+        if (combined.length === 1) {
+            respond(res, 200, combined[0]);
+        } else {
+            throw new Error('Error when processing MedRec result: expected array length of 1, instead got array length of ' + combined.length);
+        }
+    }).catch(function (err) {
+        app.logger.error('Failed to find MedRec for Patient "%s":', req.params.patient_id, err);
+        respond(res, 500);
+    }).done();
+};
+
 // API: GET /medrecs/patient_id/:patient_id
 exports.getMedRecForPatient = function (req, res) {
     // get MedEntry models from Mongo
@@ -60,6 +86,7 @@ exports.findActionList = function (req, res) {
     }).done();
 };
 
+// API: POST /medentries
 // req.body should contain an array of MedEntry attributes
 exports.saveMedEntries = function (req, res) {
     var saveModels = [];
@@ -123,6 +150,7 @@ exports.saveMedEntries = function (req, res) {
     respond(res, 200);
 };
 
+// API: PUT /medentries/:id
 exports.changeMedEntry = function (req, res) {
     // expects a body that's formatted like so:
     // {medentry: {action: 'foo', hhNotes: 'bar', vaNotes: 'baz'}}
