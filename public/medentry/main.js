@@ -141,6 +141,14 @@ var MedEntryInfoList = React.createClass({
             });
         });
     },
+    validateFields: function(e){
+        // todo: validate each row 
+
+        // all fields validated then enable submit button 
+        if(!this.state.submitHidden){ // todo: change to validate state
+            this.setState({submitHidden: true});
+        }
+    },
     componentDidMount: function () {
         this.setState({allMedications: this.props.fhirMedications});
     },
@@ -193,16 +201,20 @@ var MedEntryInfoList = React.createClass({
                 </div>
             </div>
             <div className='panel panel-default'>
-                <div className='col-xs-8'></div>
+                <div className='col-xs-6'></div>
                 <div className='col-xs-2'>
                     <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
                         new
                     </button>
                 </div>
                 <div className='col-xs-2'>
-                    <button className='form-control' onClick={this.handleChanges}
-                            hidden={this.state.submitHidden}>submit changes
+                    <button className='form-control' onClick={this.validateFields}>validate dosage and frequency
                     </button>
+                </div>
+                <div className='col-xs-2'>
+                    <button className='form-control submitBtn' onClick={this.handleChanges} disabled={!this.state.submitHidden}>submit changes                    
+                    </button>
+                    <span hidden={this.state.submitHidden}>Please fill out and validate before submitting changes.</span>
                 </div>
             </div>               
             <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
@@ -318,14 +330,12 @@ var MedEntryInfo = React.createClass({
         $( this.refs.toggleInput).bootstrapToggle();
         var myMedEntryInfo = this;
         $( this.refs.toggleInput).on("change", function(evt) { 
-            //console.log(this, " fired onChange");
             myMedEntryInfo.handleChange(evt);
         });
 
         $( this.refs.complianceInput).bootstrapToggle();
         var myMedEntryInfo1 = this;
         $( this.refs.complianceInput).on("change", function(evt) { 
-            //console.log(this, " fired onChange");
             myMedEntryInfo1.handleChange(evt);
         });
 
@@ -335,7 +345,6 @@ var MedEntryInfo = React.createClass({
         });
         var myMedEntryInfo2 = this;
         $( this.refs.prescriberInput).on("change", function(evt) { 
-            //console.log(this, " fired onChange");
             myMedEntryInfo2.handleChange(evt);
         });
     },
@@ -370,7 +379,7 @@ var MedEntryInfo = React.createClass({
             </td>
             <td className='col-xs-2'>
             <div hidden={this.state.not_found}>
-                <input className='col-xs-12' type='text' value={this.state.dose} name='dose' required
+                <input className='col-xs-12' type='text' value={this.state.dose} name='dose'
                        onChange={this.handleChange} disabled={this.state.not_found} style = {{background: 'inherit'}} />
             </div>
             </td>
