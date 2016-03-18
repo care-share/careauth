@@ -59,6 +59,12 @@ module.exports = function (server, passport) {
     // MEDREC CONTROLLER
     ///////////////////////////////////////////////////////////////////////////
 
+    // accessed by HH users
+    // returns a single MedPair for a draft MedEntry (i.e. a MedEntry that has not been saved yet)
+    // format: {homeMed: MedPair, ehrMed: MedicationOrder, status: String, discrepancy: {attr1: Boolean, attr2: Boolean, ...}}
+    server.route('/medpairs/patient_id/:patient_id')
+        .post(auth.checkToken, medrec.getMedPairForMedEntry);
+
     // accessed by VA users
     // returns all of the OUTSTANDING MedPairs for a given Patient
     // format: [{homeMed: MedPair, ehrMed: MedicationOrder, status: String, discrepancy: {attr1: Boolean, attr2: Boolean, ...}}]
