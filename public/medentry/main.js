@@ -192,7 +192,7 @@ var MedEntryInfoList = React.createClass({
                         </thead>
                     </table>
                     <table className='table table-striped table-hover'>
-                    <tbody>                  
+                    <tbody>
                         {this.state.allMedications.map(function (medication) {
                             return <MedEntryInfo fhirMedications={medication.text}
                                                  key={medication.id}
@@ -201,7 +201,7 @@ var MedEntryInfoList = React.createClass({
                             />; // display each medication
                         })}
                     </tbody>
-                    </table>                                       
+                    </table>
                 </div>
             </div>
             <div className='panel panel-default'>
@@ -220,7 +220,7 @@ var MedEntryInfoList = React.createClass({
                     </button>
                     <span hidden={this.state.submitHidden}>Please fill out and validate before submitting changes.</span>
                 </div>
-            </div>               
+            </div>
             <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
             </form>
         );
@@ -347,10 +347,7 @@ var MedEntryInfo = React.createClass({
             myMedEntryInfo1.handleChange(evt);
         });
 
-        $( this.refs.prescriberInput).bootstrapToggle({
-            on: 'VA',
-            off: 'other'
-        });
+        $( this.refs.prescriberInput).bootstrapToggle();
         var myMedEntryInfo2 = this;
         $( this.refs.prescriberInput).on("change", function(evt) { 
             myMedEntryInfo2.handleChange(evt);
@@ -369,7 +366,7 @@ var MedEntryInfo = React.createClass({
                 {label: 'AC', value: 'with meals'}
             ];
         return (
-            <tr>  
+            <tr>
             <td className='col-xs-2'>
                 <span className='original-med-name'>{this.state.med_name}</span>
                 <div>
@@ -470,14 +467,14 @@ var MedEntryInfo = React.createClass({
             <td className='col-xs-2'>
             <div hidden={this.state.not_found === true}>
                 <input ref='complianceInput' className='col-xs-12' type='checkbox' defaultChecked data-toggle='toggle' data-on='yes' data-off='no' name='compliance_bool' value={this.state.compliance_bool}
-                       onClick={this.handleChange}/>
+                       onClick={this.handleChange} disabled={this.state.not_found}/>
                 <textarea className='col-xs-12 focusWhenVisible' type='text' value={this.state.compliance_note} name='noncompliance_note'
                     rows="1" onChange={this.handleChange} placeholder='please expain' hidden={this.state.compliance_bool} />
             </div>
             </td>
             <td className='col-xs-2' hidden={this.state.not_found === true}>
             <div hidden={this.state.not_found === true}>
-                <input ref='prescriberInput' className='col-xs-12' type='checkbox' type='checkbox' defaultChecked name='med_bool' value={this.state.med_bool}
+                <input ref='prescriberInput' className='col-xs-12' type='checkbox' defaultChecked data-toggle='toggle' data-on='VA' data-off='other' name='med_bool' value={this.state.med_bool}
                        onClick={this.handleChange} disabled={this.state.not_found}/>
                 <textarea className='col-xs-12 focusWhenVisible' type='text' value={this.state.prescriber_note} name='prescriber_note'
                     rows="1" onChange={this.handleChange} placeholder='please enter prescriber' hidden={this.state.med_bool}/>
@@ -488,11 +485,11 @@ var MedEntryInfo = React.createClass({
                 <textarea className='col-xs-12' type='text' name='note' value={this.state.note}
                           rows="1" onChange={this.handleChange} disabled={this.state.not_found}
                           style = {{background: 'inherit'}} />
-            </div>              
+            </div>
             </td>
             <input type='hidden' value={this.state.med_id} name='medication_id'/>
             <input type='hidden' value={this.state.order_id} name='medication_order_id'/>
-            </tr>                        
+            </tr>
         );
 
     }
