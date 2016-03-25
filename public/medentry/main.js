@@ -54,6 +54,7 @@ var ViewPage = React.createClass({
                         medOrders.push(result.entry[i].resource);
                     }
                 }
+
                 // loop through MedicationOrder resources and set the orderId for each medication
                 for (var j = 0; j < medOrders.length; j++) {
                     if (medOrders[j].medicationReference) {
@@ -118,11 +119,14 @@ var MedEntryInfoList = React.createClass({
         //Add Freq validation here
 
         $('#myform').unbind('submit').bind('submit', function () {
-            var frm = $(this);
-            var dat = {
-                patient_id: getUrlParameter('patient_id'),
-                formData: frm.serializeArray()
-            };
+            var frm = $(this).serializeArray();
+            for (var i = frm.length - 1; i >= 0; i--) {
+                frm[i].name = frm[i].name.split("--")[0]
+            }
+            var dat = {
+                patient_id: getUrlParameter('patient_id'),
+                formData: frm
+            }; 
 
             console.log('I am about to POST this:\n\n' + JSON.stringify(dat, null, 2));
             $.ajax({
@@ -241,7 +245,7 @@ var MedEntryInfo = React.createClass({
             note: '',
             is_fhir_med: false,
             placeholder: '',
-            not_found: false,
+            not_found: 'unknown',
             freq_array: [],
             alt_hidden: true
         };
@@ -264,6 +268,12 @@ var MedEntryInfo = React.createClass({
             this.setState(obj);
         }
     },
+    handleNotFoundChange: function (event) {
+        console.log('in handleNotFoundChange');
+        this.setState({not_found: (event.target.value === 'true')}, function(){
+            console.log('new value: ' + this.state.not_found);
+        });
+    },
     freqOnChange: function (freq) {
         var result = '';
         for (var i = 0; i < freq.length; i++) {
@@ -282,6 +292,9 @@ var MedEntryInfo = React.createClass({
         this.setState({
             alt_hidden : invert
         });
+    },
+    loadMedPairData: function(event) {
+        console.log('requesting for medpair');
     },
     componentDidMount: function () {
         var isFhirMed = true;
@@ -327,11 +340,6 @@ var MedEntryInfo = React.createClass({
         // });
 
         //debugger;
-        $( this.refs.toggleInput).bootstrapToggle();
-        var myMedEntryInfo = this;
-        $( this.refs.toggleInput).on("change", function(evt) { 
-            myMedEntryInfo.handleChange(evt);
-        });
 
         $( this.refs.complianceInput).bootstrapToggle();
         var myMedEntryInfo1 = this;
@@ -347,6 +355,7 @@ var MedEntryInfo = React.createClass({
         $( this.refs.prescriberInput).on("change", function(evt) { 
             myMedEntryInfo2.handleChange(evt);
         });
+
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
@@ -374,17 +383,24 @@ var MedEntryInfo = React.createClass({
                 </div>
             </td>
             <td className='col-xs-1'>
-                <input ref='toggleInput' className='col-xs-12' type='checkbox'defaultChecked data-toggle='toggle' data-on='found' data-off='missing' name='not_found' value={this.state.not_found}
-                       hidden={!this.state.is_fhir_med} onChange={this.handleChange}/>
+                <div className="switch switch-blue">
+                    <input id={this.state.med_id + 'found'} className='switch-input' type='radio' name={'not_found--' + this.state.med_id} value='false' checked={this.state.not_found === false}
+                           hidden={!this.state.is_fhir_med} onChange={this.handleNotFoundChange}/>
+                    <label htmlFor={this.state.med_id + 'found'} className="switch-label switch-label-off">Found</label>
+                    <input id={this.state.med_id + 'not_found'} className='switch-input' type='radio' name={'not_found--' + this.state.med_id} value='true' checked={this.state.not_found === true}
+                           hidden={!this.state.is_fhir_med} onChange={this.handleNotFoundChange}/>
+                    <label htmlFor={this.state.med_id + 'not_found'} className="switch-label switch-label-on">Not Found</label>
+                    <span className={(this.state.not_found == 'unknown') ? 'hidden' : 'switch-selection'}> </span>
+                </div>
             </td>
             <td className='col-xs-2'>
-            <div hidden={this.state.not_found}>
+            <div hidden={this.state.not_found === true}>
                 <input className='col-xs-12' type='text' value={this.state.dose} name='dose'
                        onChange={this.handleChange} disabled={this.state.not_found} style = {{background: 'inherit'}} />
             </div>
             </td>
             <td className='col-xs-1' >
-            <div hidden={this.state.not_found}>
+            <div hidden={this.state.not_found === true}>
                 <MultiSelect className='col-xs-12 removePadding' style={{width: '100% !important'}} placeholder='Freq' options={options}
                              onValuesChange={this.freqOnChange}
                              values={this.state.freq_array} theme='bootstrap3'
@@ -452,23 +468,23 @@ var MedEntryInfo = React.createClass({
             </div>
             </td>
             <td className='col-xs-2'>
-            <div hidden={this.state.not_found}>
+            <div hidden={this.state.not_found === true}>
                 <input ref='complianceInput' className='col-xs-12' type='checkbox' defaultChecked data-toggle='toggle' data-on='yes' data-off='no' name='compliance_bool' value={this.state.compliance_bool}
                        onClick={this.handleChange}/>
                 <textarea className='col-xs-12 focusWhenVisible' type='text' value={this.state.compliance_note} name='noncompliance_note'
                     rows="1" onChange={this.handleChange} placeholder='please expain' hidden={this.state.compliance_bool} />
             </div>
             </td>
-            <td className='col-xs-2' hidden={this.state.not_found}>
-            <div hidden={this.state.not_found}>
+            <td className='col-xs-2' hidden={this.state.not_found === true}>
+            <div hidden={this.state.not_found === true}>
                 <input ref='prescriberInput' className='col-xs-12' type='checkbox' type='checkbox' defaultChecked name='med_bool' value={this.state.med_bool}
                        onClick={this.handleChange} disabled={this.state.not_found}/>
                 <textarea className='col-xs-12 focusWhenVisible' type='text' value={this.state.prescriber_note} name='prescriber_note'
                     rows="1" onChange={this.handleChange} placeholder='please enter prescriber' hidden={this.state.med_bool}/>
             </div>
             </td>
-            <td className='col-xs-2' hidden={this.state.not_found}>
-            <div hidden={this.state.not_found}>
+            <td className='col-xs-2' hidden={this.state.not_found === true}>
+            <div hidden={this.state.not_found === true}>
                 <textarea className='col-xs-12' type='text' name='note' value={this.state.note}
                           rows="1" onChange={this.handleChange} disabled={this.state.not_found}
                           style = {{background: 'inherit'}} />
@@ -478,6 +494,7 @@ var MedEntryInfo = React.createClass({
             <input type='hidden' value={this.state.order_id} name='medication_order_id'/>
             </tr>                        
         );
+
     }
 });
 
