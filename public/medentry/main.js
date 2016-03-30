@@ -165,10 +165,10 @@ var MedEntryInfoList = React.createClass({
                     <table className="table table-hover">
                         <thead>
                         <tr>
+                            <th className='col-xs-1'>
+                            </th>
                             <th className='col-xs-2'>
                                 Medication Name
-                            </th>
-                            <th className='col-xs-1'>
                             </th>
                             <th className='col-xs-2'>
                                 Dosage
@@ -342,7 +342,7 @@ var MedEntryInfo = React.createClass({
     },
     componentDidMount: function () {
         var isFhirMed = true;
-        var placeText = 'enter alternative name';
+        var placeText = 'Enter Alternate Name';
         if (this.props.fhirMedications == '') {
             isFhirMed = false;
             placeText = 'medication name';
@@ -422,18 +422,6 @@ var MedEntryInfo = React.createClass({
         
         return (
             <tr>
-            <td className='col-xs-2'>
-                <span className='original-med-name' >{this.state.med_name}</span>
-                <div>
-                <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
-                       onChange={this.handleMedChange} />
-                <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>enter alternate name</a>
-                <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub} name='name_sub'
-                       onChange={this.handleChange} placeholder={this.state.placeholder} required
-                       style = {{background: 'inherit'}}
-                       hidden={this.state.not_found || this.state.alt_hidden}/>
-                </div>
-            </td>
             <td className='col-xs-1'>
                 <div className="switch switch-blue">
                     <input id={this.state.med_id + 'found'} className='switch-input' type='radio' name={'not_found--' + this.state.med_id} value='false' checked={this.state.not_found === false}
@@ -443,6 +431,18 @@ var MedEntryInfo = React.createClass({
                            hidden={!this.state.is_fhir_med} onChange={this.handleNotFoundChange}/>
                     <label htmlFor={this.state.med_id + 'not_found'} className="switch-label switch-label-on">missing</label>
                     <span className={(this.state.not_found == 'unknown') ? 'hidden' : 'switch-selection'}> </span>
+                </div>
+            </td>
+            <td className='col-xs-2'>
+                <span className='original-med-name medNameText'>{this.state.med_name}</span>
+                <div>
+                <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
+                       onChange={this.handleMedChange} />
+                <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Enter Alternate Name</a>
+                <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub} name='name_sub'
+                       onChange={this.handleChange} placeholder={this.state.placeholder} required
+                       style = {{background: 'inherit'}}
+                       hidden={this.state.not_found || this.state.alt_hidden}/>
                 </div>
             </td>
             <td className='col-xs-2'>
@@ -538,7 +538,7 @@ var MedEntryInfo = React.createClass({
             </div>
             </td>
             <td className='col-xs-2' hidden={this.state.not_found === true}>
-            <div hidden={this.state.not_found === true}>
+            <div>
                 <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
                           rows="1" onChange={this.handleChange}
                           style = {{background: 'inherit'}} />
