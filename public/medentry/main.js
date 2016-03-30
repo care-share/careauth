@@ -345,7 +345,7 @@ var MedEntryInfo = React.createClass({
         var placeText = 'Enter Alternate Name';
         if (this.props.fhirMedications == '') {
             isFhirMed = false;
-            placeText = 'medication name';
+            placeText = 'Medication Name';
         }
         this.setState({
             med_id: this.props.medId,
@@ -442,7 +442,7 @@ var MedEntryInfo = React.createClass({
                 <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub} name='name_sub'
                        onChange={this.handleChange} placeholder={this.state.placeholder} required
                        style = {{background: 'inherit'}}
-                       hidden={this.state.not_found || this.state.alt_hidden}/>
+                       hidden={this.state.alt_hidden || (this.state.isFhirMed)}/>
                 </div>
             </td>
             <td className='col-xs-2'>
