@@ -331,11 +331,9 @@ var MedEntryInfo = React.createClass({
                     }
                     if(result.data.discrepancy.freq){
                         this.setState({freqDiscrepancy: result.data.discrepancy.freq});
-                        // $('.react-selectize-control').addClass('invalid');
                     } 
                     if(result.data.discrepancy.freq == undefined){
                         this.setState({freqDiscrepancy: false});
-                        // $('.react-selectize-control').removeClass('invalid');                      
                     } 
                     
                 }
@@ -398,7 +396,7 @@ var MedEntryInfo = React.createClass({
 
     },
     render: function () {
-
+        console.log('this.state.isFhirMed ==' + this.state.is_fhir_med + this.state.med_name);
         // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
         var self = this,
             options = [
@@ -430,7 +428,7 @@ var MedEntryInfo = React.createClass({
                         onChange={this.handleMedChange} />
                     <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Enter Alternate Name</a>
                     <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub} name='name_sub'
-                        onChange={this.handleChange} placeholder={this.state.placeholder} required
+                        onChange={this.handleChange} placeholder={this.state.placeholder} required={this.state.is_fhir_med == false}
                         style = {{background: 'inherit'}} hidden={this.state.alt_hidden || (this.state.isFhirMed)}/>
                 </div>
             </td>
@@ -545,8 +543,7 @@ var MedEntryInfo = React.createClass({
             <td className='col-xs-2' hidden={this.state.not_found === true}>
                 <div>
                     <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
-                              rows="1" onChange={this.handleChange}
-                              style = {{background: 'inherit'}} />
+                        rows="1" onChange={this.handleChange} style = {{background: 'inherit'}} />
                 </div>
             </td>
             <input type='hidden' value={this.state.med_id} name='medication_id'/>
