@@ -290,9 +290,19 @@ var MedEntryInfo = React.createClass({
         var obj = {};
         var value = (e.target.value === 'true')
         var stateName = e.target.name.split('--')[0];
+        var that = this;
 
         obj[stateName] = value;
         this.setState(obj);
+
+        if(that.state.compliance_bool){
+            setTimeout(function(){$('#complianceNote' + that.state.med_id).focus();}, 500);
+        }
+
+        if(that.state.med_bool){
+            setTimeout(function(){$('#prescriberNote' + that.state.med_id).focus();}, 500);
+        }
+
     },
     alternateMedClick: function (){
         this.setState({not_found: false});
@@ -396,8 +406,7 @@ var MedEntryInfo = React.createClass({
 
     },
     render: function () {
-        console.log('this.state.isFhirMed ==' + this.state.is_fhir_med + this.state.med_name);
-        // IMPORTANT NOTE: for server-side processing to work correctly, med_name MUST be the first form field!
+        // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
         var self = this,
             options = [
                 {label: 'QD', value: 'every day'}, {label: 'QOD', value: 'every other day'},
@@ -435,7 +444,7 @@ var MedEntryInfo = React.createClass({
             <td className='col-xs-2'>
                 <div hidden={this.state.not_found === true}>
                     <input className={'col-xs-12 removePadding ' + ((this.state.doseDiscrepancy == false) ? "valid" : "invalid")} type='text' value={this.state.dose} 
-                        name='dose' required onChange={this.handleChange} onBlur={this.doseFreqValidation} style = {{background: 'inherit'}}/>
+                        name='dose' required onChange={this.handleChange} onBlur={this.doseFreqValidation} style={{background: 'inherit'}} required={this.state.not_found === false}/>
                     <div className='smallerFont' hidden={(this.state.doseDiscrepancy == false) ? true : false}>
                         {'This dosage differs from VA provider records. If more information is available, please explain in the note.'}
                     </div>
@@ -521,7 +530,7 @@ var MedEntryInfo = React.createClass({
                         <label htmlFor={this.state.med_id + 'no'} className="switch-label switch-label-on">no</label>
                         <span className='switch-selection'> </span>
                     </div>              
-                    <textarea className='col-xs-12 focusWhenVisible removePadding' type='text' value={this.state.compliance_note} name='noncompliance_note'
+                    <textarea id={'complianceNote' + this.state.med_id} className='col-xs-12 removePadding' type='text' value={this.state.compliance_note} name='noncompliance_note'
                         rows="1" onChange={this.handleChange} placeholder='please expain' hidden={this.state.compliance_bool}></textarea>
                 </div>
             </td>
@@ -536,7 +545,7 @@ var MedEntryInfo = React.createClass({
                         <label htmlFor={this.state.med_id + 'other'} className="switch-label switch-label-on">other</label>
                         <span className='switch-selection'> </span>
                     </div> 
-                    <textarea  className='col-xs-12 focusWhenVisible removePadding' type='text' value={this.state.prescriber_note} name='prescriber_note'
+                    <textarea id={'prescriberNote' + this.state.med_id} className='col-xs-12 removePadding' type='text' value={this.state.prescriber_note} name='prescriber_note'
                         rows="1" onChange={this.handleChange} placeholder='please enter prescriber' hidden={this.state.med_bool}></textarea>                 
                 </div>
             </td>
