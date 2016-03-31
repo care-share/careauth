@@ -255,9 +255,7 @@ var MedEntryInfo = React.createClass({
             value = (value === 'false');
         }
         obj[event.target.name] = value;
-        this.setState(obj, function(){
-            console.log('new value: ' + JSON.stringify(obj));
-        });
+        this.setState(obj);
     },
     handleMedChange: function (event) {
         if (this.state.is_fhir_med === false) { // if not a fhir medication name field then can edit and update state
@@ -267,10 +265,7 @@ var MedEntryInfo = React.createClass({
         }
     },
     handleNotFoundChange: function (event) {
-        console.log('in handleNotFoundChange');
-        this.setState({not_found: (event.target.value === 'true')}, function(){
-            console.log('new value: ' + this.state.not_found);
-        });
+        this.setState({not_found: (event.target.value === 'true')});
     },
     freqOnChange: function (freq) {
         this.setState({not_found: false});
@@ -289,7 +284,17 @@ var MedEntryInfo = React.createClass({
 
         this.doseFreqValidation();
     },
-    alternateMedClick: function(){
+    handleOnChange : function (e){
+        this.setState({not_found: false});
+
+        var obj = {};
+        var value = (e.target.value === 'true')
+        var stateName = e.target.name.split('--')[0];
+
+        obj[stateName] = value;
+        this.setState(obj);
+    },
+    alternateMedClick: function (){
         this.setState({not_found: false});
         var invert = !(this.state.alt_hidden);
         this.setState({
@@ -383,23 +388,8 @@ var MedEntryInfo = React.createClass({
         //     on: 'yes',
         //     off: 'no'
         // });
-
-        //debugger;
-
-        $( this.refs.complianceInput).bootstrapToggle();
-        var myMedEntryInfo1 = this;
-        $( this.refs.complianceInput).on("change", function(evt) { 
-            myMedEntryInfo1.handleChange(evt);
-        });
-
-        $( this.refs.prescriberInput).bootstrapToggle();
-        var myMedEntryInfo2 = this;
-        $( this.refs.prescriberInput).on("change", function(evt) { 
-            myMedEntryInfo2.handleChange(evt);
-        });
     },
     doseFreqValidation : function(){
-        console.log('onBlur');
 
         // dose & freq field must be filled out
         if((this.state.dose != '') && (this.state.freq != '')){
@@ -424,11 +414,11 @@ var MedEntryInfo = React.createClass({
             <tr>
             <td className='col-xs-1'>
                 <div className="switch switch-blue">
-                    <input id={this.state.med_id + 'found'} className='switch-input' type='radio' name={'not_found--' + this.state.med_id} value='false' checked={this.state.not_found === false}
-                           hidden={!this.state.is_fhir_med} onChange={this.handleNotFoundChange}/>
+                    <input id={this.state.med_id + 'found'} className='switch-input' type='radio' name={'not_found--' + this.state.med_id} value='false' 
+                        checked={this.state.not_found === false} hidden={!this.state.is_fhir_med} onChange={this.handleNotFoundChange}/>
                     <label htmlFor={this.state.med_id + 'found'} className="switch-label switch-label-off">found</label>
-                    <input id={this.state.med_id + 'not_found'} className='switch-input' type='radio' name={'not_found--' + this.state.med_id} value='true' checked={this.state.not_found === true}
-                           hidden={!this.state.is_fhir_med} onChange={this.handleNotFoundChange}/>
+                    <input id={this.state.med_id + 'not_found'} className='switch-input' type='radio' name={'not_found--' + this.state.med_id} value='true' 
+                        checked={this.state.not_found === true} hidden={!this.state.is_fhir_med} onChange={this.handleNotFoundChange}/>
                     <label htmlFor={this.state.med_id + 'not_found'} className="switch-label switch-label-on">missing</label>
                     <span className={(this.state.not_found == 'unknown') ? 'hidden' : 'switch-selection'}> </span>
                 </div>
@@ -436,21 +426,22 @@ var MedEntryInfo = React.createClass({
             <td className='col-xs-2'>
                 <span className='original-med-name medNameText'>{this.state.med_name}</span>
                 <div>
-                <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
-                       onChange={this.handleMedChange} />
-                <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Enter Alternate Name</a>
-                <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub} name='name_sub'
-                       onChange={this.handleChange} placeholder={this.state.placeholder} required
-                       style = {{background: 'inherit'}}
-                       hidden={this.state.alt_hidden || (this.state.isFhirMed)}/>
+                    <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
+                        onChange={this.handleMedChange} />
+                    <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Enter Alternate Name</a>
+                    <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub} name='name_sub'
+                        onChange={this.handleChange} placeholder={this.state.placeholder} required
+                        style = {{background: 'inherit'}} hidden={this.state.alt_hidden || (this.state.isFhirMed)}/>
                 </div>
             </td>
             <td className='col-xs-2'>
-            <div hidden={this.state.not_found === true}>
-                <input className={'col-xs-12 removePadding ' + ((this.state.doseDiscrepancy == false) ? "valid" : "invalid")} type='text' value={this.state.dose} name='dose' required
-                       onChange={this.handleChange} onBlur={this.doseFreqValidation} style = {{background: 'inherit'}}/>
-                <div className='smallerFont' hidden={(this.state.doseDiscrepancy == false) ? true : false}>{'This dosage differs from VA provider records. If more information is available, please explain in the note.'}</div>
-            </div>
+                <div hidden={this.state.not_found === true}>
+                    <input className={'col-xs-12 removePadding ' + ((this.state.doseDiscrepancy == false) ? "valid" : "invalid")} type='text' value={this.state.dose} 
+                        name='dose' required onChange={this.handleChange} onBlur={this.doseFreqValidation} style = {{background: 'inherit'}}/>
+                    <div className='smallerFont' hidden={(this.state.doseDiscrepancy == false) ? true : false}>
+                        {'This dosage differs from VA provider records. If more information is available, please explain in the note.'}
+                    </div>
+                </div>
             </td>
             <td className='col-xs-1'>
             <div hidden={this.state.not_found === true}>
@@ -522,27 +513,41 @@ var MedEntryInfo = React.createClass({
             </div>
             </td>
             <td className='col-xs-2'>
-            <div hidden={this.state.not_found === true}>
-                <input ref='complianceInput' className='col-xs-12' type='checkbox' defaultChecked data-toggle='toggle' data-on='yes' data-off='no' name='compliance_bool' value={this.state.compliance_bool}
-                       onClick={this.handleChange}/>
-                <textarea className='col-xs-12 focusWhenVisible removePadding' type='text' value={this.state.compliance_note} name='noncompliance_note'
-                    rows="1" onChange={this.handleChange} placeholder='please expain' hidden={this.state.compliance_bool}></textarea>
-            </div>
+                <div hidden={this.state.not_found === true}>
+                    <div className="switch switch-blue">
+                        <input id={this.state.med_id + 'yes'} className='switch-input' type='radio' name={'compliance_bool--' + this.state.med_id} value='true' 
+                            checked={this.state.compliance_bool === true} hidden={!this.state.is_fhir_med} onChange={this.handleOnChange}/>
+                        <label htmlFor={this.state.med_id + 'yes'} className="switch-label switch-label-off">yes</label>
+                        <input id={this.state.med_id + 'no'} className='switch-input' type='radio' name={'compliance_bool--' + this.state.med_id} value='false' 
+                            checked={this.state.compliance_bool === false} hidden={!this.state.is_fhir_med} onChange={this.handleOnChange}/>
+                        <label htmlFor={this.state.med_id + 'no'} className="switch-label switch-label-on">no</label>
+                        <span className='switch-selection'> </span>
+                    </div>              
+                    <textarea className='col-xs-12 focusWhenVisible removePadding' type='text' value={this.state.compliance_note} name='noncompliance_note'
+                        rows="1" onChange={this.handleChange} placeholder='please expain' hidden={this.state.compliance_bool}></textarea>
+                </div>
             </td>
             <td className='col-xs-2' hidden={this.state.not_found === true}>
-            <div hidden={this.state.not_found === true}>
-                <input ref='prescriberInput' className='col-xs-12' type='checkbox' defaultChecked data-toggle='toggle' data-on='VA' data-off='other' name='med_bool' value={this.state.med_bool}
-                       onClick={this.handleChange}/>
-                <textarea  className='col-xs-12 focusWhenVisible removePadding' type='text' value={this.state.prescriber_note} name='prescriber_note'
-                    rows="1" onChange={this.handleChange} placeholder='please enter prescriber' hidden={this.state.med_bool}></textarea>
-            </div>
+                <div hidden={this.state.not_found === true}>
+                    <div className="switch switch-blue">
+                        <input id={this.state.med_id + 'VA'} className='switch-input' type='radio' name={'med_bool--' + this.state.med_id} value='true' 
+                            checked={this.state.med_bool === true} hidden={!this.state.is_fhir_med} onChange={this.handleOnChange}/>
+                        <label htmlFor={this.state.med_id + 'VA'} className="switch-label switch-label-off">VA</label>
+                        <input id={this.state.med_id + 'other'} className='switch-input' type='radio' name={'med_bool--' + this.state.med_id} value='false' 
+                            checked={this.state.med_bool === false} hidden={!this.state.is_fhir_med} onChange={this.handleOnChange}/>
+                        <label htmlFor={this.state.med_id + 'other'} className="switch-label switch-label-on">other</label>
+                        <span className='switch-selection'> </span>
+                    </div> 
+                    <textarea  className='col-xs-12 focusWhenVisible removePadding' type='text' value={this.state.prescriber_note} name='prescriber_note'
+                        rows="1" onChange={this.handleChange} placeholder='please enter prescriber' hidden={this.state.med_bool}></textarea>                 
+                </div>
             </td>
             <td className='col-xs-2' hidden={this.state.not_found === true}>
-            <div>
-                <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
-                          rows="1" onChange={this.handleChange}
-                          style = {{background: 'inherit'}} />
-            </div>
+                <div>
+                    <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
+                              rows="1" onChange={this.handleChange}
+                              style = {{background: 'inherit'}} />
+                </div>
             </td>
             <input type='hidden' value={this.state.med_id} name='medication_id'/>
             <input type='hidden' value={this.state.order_id} name='medication_order_id'/>

@@ -1,3 +1,84 @@
+/* Styles for Account Edit page */
+
+.userInfoField{
+
+}
+
+.userInfoField:valid{
+    background-color:#ddffdd;
+}
+
+.userInfoField:invalid{
+    background-color:#ffdddd;
+}
+
+.userInfoField:required{
+    border-color:#800000;
+    border-width:3px;
+}
+
+.passwordField:invalid{
+    background-color:#ffdddd;
+}
+
+.editableField{
+
+}
+
+/* Styles for MedEntry Page */
+
+.alternativeName {
+    background-color:inherit; /* make field less prominent */
+    padding-left: 0px;  /* no spacing to align with EHR medication name */
+    padding-right: 0px;
+}
+
+.med-list-container{
+    overflow-y: auto; 
+    height: 6vh
+}
+
+.focusWhenVisible{ /* for compliance and prescriber field */
+    outline: thin dotted;
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px;
+}
+
+.removePadding{ /* remove padding of Frequency dropdown */
+    padding-left: 0px;
+}
+
+.invalid, .invalid:focus {
+  box-shadow: 0 0 9px rgba(255, 25, 25, 0.5);
+}
+
+.react-selectize-control {
+    border: 1px solid;
+    border-color: #d9d9d9 #ccc #b3b3b3;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.btn-primary{
+    color: #404040;
+    border-color: #C9DEF2;
+    background-color: #C9DEF2;
+}
+
+a{
+    font-size: 12px;
+}
+
+.smallerFont{
+    font-size: 11px;
+    font-color: grey;
+}
+
+.medNameText{
+    font-weight: bold;
+} 
+
 /*
 * Copyright (c) 2012-2013 Thibaut Courouble
 * http://www.cssflow.com
@@ -12,7 +93,7 @@ body {
 /*Gray outline which holds the labels*/
 .switch {
   position: relative;
-  margin: auto;
+  margin-left: 0px;
   height: 40px;
   width: 120px;
   background: rgba(0, 0, 0, 0.15);
@@ -152,87 +233,5 @@ body {
 .success-message {
     background-color: #48ff2c;
 }
-
-/* Styles for Account Edit page */
-
-.userInfoField{
-
-}
-
-.userInfoField:valid{
-    background-color:#ddffdd;
-}
-
-.userInfoField:invalid{
-    background-color:#ffdddd;
-}
-
-.userInfoField:required{
-    border-color:#800000;
-    border-width:3px;
-}
-
-.passwordField:invalid{
-    background-color:#ffdddd;
-}
-
-.editableField{
-
-}
-
-/* Styles for MedEntry Page */
-
-.alternativeName {
-    background-color:inherit; /* make field less prominent */
-    padding-left: 0px;  /* no spacing to align with EHR medication name */
-    padding-right: 0px;
-}
-
-.med-list-container{
-    overflow-y: auto; 
-    height: 6vh
-}
-
-.focusWhenVisible{ /* for compliance and prescriber field */
-    outline: thin dotted;
-    outline: 5px auto -webkit-focus-ring-color;
-    outline-offset: -2px;
-}
-
-.removePadding{ /* remove padding of Frequency dropdown */
-    padding-left: 0px;
-}
-
-.invalid, .invalid:focus {
-  box-shadow: 0 0 9px rgba(255, 25, 25, 0.5);
-}
-
-.react-selectize-control {
-    border: 1px solid;
-    border-color: #d9d9d9 #ccc #b3b3b3;
-    -webkit-border-radius: 4px;
-    border-radius: 4px;
-    font-size: 1em;
-}
-
-.btn-primary{
-    color: #404040;
-    border-color: #C9DEF2;
-    background-color: #C9DEF2;
-}
-
-a{
-    font-size: 12px;
-}
-
-.smallerFont{
-    font-size: 11px;
-    font-color: grey;
-}
-
-.medNameText{
-    font-weight: bold;
-}
-    
 
 /* End of Styles for MedEntry Page */
