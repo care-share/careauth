@@ -109,8 +109,9 @@ exports.updateComm = function (req, res) {
         new: true // return updated document from operation
     };
     // don't allow _id or timestamp to be set
-    delete args._id;
-    delete args.timestamp;
+    delete update._id;
+    delete update.timestamp;
+    // TODO: only 'add' new entries to the dest array? the way things are set up right now, it probably replaces the array, which may cause a race condition for multiple users
 
     Comm.findOneAndUpdateQ(query, update, options)
         .then(function (result) {
