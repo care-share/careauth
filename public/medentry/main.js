@@ -177,7 +177,7 @@ var MedEntryInfoList = React.createClass({
                                 Frequency
                             </th>
                             <th className='col-xs-2'>
-                                Patient Reports Compliance:
+                                Patient Reports Compliance
                             </th>
                             <th className='col-xs-2'>
                                 Prescriber
@@ -277,12 +277,17 @@ var MedEntryInfo = React.createClass({
             else
                 result = freq[i].label;
         }
+
         this.setState({
             freq: result,
             freq_array: freq
         });
 
-        this.doseFreqValidation();
+        if(result.length == 0){
+            this.setState({freqDiscrepancy: false, doseDiscrepancy: false});
+        } else{
+            this.doseFreqValidation();
+        }
     },
     handleOnChange : function (e){
         this.setState({not_found: false});
@@ -398,12 +403,14 @@ var MedEntryInfo = React.createClass({
         // });
     },
     doseFreqValidation : function(){
+        if(this.state.freq.length == 0){
+            this.setState({freqDiscrepancy: false});
+        }
 
         // dose & freq field must be filled out
         if((this.state.dose != '') && (this.state.freq != '')){
             this.loadMedPairData();
         }
-
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
