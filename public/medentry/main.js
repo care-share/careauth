@@ -177,7 +177,7 @@ var MedEntryInfoList = React.createClass({
                                 Frequency
                             </th>
                             <th className='col-xs-2'>
-                                Patient Reports Compliance
+                                Patient Reports Adherence
                             </th>
                             <th className='col-xs-2'>
                                 Prescriber
@@ -203,16 +203,16 @@ var MedEntryInfoList = React.createClass({
                 </div>
             </div>
             <div className='panel panel-default'>
-                <div className='col-xs-8'></div>
                 <div className='col-xs-2'>
                     <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
                         new
                     </button>
                 </div>
                 <div className='col-xs-2'>
-                    <button className='form-control submitBtn' onClick={this.handleChanges}>submit changes                    
+                    <button className='form-control submitBtn' onClick={this.handleChanges}>submit list                    
                     </button>
                 </div>
+                <div className='col-xs-8'></div>
             </div>
             <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
             </form>
