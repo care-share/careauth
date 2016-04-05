@@ -189,7 +189,7 @@ var MedEntryInfoList = React.createClass({
                         </thead>
                     </table>
                     <table className='table table-striped table-hover'>
-                    <tbody>
+                    <tbody style={{'height': '600px', 'overflow':'scroll', 'display': 'block'}}>
                         {this.state.allMedications.map(function (medication) {
                             return <MedEntryInfo fhirMedications={medication.text}
                                                  key={medication.id}
