@@ -243,6 +243,7 @@ var MedEntryInfo = React.createClass({
             alt_hidden: true,
             doseDiscrepancy: false,
             freqDiscrepancy: false,
+            hideload: true,
             med_order: {}
         };
     },
@@ -305,8 +306,13 @@ var MedEntryInfo = React.createClass({
         var medpair = {'medentry': medentry, 'medorder': this.state.med_order};
 
         // reset states
-        this.setState({doseDiscrepancy: false});
-        this.setState({freqDiscrepancy: false});
+        this.setState({doseDiscrepancy: false,freqDiscrepancy: false,hideload: false});
+
+        var self = this;
+
+        function finish() {
+            self.setState({hideload: true});
+        }
 
         $.ajax({
             type: 'POST',
@@ -327,16 +333,17 @@ var MedEntryInfo = React.createClass({
                     if(result.data.discrepancy.freq){
                         this.setState({freqDiscrepancy: result.data.discrepancy.freq});
                         // $('.react-selectize-control').addClass('invalid');
-                    } 
+                    }
                     if(result.data.discrepancy.freq == undefined){
                         this.setState({freqDiscrepancy: false});
                         // $('.react-selectize-control').removeClass('invalid');                      
                     } 
-                    
+                    finish();
                 }
             }.bind(this),
             error: function (xhr, status, err) {
                 console.error(status, err.toString());
+                finish();
             }
         }); 
     },
@@ -400,10 +407,12 @@ var MedEntryInfo = React.createClass({
     },
     doseFreqValidation : function(){
         console.log('onBlur');
-
         // dose & freq field must be filled out
         if((this.state.dose != '') && (this.state.freq != '')){
             this.loadMedPairData();
+        }
+        else {
+            console.log('Fields are not defined');
         }
 
     },
@@ -450,6 +459,7 @@ var MedEntryInfo = React.createClass({
                 <input className={'col-xs-12 removePadding ' + ((this.state.doseDiscrepancy == false) ? "valid" : "invalid")} type='text' value={this.state.dose} name='dose' required
                        onChange={this.handleChange} onBlur={this.doseFreqValidation} style = {{background: 'inherit'}}/>
                 <div className='smallerFont' hidden={(this.state.doseDiscrepancy == false) ? true : false}>{'This dosage differs from VA provider records. If more information is available, please explain in the note.'}</div>
+                <div className='loader' hidden={this.state.hideload}><img src='../images/spinner.gif'/></div>
             </div>
             </td>
             <td className='col-xs-1'>
