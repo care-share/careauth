@@ -91,7 +91,7 @@ exports.findActionList = function (req, res) {
 exports.saveMedEntries = function (req, res) {
     var saveModels = [];
     var args = undefined;
-    var firstField = 'med_name';
+    var firstField = 'not_found';
     var timestamp = new Date(); // so all models are saved at the exact same time
 
     function createModel() {
