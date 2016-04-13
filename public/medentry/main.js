@@ -148,6 +148,38 @@ var MedEntryInfoList = React.createClass({
             });
         });
     },
+    orderMedAscending: function () {
+        var allMeds = this.state.allMedications;
+
+        allMeds.sort(function(a, b){
+            if(a.text > b.text){
+                return 1;
+            }
+            if(a.text < b.text){
+                return -1;
+            } 
+
+            return 0;
+        });
+
+        this.setState({allMedications: allMeds});
+    },
+    orderMedDescending: function () {
+        var allMeds = this.state.allMedications;
+
+        allMeds.sort(function(a, b){
+            if(a.text < b.text){
+                return 1;
+            }
+            if(a.text > b.text){
+                return -1;
+            } 
+
+            return 0;
+        });
+
+        this.setState({allMedications: allMeds});
+    },
     componentDidMount: function () {
         this.setState({allMedications: this.props.fhirMedications});
 
@@ -169,6 +201,10 @@ var MedEntryInfoList = React.createClass({
                                 <th className='col-xs-1'>
                                 </th>
                                 <th className='col-xs-2'>
+                                    <div className="order pull-left">
+                                        <a className="asc" onClick={this.orderMedAscending}>&uarr;</a>
+                                        <a className="desc" onClick={this.orderMedDescending}>&darr;</a>
+                                    </div>
                                     Medication Name
                                 </th>
                                 <th className='col-xs-2'>
@@ -326,7 +362,7 @@ var MedEntryInfo = React.createClass({
         var patient_id = getUrlParameter('patient_id');
         var token = getUrlParameter('token');
 
-        console.log('requesting medpair discrpency');
+        console.log('requesting medpair discrepency');
         var medentry = {'freq': this.state.freq, 'dose': this.state.dose, 'name': this.state.med_name};
         var medpair = {'medentry': medentry, 'medorder': this.state.med_order};
 
@@ -415,7 +451,6 @@ var MedEntryInfo = React.createClass({
         // });
     },
     doseFreqValidation: function () {
-
         if (this.state.freq.length == 0) {
             this.setState({freqDiscrepancy: false});
         }
