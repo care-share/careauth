@@ -28,6 +28,7 @@ var ViewPage = React.createClass({
         // the page expects two URL parameters: 'token' and 'patient_id'
         // e.g. the URL should look like this in the browser:
         //   http://api.domain:3000/medentry?token=abc&patient_id=xyz
+        // use this patient_id: 1460474212557-666-66-6666
         var token = getUrlParameter('token');
         var patient_id = getUrlParameter('patient_id');
         // TODO: validate that token and patient_id are not null
@@ -413,6 +414,7 @@ var MedEntryInfo = React.createClass({
             isFhirMed = false;
             placeText = 'Medication Name';
         }
+        $('[data-toggle="tooltip"]').tooltip();
         this.setState({
             med_id: this.props.medId,
             order_id: this.props.orderId,
@@ -451,6 +453,12 @@ var MedEntryInfo = React.createClass({
         // });
     },
     doseFreqValidation: function () {
+
+        console.log('Dose Freq Validation called');
+        console.log('Current frequency is: ' + this.state.freq);
+
+        //Check the state of freq. If empty, indicate it needs to be filled out via highlighting
+
         if (this.state.freq.length == 0) {
             this.setState({freqDiscrepancy: false});
         }
@@ -458,6 +466,8 @@ var MedEntryInfo = React.createClass({
 
         // dose & freq field must be filled out
         if ((this.state.dose != '') && (this.state.freq != '')) {
+            $('[data-toggle="tooltip"]').tooltip();
+            console.log('Calls loadMedPairData');
             this.loadMedPairData();
         }
     },
@@ -513,6 +523,8 @@ var MedEntryInfo = React.createClass({
                             type='text' value={this.state.dose} name='dose' required
                             onChange={this.handleChange} onBlur={this.doseFreqValidation}
                             style={{background: 'inherit'}}/>
+                        <a href='#' data-toggle='tooltip' data-placement='bottom' hidden={(this.state.doseDiscrepancy == false) ? true : false}
+                           title='This dosage differs from VA provider records. If more information is available, please explain in the note.'/>
                         <div className='smallerFont'
                              hidden={(this.state.doseDiscrepancy == false) ? true : false}>{'This dosage differs from VA provider records. If more information is available, please explain in the note.'}</div>
                         <div className='loader' hidden={this.state.hideload}><img src='../images/spinner.gif'/></div>
@@ -523,6 +535,10 @@ var MedEntryInfo = React.createClass({
                     <div hidden={this.state.not_found === true}>
                         <SimpleSelect options={options} placeholder='Freq' className='col-xs-12 removePadding'
                                       style={{width: '100% !important'}}
+                                      onValueChange={function(freq){
+                                         self.setState({freq:freq.label});
+                                      }}
+
                                       renderOption={function(item){
                              return <div>
                                 <span style={{marginRight: 4, verticalAlign: 'middle', width: 24, fontWeight: 'bold'}}>{item.label}</span>
@@ -531,6 +547,8 @@ var MedEntryInfo = React.createClass({
                              }}
                         />
                         <input type='text' value={this.state.freq} name='freq' hidden/>
+                        <a href='#' data-toggle='tooltip' data-placement='bottom' hidden={!this.state.doseDiscrepancy}
+                           title='This dosage differs from VA provider records. If more information is available, please explain in the note.'/>
                         <div className='smallerFont'
                              hidden={(this.state.freqDiscrepancy == false) ? true : false}>{'This frequency differs from VA provider records. If more information is available, please explain in the note.'}</div>
                     </div>
