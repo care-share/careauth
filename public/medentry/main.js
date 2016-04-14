@@ -1,7 +1,9 @@
 //Includes React Selectize MultiSelect
 //MultiSelect = require('react-selectize').MultiSelect;
-var MultiSelect = reactSelectize.MultiSelect;
 var SimpleSelect = reactSelectize.SimpleSelect;
+var Tooltip = ReactBootstrap.Tooltip;
+var OverlayTrigger = ReactBootstrap.OverlayTrigger;
+var Overlay = ReactBootstrap.Overlay;
 
 function getUrlParameter(sParam) {
     var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -332,7 +334,7 @@ var MedEntryInfo = React.createClass({
         this.setState({not_found: false});
 
         var obj = {};
-        var value = (e.target.value === 'true')
+        var value = (e.target.value === 'true');
         var stateName = e.target.name.split('--')[0];
         var that = this;
 
@@ -414,7 +416,6 @@ var MedEntryInfo = React.createClass({
             isFhirMed = false;
             placeText = 'Medication Name';
         }
-        $('[data-toggle="tooltip"]').tooltip();
         this.setState({
             med_id: this.props.medId,
             order_id: this.props.orderId,
@@ -466,7 +467,6 @@ var MedEntryInfo = React.createClass({
 
         // dose & freq field must be filled out
         if ((this.state.dose != '') && (this.state.freq != '')) {
-            $('[data-toggle="tooltip"]').tooltip();
             console.log('Calls loadMedPairData');
             this.loadMedPairData();
         }
@@ -482,6 +482,15 @@ var MedEntryInfo = React.createClass({
                 {label: 'PRN', value: 'as needed'}, {label: 'QW', value: 'every week'},
                 {label: 'AC', value: 'with meals'}
             ];
+
+        //TODO: Replace info in <strong> tags to be the Dynamic Dosage/Frequency Discrepancy
+        var doseTooltip = (<Tooltip id={this.state.med_id}>
+            <strong>This dosage differs from VA provider records. If more information is available, please explain in the note.</strong>
+        </Tooltip>);
+
+        var freqTooltip = (<Tooltip id={this.state.med_id}>
+            <strong>This frequency differs from VA provider records. If more information is available, please explain in the note.</strong>
+        </Tooltip>);
 
         return (
             <tr>
@@ -512,7 +521,7 @@ var MedEntryInfo = React.createClass({
                                onChange={this.handleChange} placeholder={this.state.placeholder}
                                required={this.state.is_fhir_med == false}
                                style={{background: 'inherit'}}
-                               hidden={this.state.alt_hidden || (this.state.isFhirMed)}/>
+                               hidden={this.state.alt_hidden || (this.state.is_fhir_med)}/>
                     </div>
                 </td>
                 <td className='col-xs-2'>
@@ -521,13 +530,15 @@ var MedEntryInfo = React.createClass({
                         <input
                             className={'col-xs-12 removePadding ' + ((this.state.doseDiscrepancy == false) ? "valid" : "invalid")}
                             type='text' value={this.state.dose} name='dose' required
+                            ref='doseTarget'
                             onChange={this.handleChange} onBlur={this.doseFreqValidation}
                             style={{background: 'inherit'}}/>
-                        <a href='#' data-toggle='tooltip' data-placement='bottom' hidden={(this.state.doseDiscrepancy == false) ? true : false}
-                           title='This dosage differs from VA provider records. If more information is available, please explain in the note.'/>
-                        <div className='smallerFont'
-                             hidden={(this.state.doseDiscrepancy == false) ? true : false}>{'This dosage differs from VA provider records. If more information is available, please explain in the note.'}</div>
-                        <div className='loader' hidden={this.state.hideload}><img src='../images/spinner.gif'/></div>
+                        <Overlay show={(this.state.doseDiscrepancy == false) ? false : true}
+                                 target={() => ReactDOM.findDOMNode(this.refs.doseTarget)}
+                                 placement='bottom'>
+                            {doseTooltip}
+                        </Overlay>
+                         <div className='loader' hidden={this.state.hideload}><img src='../images/spinner.gif'/></div>
                     </div>
 
                 </td>
@@ -535,6 +546,8 @@ var MedEntryInfo = React.createClass({
                     <div hidden={this.state.not_found === true}>
                         <SimpleSelect options={options} placeholder='Freq' className='col-xs-12 removePadding'
                                       style={{width: '100% !important'}}
+                                      ref='freqTarget'
+                                      onBlur = {this.doseFreqValidation}
                                       onValueChange={function(freq){
                                          self.setState({freq:freq.label});
                                       }}
@@ -554,11 +567,12 @@ var MedEntryInfo = React.createClass({
                                             <span>{item.value}</span>
                                         </div> }}
                         />
+                        <Overlay show={(this.state.freqDiscrepancy == false) ? false : true}
+                                 target={() => ReactDOM.findDOMNode(this.refs.freqTarget)}
+                                 placement='right'>
+                            {freqTooltip}
+                        </Overlay>
                         <input type='text' value={this.state.freq} name='freq' hidden/>
-                        <a href='#' data-toggle='tooltip' data-placement='bottom' hidden={!this.state.doseDiscrepancy}
-                           title='This dosage differs from VA provider records. If more information is available, please explain in the note.'/>
-                        <div className='smallerFont'
-                             hidden={(this.state.freqDiscrepancy == false) ? true : false}>{'This frequency differs from VA provider records. If more information is available, please explain in the note.'}</div>
                     </div>
                 </td>
                 <td className='col-xs-2'>

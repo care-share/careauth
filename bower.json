@@ -27,6 +27,7 @@
     "bootstrap-toggle": "~2.2.1",
     "react-selectize": "http://npmcdn.com/react-selectize@0.8.1/bower.zip",
     "prelude-ls": "1.1.2",
-    "underscore": "~1.8.3"
+    "underscore": "~1.8.3",
+    "react-bootstrap": "~0.28.5"
   }
 }
