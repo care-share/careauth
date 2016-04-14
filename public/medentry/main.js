@@ -539,12 +539,20 @@ var MedEntryInfo = React.createClass({
                                          self.setState({freq:freq.label});
                                       }}
 
+                                      createFromSearch={function(options, search){
+                                        if (search.length == 0 || (options.map(function(option){
+                                            return option.label;
+                                        })).indexOf(search) > -1)
+                                            return null;
+                                        else
+                                            return {label: search, value: search};
+                                      }}
+
                                       renderOption={function(item){
-                             return <div>
-                                <span style={{marginRight: 4, verticalAlign: 'middle', width: 24, fontWeight: 'bold'}}>{item.label}</span>
-                                <span>{item.value}</span>
-                             </div>
-                             }}
+                                        return <div>
+                                            <span style={{marginRight: 4, verticalAlign: 'middle', width: 24, fontWeight: 'bold'}}>{item.label}</span>
+                                            <span>{item.value}</span>
+                                        </div> }}
                         />
                         <input type='text' value={this.state.freq} name='freq' hidden/>
                         <a href='#' data-toggle='tooltip' data-placement='bottom' hidden={!this.state.doseDiscrepancy}
