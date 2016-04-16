@@ -270,7 +270,9 @@ var MedEntryInfo = React.createClass({
             med_name: '',
             name_sub: '',
             dose: '',
+            ehr_dose: '',
             freq: '',
+            ehr_freq: '',
             compliance_bool: true,
             noncompliance_note: '',
             med_bool: true,
@@ -361,6 +363,103 @@ var MedEntryInfo = React.createClass({
             alt_hidden: invert
         });
     },
+    displayText: function (obj) { // spelled out summary of the repeat pattern
+        var frequency = obj['frequency'];
+        var frequencyMax = obj['frequencyMax'];
+        var period = obj['period'];
+        var periodMax = obj['periodMax'];
+        var periodUnits = obj['periodUnits'];
+        //var when = this.get('when');
+        var string = null;
+        //if (!frequency && !period) {
+        if (!frequency || !period || !periodUnits) {
+            string = 'None specified';
+        } else {
+            string = frequency.toString();
+            if (frequencyMax) {
+                string = string + '-' + frequencyMax.toString();
+            }
+            string = string + ' times every ';
+            string = string + period.toString();
+            if (periodMax) {
+                string = string + '-' + periodMax.toString();
+            }
+            string = string + ' ' + periodUnits.toUpperCase();
+        }
+        return string;
+        //}.property('frequency', 'frequencyMax', 'period', 'periodMax', 'when'),
+    },
+    displayCode: function (obj) { // short code of the repeat pattern, falls back to displayText if it's not encodable
+        var self = this;
+        var frequency = (obj['frequency'] ? obj['frequency'] : null);
+        var frequencyMax = (obj['frequencyMax'] ? obj['frequencyMax'] : null);
+        var period = (obj['period'] ? obj['period'] : null);
+        var periodMax = (obj['periodMax'] ? obj['periodMax'] : null);
+        var periodUnits = (obj['periodUnits'] ? obj['periodUnits'] : null);
+        //var when = this.get('when');
+        var encodedPattern = frequency + ' ' +  frequencyMax + ' ' + period + ' ' + periodMax + ' ' + periodUnits;
+        console.log(encodedPattern);
+
+        // FIXME: don't use a "truthy" comparison (use ===)
+        if (!frequency || (frequency == 1 && !frequencyMax)) {
+            if (period) {
+                // frequency is 1 or not set, but we have a period.
+                // construct a period-based code.
+                var encodedPeriod;
+                if (periodMax) {
+                    // range period
+                    encodedPeriod = period.toString() + '-' + periodMax.toString();
+                } else {
+                    switch (period) {
+                        case 1: // e.g. QD
+                            encodedPeriod = '';
+                            break;
+                        case 2: // e.g. QOW
+                            encodedPeriod = 'O';
+                            break;
+                        default: // e.g. Q6H
+                            encodedPeriod = period.toString();
+                    }
+                }
+                encodedPattern = 'Q' + encodedPeriod;
+            }
+            // FIXME: don't use a "truthy" comparison (use ===)
+        } else if (!period || (period == 1 && !periodMax)) {
+            if (frequency) {
+                // period is 1 or not set, but we have a frequency.
+                // construct a frequency-based code.
+                var encodedFrequency;
+                if (frequencyMax) {
+                    // range frequency
+                    encodedFrequency = frequency.toString() + '-' + frequencyMax.toString();
+                } else {
+                    switch (frequency) {
+                        case 1:
+                            // We should never end up here! should be covered in the period-based codes
+                            break;
+                        case 2: // e.g. BID, BIW
+                            encodedFrequency = 'B';
+                            break;
+                        case 3: // e.g. TID, TIW
+                            encodedFrequency = 'T';
+                            break;
+                        case 4:
+                            encodedFrequency = 'Q';
+                            break;
+                        default:
+                            encodedFrequency = frequency.toString();
+                    }
+                }
+                encodedPattern = encodedFrequency + 'I';
+            }
+        }
+
+        if (encodedPattern && periodUnits) { // either we've figured out a way to encode this
+            return (encodedPattern + periodUnits).toUpperCase();
+        } else { // or we fall back to the verbose version
+            return self.displayText(frequency, frequencyMax, period, periodMax, periodUnits);
+        }
+    },
     loadMedPairData: function (event) {
         var patient_id = getUrlParameter('patient_id');
         var token = getUrlParameter('token');
@@ -389,16 +488,22 @@ var MedEntryInfo = React.createClass({
                 console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
                 if (result.data.discrepancy) {
                     if (result.data.discrepancy.dose) {
-                        this.setState({doseDiscrepancy: result.data.discrepancy.dose});
+                        this.setState({ doseDiscrepancy: result.data.discrepancy.dose,
+                                        ehr_dose:   result.data.ehrMed.dosageInstruction[0].doseQuantity.value 
+                                                    + ' ' + result.data.ehrMed.dosageInstruction[0].doseQuantity.unit},
+                                        function (){console.log(this.state.ehrMed);});
                     }
                     if (result.data.discrepancy.dose == undefined) {
-                        this.setState({doseDiscrepancy: false});
+                        this.setState({doseDiscrepancy: false,
+                                        ehr_dose: ''});
                     }
                     if (result.data.discrepancy.freq) {
-                        this.setState({freqDiscrepancy: result.data.discrepancy.freq});
+                        var ehrfreq = self.displayCode(result.data.ehrMed.dosageInstruction[0].timing.repeat);
+                        console.log(ehrfreq);
+                        this.setState({freqDiscrepancy: result.data.discrepancy.freq, ehr_freq: ehrfreq});
                     }
                     if (result.data.discrepancy.freq == undefined) {
-                        this.setState({freqDiscrepancy: false});
+                        this.setState({freqDiscrepancy: false, ehr_freq: ''});
                     }
                     finish();
                 }
@@ -485,11 +590,11 @@ var MedEntryInfo = React.createClass({
 
         //TODO: Replace info in <strong> tags to be the Dynamic Dosage/Frequency Discrepancy
         var doseTooltip = (<Tooltip id={this.state.med_id}>
-            <strong>This dosage differs from VA provider records. If more information is available, please explain in the note.</strong>
+            <strong>This dosage differs from VA provider records. Did you meant {this.state.ehr_dose}? If more information is available, please explain in the note.</strong>
         </Tooltip>);
 
         var freqTooltip = (<Tooltip id={this.state.med_id}>
-            <strong>This frequency differs from VA provider records. If more information is available, please explain in the note.</strong>
+            <strong>This frequency differs from VA provider records. Did you meant {this.state.ehr_freq}? If more information is available, please explain in the note.</strong>
         </Tooltip>);
 
         return (
