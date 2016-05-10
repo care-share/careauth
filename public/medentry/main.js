@@ -122,7 +122,9 @@ var MedEntryInfoList = React.createClass({
         console.log('Should put data into mongoDB');
         //If name_sub exists, replace name
 
-        //Add Freq validation here
+        //Check if each node can be submitted.
+        //If node is empty, prevent submit and highlight
+        //Else check next node
 
         $('#myform').unbind('submit').bind('submit', function () {
             var frm = $(this).serializeArray();
@@ -259,8 +261,6 @@ var MedEntryInfoList = React.createClass({
         );
     }
 });
-
-//TODO add hidden FHIR id value to POST when submitting
 
 var MedEntryInfo = React.createClass({
     getInitialState: function () {
@@ -543,6 +543,9 @@ var MedEntryInfo = React.createClass({
         //Check the state of freq. If empty, indicate it needs to be filled out via highlighting
 
         if (this.state.freq.length == 0) {
+            //Freq is empty, need to indicate it must be filled out AND prevent submit until it is cleared up
+            //1. Set certain state to indicate that Freq can't be submitted
+            //
             this.setState({freqDiscrepancy: false});
         }
 
@@ -572,13 +575,13 @@ var MedEntryInfo = React.createClass({
             ];
 
         var doseTooltip = (<Tooltip id={this.state.med_id}>
-            <a style={{position: 'absolute',top: '4px',right: '16px'}} onClick={this.flipDose}>x</a>
+            <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}} onClick={this.flipDose}>x</a>
             <br/>
             <strong>This dosage differs from VA provider records. Did you meant {this.state.ehr_dose}? If more information is available, please explain in the note.</strong>
         </Tooltip>);
 
         var freqTooltip = (<Tooltip id={this.state.med_id}>
-            <a style={{position: 'absolute',top: '4px',right: '16px'}} onClick={this.flipFreq}>x</a>
+            <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}} onClick={this.flipFreq}>x</a>
             <br/>
             <strong>This frequency differs from VA provider records. Did you meant {this.state.ehr_freq}? If more information is available, please explain in the note.</strong>
         </Tooltip>);
@@ -606,7 +609,7 @@ var MedEntryInfo = React.createClass({
                     <div>
                         <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                                onChange={this.handleMedChange}/>
-                        <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Enter Alternate Name</a>
+                        <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Enter Alternate Name</a>
                         <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub}
                                name='name_sub'
                                onChange={this.handleChange} placeholder={this.state.placeholder}
@@ -715,7 +718,7 @@ var MedEntryInfo = React.createClass({
                 <td className='col-xs-2' hidden={this.state.not_found === true}>
                     <div>
                     <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
-                              rows="1" onChange={this.handleChange} style={{background: 'inherit'}}/>
+                              rows="1" onChange={this.handleChange} onFocus={this.flipFreq} style={{background: 'inherit'}}/>
                     </div>
                 </td>
                 <input type='hidden' value={this.state.med_id} name='medication_id'/>
