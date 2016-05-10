@@ -286,7 +286,8 @@ var MedEntryInfo = React.createClass({
             doseDiscrepancy: false,
             freqDiscrepancy: false,
             hideload: true,
-            med_order: {}
+            med_order: {},
+            click_alt: true
         };
     },
     handleChange: function (event) {
@@ -308,10 +309,13 @@ var MedEntryInfo = React.createClass({
         }
     },
     handleNotFoundChange: function (event) {
+        var inv = !this.state.click_alt;
         this.setState({
             not_found: (event.target.value === 'true'),
             doseDiscrepancy: false,
-            freqDiscrepancy: false
+            freqDiscrepancy: false,
+            click_alt: (event.target.value === 'false'),
+            alt_hidden: true
         });
     },
     freqOnChange: function (freq) {
@@ -364,6 +368,7 @@ var MedEntryInfo = React.createClass({
         this.setState({not_found: false});
         var invert = !(this.state.alt_hidden);
         this.setState({
+            click_alt: invert,
             alt_hidden: invert
         });
         console.log(invert);
@@ -611,7 +616,7 @@ var MedEntryInfo = React.createClass({
                     <div>
                         <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                                onChange={this.handleMedChange}/>
-                        <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Enter Alternate Name</a>
+                        <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick} hidden={!this.state.click_alt}>Enter Alternate Name</a>
                         <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub}
                                name='name_sub'
                                onChange={this.handleChange} placeholder={this.state.placeholder}
