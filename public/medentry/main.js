@@ -308,7 +308,11 @@ var MedEntryInfo = React.createClass({
         }
     },
     handleNotFoundChange: function (event) {
-        this.setState({not_found: (event.target.value === 'true')});
+        this.setState({
+            not_found: (event.target.value === 'true'),
+            doseDiscrepancy: false,
+            freqDiscrepancy: false
+        });
     },
     freqOnChange: function (freq) {
         this.setState({not_found: false});
@@ -530,33 +534,6 @@ var MedEntryInfo = React.createClass({
             alt_hidden: isFhirMed,
             med_order: this.props.medOrder
         });
-
-        //This creates the Select2 form
-        //QD    every day
-        //QOD    every other day
-        //QAM    every morning
-        //QPM    every afternoon
-        //QHS    every evening
-        //BID    twice per day
-        //TID    three times per day
-        //QID    four times per day
-        //PRN    as needed
-        //QW    every week
-        //Q[digit]H    every x hours
-        //AC    with meals
-
-        //var data = [{id: 0, text: 'QD'},{id: 1, text: 'QOD'},{id: 2, text: 'QAM'},{id: 3, text: 'QPM'},{id: 4, text: 'QHS'},
-        //                {id: 5, text: 'BID'},{id: 6, text: 'TID'},{id: 7, text: 'QID'},{id: 8, text: 'PRN'},
-        //                {id: 9, text: 'QW'},{id: 10, text: 'AC'}];
-        //$('.js-select-multiple').select2({
-        //    data: data
-        //});
-
-        //This creates the Bootstrap Toggles
-        // $('.js-check').bootstrapToggle({
-        //     on: 'yes',
-        //     off: 'no'
-        // });
     },
     doseFreqValidation: function () {
 
@@ -576,6 +553,12 @@ var MedEntryInfo = React.createClass({
             this.loadMedPairData();
         }
     },
+    flipDose: function(){
+        this.setState({doseDiscrepancy:false});
+    },
+    flipFreq: function(){
+        this.setState({freqDiscrepancy:false});
+    },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
         var self = this,
@@ -588,12 +571,15 @@ var MedEntryInfo = React.createClass({
                 {label: 'AC', value: 'with meals'}
             ];
 
-        //TODO: Replace info in <strong> tags to be the Dynamic Dosage/Frequency Discrepancy
         var doseTooltip = (<Tooltip id={this.state.med_id}>
+            <a style={{position: 'absolute',top: '4px',right: '16px'}} onClick={this.flipDose}>x</a>
+            <br/>
             <strong>This dosage differs from VA provider records. Did you meant {this.state.ehr_dose}? If more information is available, please explain in the note.</strong>
         </Tooltip>);
 
         var freqTooltip = (<Tooltip id={this.state.med_id}>
+            <a style={{position: 'absolute',top: '4px',right: '16px'}} onClick={this.flipFreq}>x</a>
+            <br/>
             <strong>This frequency differs from VA provider records. Did you meant {this.state.ehr_freq}? If more information is available, please explain in the note.</strong>
         </Tooltip>);
 
