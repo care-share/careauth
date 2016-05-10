@@ -366,6 +366,8 @@ var MedEntryInfo = React.createClass({
         this.setState({
             alt_hidden: invert
         });
+        console.log(invert);
+        console.log(this.state.is_fhir_med);
     },
     displayText: function (obj) { // spelled out summary of the repeat pattern
         var frequency = obj['frequency'];
@@ -615,7 +617,7 @@ var MedEntryInfo = React.createClass({
                                onChange={this.handleChange} placeholder={this.state.placeholder}
                                required={this.state.is_fhir_med == false}
                                style={{background: 'inherit'}}
-                               hidden={this.state.alt_hidden || (this.state.is_fhir_med)}/>
+                               hidden={this.state.alt_hidden && (this.state.is_fhir_med)}/>
                     </div>
                 </td>
                 <td className='col-xs-2'>
