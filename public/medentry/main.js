@@ -122,7 +122,9 @@ var MedEntryInfoList = React.createClass({
         console.log('Should put data into mongoDB');
         //If name_sub exists, replace name
 
-        //Add Freq validation here
+        //Check if each node can be submitted.
+        //If node is empty, prevent submit and highlight
+        //Else check next node
 
         $('#myform').unbind('submit').bind('submit', function () {
             var frm = $(this).serializeArray();
@@ -260,8 +262,6 @@ var MedEntryInfoList = React.createClass({
     }
 });
 
-//TODO add hidden FHIR id value to POST when submitting
-
 var MedEntryInfo = React.createClass({
     getInitialState: function () {
         return {
@@ -308,7 +308,11 @@ var MedEntryInfo = React.createClass({
         }
     },
     handleNotFoundChange: function (event) {
-        this.setState({not_found: (event.target.value === 'true')});
+        this.setState({
+            not_found: (event.target.value === 'true'),
+            doseDiscrepancy: false,
+            freqDiscrepancy: false
+        });
     },
     freqOnChange: function (freq) {
         this.setState({not_found: false});
@@ -362,6 +366,8 @@ var MedEntryInfo = React.createClass({
         this.setState({
             alt_hidden: invert
         });
+        console.log(invert);
+        console.log(this.state.is_fhir_med);
     },
     displayText: function (obj) { // spelled out summary of the repeat pattern
         var frequency = obj['frequency'];
@@ -530,33 +536,6 @@ var MedEntryInfo = React.createClass({
             alt_hidden: isFhirMed,
             med_order: this.props.medOrder
         });
-
-        //This creates the Select2 form
-        //QD    every day
-        //QOD    every other day
-        //QAM    every morning
-        //QPM    every afternoon
-        //QHS    every evening
-        //BID    twice per day
-        //TID    three times per day
-        //QID    four times per day
-        //PRN    as needed
-        //QW    every week
-        //Q[digit]H    every x hours
-        //AC    with meals
-
-        //var data = [{id: 0, text: 'QD'},{id: 1, text: 'QOD'},{id: 2, text: 'QAM'},{id: 3, text: 'QPM'},{id: 4, text: 'QHS'},
-        //                {id: 5, text: 'BID'},{id: 6, text: 'TID'},{id: 7, text: 'QID'},{id: 8, text: 'PRN'},
-        //                {id: 9, text: 'QW'},{id: 10, text: 'AC'}];
-        //$('.js-select-multiple').select2({
-        //    data: data
-        //});
-
-        //This creates the Bootstrap Toggles
-        // $('.js-check').bootstrapToggle({
-        //     on: 'yes',
-        //     off: 'no'
-        // });
     },
     doseFreqValidation: function () {
 
@@ -566,6 +545,9 @@ var MedEntryInfo = React.createClass({
         //Check the state of freq. If empty, indicate it needs to be filled out via highlighting
 
         if (this.state.freq.length == 0) {
+            //Freq is empty, need to indicate it must be filled out AND prevent submit until it is cleared up
+            //1. Set certain state to indicate that Freq can't be submitted
+            //
             this.setState({freqDiscrepancy: false});
         }
 
@@ -575,6 +557,12 @@ var MedEntryInfo = React.createClass({
             console.log('Calls loadMedPairData');
             this.loadMedPairData();
         }
+    },
+    flipDose: function(){
+        this.setState({doseDiscrepancy:false});
+    },
+    flipFreq: function(){
+        this.setState({freqDiscrepancy:false});
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
@@ -588,13 +576,16 @@ var MedEntryInfo = React.createClass({
                 {label: 'AC', value: 'with meals'}
             ];
 
-        //TODO: Replace info in <strong> tags to be the Dynamic Dosage/Frequency Discrepancy
         var doseTooltip = (<Tooltip id={this.state.med_id}>
-            <strong>This dosage differs from VA provider records. Did you mean {this.state.ehr_dose}? If more information is available, please explain in the note.</strong>
+            <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}} onClick={this.flipDose}>x</a>
+            <br/>
+            <strong>This dosage differs from VA provider records. Did you meant {this.state.ehr_dose}? If more information is available, please explain in the note.</strong>
         </Tooltip>);
 
         var freqTooltip = (<Tooltip id={this.state.med_id}>
-            <strong>This frequency differs from VA provider records. Did you mean {this.state.ehr_freq}? If more information is available, please explain in the note.</strong>
+            <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}} onClick={this.flipFreq}>x</a>
+            <br/>
+            <strong>This frequency differs from VA provider records. Did you meant {this.state.ehr_freq}? If more information is available, please explain in the note.</strong>
         </Tooltip>);
 
         return (
@@ -620,13 +611,13 @@ var MedEntryInfo = React.createClass({
                     <div>
                         <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                                onChange={this.handleMedChange}/>
-                        <a onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Enter Alternate Name</a>
+                        <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick} hidden={!this.state.alt_hidden}>Enter Alternate Name</a>
                         <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub}
                                name='name_sub'
                                onChange={this.handleChange} placeholder={this.state.placeholder}
                                required={this.state.is_fhir_med == false}
                                style={{background: 'inherit'}}
-                               hidden={this.state.alt_hidden || (this.state.is_fhir_med)}/>
+                               hidden={this.state.alt_hidden && (this.state.is_fhir_med)}/>
                     </div>
                 </td>
                 <td className='col-xs-2'>
@@ -729,7 +720,7 @@ var MedEntryInfo = React.createClass({
                 <td className='col-xs-2' hidden={this.state.not_found === true}>
                     <div>
                     <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
-                              rows="1" onChange={this.handleChange} style={{background: 'inherit'}}/>
+                              rows="1" onChange={this.handleChange} onFocus={this.flipFreq} style={{background: 'inherit'}}/>
                     </div>
                 </td>
                 <input type='hidden' value={this.state.med_id} name='medication_id'/>
