@@ -160,7 +160,7 @@ var MedEntryInfoList = React.createClass({
             }
             if(a.text < b.text){
                 return -1;
-            } 
+            }
 
             return 0;
         });
@@ -176,7 +176,7 @@ var MedEntryInfoList = React.createClass({
             }
             if(a.text > b.text){
                 return -1;
-            } 
+            }
 
             return 0;
         });
@@ -493,7 +493,7 @@ var MedEntryInfo = React.createClass({
                 if (result.data.discrepancy) {
                     if (result.data.discrepancy.dose) {
                         this.setState({ doseDiscrepancy: result.data.discrepancy.dose,
-                                        ehr_dose:   result.data.ehrMed.dosageInstruction[0].doseQuantity.value 
+                                        ehr_dose:   result.data.ehrMed.dosageInstruction[0].doseQuantity.value
                                                     + ' ' + result.data.ehrMed.dosageInstruction[0].doseQuantity.unit},
                                         function (){console.log(this.state.ehrMed);});
                     }
@@ -620,7 +620,7 @@ var MedEntryInfo = React.createClass({
                     <div hidden={this.state.not_found === true}>
                         <input
                             className={'col-xs-12 removePadding ' + ((this.state.doseDiscrepancy == false) ? "valid" : "invalid")}
-                            type='text' value={this.state.dose} name='dose' required
+                            type='text' value={this.state.dose} name='dose'
                             ref='doseTarget'
                             onChange={this.handleChange} onBlur={this.doseFreqValidation}
                             style={{background: 'inherit'}}/>
@@ -685,7 +685,7 @@ var MedEntryInfo = React.createClass({
                         </div>
                     <textarea id={'complianceNote' + this.state.med_id} className='col-xs-12 removePadding' type='text'
                               value={this.state.compliance_note} name='noncompliance_note'
-                              rows="1" onChange={this.handleChange} placeholder='please expain'
+                              rows="1" onChange={this.handleChange} placeholder='please explain'
                               hidden={this.state.compliance_bool}></textarea>
                     </div>
                 </td>
@@ -725,7 +725,6 @@ var MedEntryInfo = React.createClass({
 
     }
 });
-
 
 /**
  * Renders the entire page
