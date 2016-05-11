@@ -52,7 +52,7 @@ var ViewPage = React.createClass({
                     if (resType === 'Medication') {
                         var id = result.entry[i].resource.id;
                         var text = result.entry[i].resource.code.text;
-                        state[i] = {id: id, text: text};
+                        state[i] = {id: id, text: text, completed: false};
                         map[id] = i;
                     } else if (resType === 'MedicationOrder') {
                         medOrders.push(result.entry[i].resource);
@@ -102,13 +102,14 @@ var MedEntryInfoList = React.createClass({
             allMedications: [],
             id: 10000000,
             addHidden: false,
-            submitHidden: false
+            submitHidden: false,
+            disable_submit: true
         };
     },
     handleAdd: function () {
         // changed state of allMedications, append empty MedEntryInfo item
         var newMed = this.state.allMedications;
-        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: ''});
+        newMed.push({id: new Date().getTime() + '-' + this.state.id, text: '', completed: false});
         var newId = this.state.id;
         this.setState({id: newId++});
         this.setState({allMedications: newMed});
@@ -156,11 +157,11 @@ var MedEntryInfoList = React.createClass({
     orderMedAscending: function () {
         var allMeds = this.state.allMedications;
 
-        allMeds.sort(function(a, b){
-            if(a.text > b.text){
+        allMeds.sort(function (a, b) {
+            if (a.text > b.text) {
                 return 1;
             }
-            if(a.text < b.text){
+            if (a.text < b.text) {
                 return -1;
             }
 
@@ -172,11 +173,11 @@ var MedEntryInfoList = React.createClass({
     orderMedDescending: function () {
         var allMeds = this.state.allMedications;
 
-        allMeds.sort(function(a, b){
-            if(a.text < b.text){
+        allMeds.sort(function (a, b) {
+            if (a.text < b.text) {
                 return 1;
             }
-            if(a.text > b.text){
+            if (a.text > b.text) {
                 return -1;
             }
 
@@ -188,9 +189,31 @@ var MedEntryInfoList = React.createClass({
     componentDidMount: function () {
         this.setState({allMedications: this.props.fhirMedications});
 
-
+    },
+    handleComplete: function (medid) {
+        var state = this.state.allMedications;
+        console.log('Searching for medid of ' + medid);
+        var loc = state.map(function (x) {
+            return x.id
+        }).indexOf(medid);
+        console.log(loc);
+        if (loc !== -1) {
+            state[loc].completed = true;
+        }
+        this.setState({allMedications: state});
+        for (var it = 0; it < state.length; it++) {
+            if (state[it] !== undefined) {
+                console.log(state[it]);
+                if (state[it].completed === false)
+                    break;
+                if (it === state.length - 1) {
+                    this.setState({disable_submit: false});
+                }
+            }
+        }
     },
     render: function () {
+        var self = this;
         return (
             <form id='myform' onSubmit={this.handleSubmit}>
                 <div className='col-sm-12'>
@@ -238,6 +261,7 @@ var MedEntryInfoList = React.createClass({
                                                      medId={medication.id}
                                                      orderId={medication.orderId}
                                                      medOrder={medication.medorder}
+                                                     handleComplete={self.handleComplete}
                                 />; // display each medication
                             })}
                             </tbody>
@@ -250,11 +274,13 @@ var MedEntryInfoList = React.createClass({
                             new
                         </button>
                     </div>
+                    <div className='col-xs-7'></div>
+                    <div className='col-xs-1'>Please complete the form to submit</div>
                     <div className='col-xs-2'>
-                        <button className='form-control submitBtn' onClick={this.handleChanges}>submit list
+                        <button className='form-control submitBtn' disabled={this.state.disable_submit}
+                                onClick={this.handleChanges}>submit list
                         </button>
                     </div>
-                    <div className='col-xs-8'></div>
                 </div>
                 <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
             </form>
@@ -317,6 +343,8 @@ var MedEntryInfo = React.createClass({
             click_alt: (event.target.value === 'false'),
             alt_hidden: true
         });
+        if (event.target.value === 'true')
+            this.props.handleComplete(this.state.med_id);
     },
     freqOnChange: function (freq) {
         this.setState({not_found: false});
@@ -408,7 +436,7 @@ var MedEntryInfo = React.createClass({
         var periodMax = (obj['periodMax'] ? obj['periodMax'] : null);
         var periodUnits = (obj['periodUnits'] ? obj['periodUnits'] : null);
         //var when = this.get('when');
-        var encodedPattern = frequency + ' ' +  frequencyMax + ' ' + period + ' ' + periodMax + ' ' + periodUnits;
+        var encodedPattern = frequency + ' ' + frequencyMax + ' ' + period + ' ' + periodMax + ' ' + periodUnits;
         console.log(encodedPattern);
 
         // FIXME: don't use a "truthy" comparison (use ===)
@@ -499,14 +527,20 @@ var MedEntryInfo = React.createClass({
                 console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
                 if (result.data.discrepancy) {
                     if (result.data.discrepancy.dose) {
-                        this.setState({ doseDiscrepancy: result.data.discrepancy.dose,
-                                        ehr_dose:   result.data.ehrMed.dosageInstruction[0].doseQuantity.value
-                                                    + ' ' + result.data.ehrMed.dosageInstruction[0].doseQuantity.unit},
-                                        function (){console.log(this.state.ehrMed);});
+                        this.setState({
+                                doseDiscrepancy: result.data.discrepancy.dose,
+                                ehr_dose: result.data.ehrMed.dosageInstruction[0].doseQuantity.value
+                                + ' ' + result.data.ehrMed.dosageInstruction[0].doseQuantity.unit
+                            },
+                            function () {
+                                console.log(this.state.ehrMed);
+                            });
                     }
                     if (result.data.discrepancy.dose == undefined) {
-                        this.setState({doseDiscrepancy: false,
-                                        ehr_dose: ''});
+                        this.setState({
+                            doseDiscrepancy: false,
+                            ehr_dose: ''
+                        });
                     }
                     if (result.data.discrepancy.freq) {
                         var ehrfreq = self.displayCode(result.data.ehrMed.dosageInstruction[0].timing.repeat);
@@ -561,13 +595,15 @@ var MedEntryInfo = React.createClass({
         if ((this.state.dose != '') && (this.state.freq != '')) {
             console.log('Calls loadMedPairData');
             this.loadMedPairData();
+            this.props.handleComplete(this.state.med_id);
+            
         }
     },
-    flipDose: function(){
-        this.setState({doseDiscrepancy:false});
+    flipDose: function () {
+        this.setState({doseDiscrepancy: false});
     },
-    flipFreq: function(){
-        this.setState({freqDiscrepancy:false});
+    flipFreq: function () {
+        this.setState({freqDiscrepancy: false});
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
@@ -582,15 +618,19 @@ var MedEntryInfo = React.createClass({
             ];
 
         var doseTooltip = (<Tooltip id={this.state.med_id}>
-            <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}} onClick={this.flipDose}>x</a>
+            <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}}
+               onClick={this.flipDose}>x</a>
             <br/>
-            <strong>This dosage differs from VA provider records. Did you meant {this.state.ehr_dose}? If more information is available, please explain in the note.</strong>
+            <strong>This dosage differs from VA provider records. Did you meant {this.state.ehr_dose}? If more
+                information is available, please explain in the note.</strong>
         </Tooltip>);
 
         var freqTooltip = (<Tooltip id={this.state.med_id}>
-            <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}} onClick={this.flipFreq}>x</a>
+            <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}}
+               onClick={this.flipFreq}>x</a>
             <br/>
-            <strong>This frequency differs from VA provider records. Did you meant {this.state.ehr_freq}? If more information is available, please explain in the note.</strong>
+            <strong>This frequency differs from VA provider records. Did you meant {this.state.ehr_freq}? If more
+                information is available, please explain in the note.</strong>
         </Tooltip>);
 
         return (
@@ -616,7 +656,8 @@ var MedEntryInfo = React.createClass({
                     <div>
                         <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                                onChange={this.handleMedChange}/>
-                        <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick} hidden={!this.state.click_alt}>Enter Alternate Name</a>
+                        <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick} hidden={!this.state.click_alt}>Enter
+                            Alternate Name</a>
                         <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub}
                                name='name_sub'
                                onChange={this.handleChange} placeholder={this.state.placeholder}
@@ -639,7 +680,7 @@ var MedEntryInfo = React.createClass({
                                  placement='bottom'>
                             {doseTooltip}
                         </Overlay>
-                         <div className='loader' hidden={this.state.hideload}><img src='../images/spinner.gif'/></div>
+                        <div className='loader' hidden={this.state.hideload}><img src='../images/spinner.gif'/></div>
                     </div>
 
                 </td>
@@ -648,7 +689,7 @@ var MedEntryInfo = React.createClass({
                         <SimpleSelect options={options} placeholder='Freq' className='col-xs-12 removePadding'
                                       style={{width: '100% !important'}}
                                       ref='freqTarget'
-                                      onBlur = {this.doseFreqValidation}
+                                      onBlur={this.doseFreqValidation}
                                       onValueChange={function(freq){
                                          self.setState({freq:freq.label});
                                       }}
@@ -694,7 +735,7 @@ var MedEntryInfo = React.createClass({
                             <span className='switch-selection'> </span>
                         </div>
                     <textarea id={'complianceNote' + this.state.med_id} className='col-xs-12 removePadding' type='text'
-                              value={this.state.compliance_note} name='noncompliance_note'
+                              value={this.state.noncompliance_note} name='noncompliance_note'
                               rows="1" onChange={this.handleChange} placeholder='please explain'
                               hidden={this.state.compliance_bool}></textarea>
                     </div>
@@ -725,7 +766,8 @@ var MedEntryInfo = React.createClass({
                 <td className='col-xs-2' hidden={this.state.not_found === true}>
                     <div>
                     <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
-                              rows="1" onChange={this.handleChange} onFocus={this.flipFreq} style={{background: 'inherit'}}/>
+                              rows="1" onChange={this.handleChange} onFocus={this.flipFreq}
+                              style={{background: 'inherit'}}/>
                     </div>
                 </td>
                 <input type='hidden' value={this.state.med_id} name='medication_id'/>
