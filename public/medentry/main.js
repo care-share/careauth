@@ -190,7 +190,7 @@ var MedEntryInfoList = React.createClass({
         this.setState({allMedications: this.props.fhirMedications});
 
     },
-    handleComplete: function (medid) {
+    handleComplete: function (medid, status) {
         var state = this.state.allMedications;
         console.log('Searching for medid of ' + medid);
         var loc = state.map(function (x) {
@@ -198,14 +198,16 @@ var MedEntryInfoList = React.createClass({
         }).indexOf(medid);
         console.log(loc);
         if (loc !== -1) {
-            state[loc].completed = true;
+            state[loc].completed = status;
         }
         this.setState({allMedications: state});
         for (var it = 0; it < state.length; it++) {
             if (state[it] !== undefined) {
                 console.log(state[it]);
-                if (state[it].completed === false)
+                if (state[it].completed === false) {
+                    this.setState({disable_submit: true});
                     break;
+                }
                 if (it === state.length - 1) {
                     this.setState({disable_submit: false});
                 }
@@ -343,8 +345,10 @@ var MedEntryInfo = React.createClass({
             click_alt: (event.target.value === 'false'),
             alt_hidden: true
         });
-        if (event.target.value === 'true')
-            this.props.handleComplete(this.state.med_id);
+        if ((event.target.value === 'true') || ((this.state.dose !== '') && (this.state.freq !== '')))
+            this.props.handleComplete(this.state.med_id,true);
+        else
+            this.props.handleComplete(this.state.med_id,false);
     },
     freqOnChange: function (freq) {
         this.setState({not_found: false});
@@ -595,8 +599,9 @@ var MedEntryInfo = React.createClass({
         if ((this.state.dose != '') && (this.state.freq != '')) {
             console.log('Calls loadMedPairData');
             this.loadMedPairData();
-            this.props.handleComplete(this.state.med_id);
-            
+            this.props.handleComplete(this.state.med_id,true);
+        } else {
+            this.props.handleComplete(this.state.med_id,false);
         }
     },
     flipDose: function () {
