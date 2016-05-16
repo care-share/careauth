@@ -230,6 +230,10 @@ body {
     padding-top: 15px;
 }
 
+.med_row {
+    background-color: yellow !important;
+}
+
 .success-message {
     background-color: #48ff2c;
 }

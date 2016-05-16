@@ -88,9 +88,7 @@ var ViewPage = React.createClass({
         var token = getUrlParameter('token');
         return (
             <div>
-                <MedEntryInfoList
-                    fhirMedications={this.state.medication_list_response} token={token}
-                />
+                <MedEntryInfoList fhirMedications={this.state.medication_list_response} token={token} />
             </div>
         )
     }
@@ -188,7 +186,9 @@ var MedEntryInfoList = React.createClass({
     },
     componentDidMount: function () {
         this.setState({allMedications: this.props.fhirMedications});
-
+    },
+    handleDiscrepancy: function (status) {
+        this.setState({is_discrepancy: status});
     },
     handleComplete: function (medid, status) {
         var state = this.state.allMedications;
@@ -264,6 +264,7 @@ var MedEntryInfoList = React.createClass({
                                                      orderId={medication.orderId}
                                                      medOrder={medication.medorder}
                                                      handleComplete={self.handleComplete}
+                                                     handleDiscrepancy={self.handleDiscrepancy}
                                 />; // display each medication
                             })}
                             </tbody>
@@ -290,6 +291,24 @@ var MedEntryInfoList = React.createClass({
     }
 });
 
+/**
+ * Cases where row switches yellow:
+ *  1. When a discrepancy is triggered
+ *  2. When row is designated as missing, then switched to found and a discrepancy has not been addressed (in notes)
+ *  3. When there is a discrepancy and notes addressing said discrepancy get removed
+ *
+ * Cases where row switches off:
+ *  1. When a discrepancy is addressed in notes
+ *  2. When a discrepancy is changed in the dosage or frequency fields
+ *  3. When a medication is designated as missing
+ *  4. When a medication is designated as missing, then switches to found and a discrepancy HAS been addressed (in notes)
+ *
+ * What to call:
+ * 1:   Call Transcript API (if checking discrepancy)
+ * 1t:  Set discrepancy to true, add yellow border
+ * 1f:  Set discrepancy to false, remove yellow border
+ */
+
 var MedEntryInfo = React.createClass({
     getInitialState: function () {
         return {
@@ -315,7 +334,8 @@ var MedEntryInfo = React.createClass({
             freqDiscrepancy: false,
             hideload: true,
             med_order: {},
-            click_alt: true
+            click_alt: true,
+            row_discrepancy: false //Indicates whether or not this medication has a un-addressed discrepancy
         };
     },
     handleChange: function (event) {
@@ -336,6 +356,10 @@ var MedEntryInfo = React.createClass({
             this.setState(obj);
         }
     },
+    /**
+     * handleNotFoundChange
+     * indicates whether or not this medication is present within the home
+     */
     handleNotFoundChange: function (event) {
         var inv = !this.state.click_alt;
         this.setState({
@@ -345,31 +369,10 @@ var MedEntryInfo = React.createClass({
             click_alt: (event.target.value === 'false'),
             alt_hidden: true
         });
-        if ((event.target.value === 'true') || ((this.state.dose !== '') && (this.state.freq !== '')))
-            this.props.handleComplete(this.state.med_id,true);
-        else
-            this.props.handleComplete(this.state.med_id,false);
-    },
-    freqOnChange: function (freq) {
-        this.setState({not_found: false});
-
-        var result = '';
-        for (var i = 0; i < freq.length; i++) {
-            if (i !== 0)
-                result = result + ',' + freq[i].label;
-            else
-                result = freq[i].label;
-        }
-
-        this.setState({
-            freq: result,
-            freq_array: freq
-        });
-
-        if (result.length == 0) {
-            this.setState({freqDiscrepancy: false, doseDiscrepancy: false});
+        if ((event.target.value === 'true') || ((this.state.dose !== '') && (this.state.freq !== ''))) {
+            this.props.handleComplete(this.state.med_id, true);
         } else {
-            this.doseFreqValidation();
+            this.props.handleComplete(this.state.med_id, false);
         }
     },
     handleOnChange: function (e) {
@@ -529,7 +532,11 @@ var MedEntryInfo = React.createClass({
             dataType: 'json',
             success: function (result) {
                 console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
+                //Checks to see if there is a discrepancy response
                 if (result.data.discrepancy) {
+
+                    //Checks to see if dosage has a discrepancy
+                    //TODO: See if dosage got fixed, currently doesn't check unless using a specific format (problem with Transcript API)
                     if (result.data.discrepancy.dose) {
                         this.setState({
                                 doseDiscrepancy: result.data.discrepancy.dose,
@@ -540,19 +547,44 @@ var MedEntryInfo = React.createClass({
                                 console.log(this.state.ehrMed);
                             });
                     }
+
+                    //If undefined, set states to none
                     if (result.data.discrepancy.dose == undefined) {
                         this.setState({
                             doseDiscrepancy: false,
                             ehr_dose: ''
                         });
                     }
+
+                    //Checks to see if frequency has a discrepancy
                     if (result.data.discrepancy.freq) {
                         var ehrfreq = self.displayCode(result.data.ehrMed.dosageInstruction[0].timing.repeat);
                         console.log(ehrfreq);
                         this.setState({freqDiscrepancy: result.data.discrepancy.freq, ehr_freq: ehrfreq});
                     }
+
+                    //If undefined, set states to none
                     if (result.data.discrepancy.freq == undefined) {
                         this.setState({freqDiscrepancy: false, ehr_freq: ''});
+                    }
+
+                    //When done, check both states. if either one is true, set row discrepancy to true
+                    //If false, set row discrepancy to false
+                    if (this.state.freqDiscrepancy || this.state.doseDiscrepancy){
+                        this.setState({row_discrepancy: true});
+                        this.props.handleDiscrepancy(true);
+                        $('#' + this.state.med_id).addClass('med_row');
+                        //Set row discrepancy to true
+                        //Set color of row to yellow
+                        //Indicate to parent there is discrepancy
+
+                    } else {
+                        this.setState({row_discrepancy: false});
+                        this.props.handleDiscrepancy(false);
+                        $('#' + this.state.med_id).removeClass('med_row');
+                        //Set row discrepancy to false
+                        //Remove yellow color
+                        //Indicate to parent there is no discrepancy
                     }
                     finish();
                 }
@@ -639,7 +671,7 @@ var MedEntryInfo = React.createClass({
         </Tooltip>);
 
         return (
-            <tr>
+            <tr id={this.state.med_id}>
                 <td className='col-xs-1'>
                     <div className="switch switch-blue">
                         <input id={this.state.med_id + 'found'} className='switch-input' type='radio'
