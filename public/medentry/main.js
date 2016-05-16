@@ -154,40 +154,6 @@ var MedEntryInfoList = React.createClass({
             });
         }
     },
-    //handleChanges: function (e) {
-    //    var token = this.props.token;
-    //    console.log('Should put data into mongoDB');
-    //    //If name_sub exists, replace name
-    //
-    //    //Check if each node can be submitted.
-    //    //If node is empty, prevent submit and highlight
-    //    //Else check next node
-    //
-    //        var frm = $(this).serializeArray();
-    //        for (var i = frm.length - 1; i >= 0; i--) {
-    //            frm[i].name = frm[i].name.split("--")[0]
-    //        }
-    //        var dat = {
-    //            patient_id: getUrlParameter('patient_id'),
-    //            formData: frm
-    //        };
-    //
-    //        console.log('I am about to POST this:\n\n' + JSON.stringify(dat, null, 2));
-    //        $.ajax({
-    //            type: 'POST',
-    //            url: '/medentries',
-    //            headers: {'X-Auth-Token': token},
-    //            data: JSON.stringify(dat),
-    //            success: function (result) {
-    //                console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
-    //                //Unhides success message on successful submit
-    //                $('.success-message').removeAttr('hidden');
-    //                $('.panel.panel-default').attr('hidden', 'true');
-    //            },
-    //            dataType: 'json',
-    //            contentType: 'application/json'
-    //        });
-    //},
     orderMedAscending: function () {
         var allMeds = this.state.allMedications;
 
@@ -262,7 +228,7 @@ var MedEntryInfoList = React.createClass({
         var self = this;
         return (
             <form id='myform' onSubmit={this.handleSubmit}>
-                <div className='col-sm-12'>
+                <div className='col-sm-13'>
                     <div className='panel panel-default'>
                         <div className='panel-heading'>
                             <h2 className='panel-title'>Please enter medications as you find them in the home.
@@ -292,6 +258,9 @@ var MedEntryInfoList = React.createClass({
                                 </th>
                                 <th className='col-xs-2'>
                                     Prescriber
+                                </th>
+                                <th className='col-xs-1'>
+                                    Discrepancy
                                 </th>
                                 <th className='col-xs-2'>
                                     Notes
@@ -332,10 +301,10 @@ var MedEntryInfoList = React.createClass({
                 <div>
                     <Modal show={this.state.show_modal} onHide={this.close}>
                         <Modal.Header closeButton>
-                            <Modal.Title>Form</Modal.Title>
+                            <Modal.Title>Discrepancy</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            <strong>Replace this text with an error</strong>
+                            <strong>There is an unaddressed discrepancy. Click cancel to address it, or continue to submit anyway</strong>
                         </Modal.Body>
                         <Modal.Footer>
                             <button onClick={this.close}>Cancel</button>
@@ -875,6 +844,12 @@ var MedEntryInfo = React.createClass({
                               rows="1" onChange={this.handleChange} placeholder='please enter prescriber'
                               hidden={this.state.med_bool}></textarea>
                     </div>
+                </td>
+                <td className='col-xs-1' hidden={this.state.not_found}>
+                    <button>
+                    <span ref='tipTarget' style={{color: '#ffcc00',background: 'black',padding: '3px'}}
+                          className='glyphicon glyphicon-warning-sign'></span>
+                    </button>
                 </td>
                 <td className='col-xs-2' hidden={this.state.not_found === true}>
                     <div>
