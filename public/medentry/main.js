@@ -4,6 +4,7 @@ var SimpleSelect = reactSelectize.SimpleSelect;
 var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 var Overlay = ReactBootstrap.Overlay;
+var Modal = ReactBootstrap.Modal;
 
 function getUrlParameter(sParam) {
     var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -101,7 +102,9 @@ var MedEntryInfoList = React.createClass({
             id: 10000000,
             addHidden: false,
             submitHidden: false,
-            disable_submit: true
+            disable_submit: true,
+            has_discrepancy: false,
+            show_modal: false
         };
     },
     handleAdd: function () {
@@ -119,14 +122,14 @@ var MedEntryInfoList = React.createClass({
     handleChanges: function (e) {
         var token = this.props.token;
         console.log('Should put data into mongoDB');
-        //If name_sub exists, replace name
-
-        //Check if each node can be submitted.
-        //If node is empty, prevent submit and highlight
-        //Else check next node
-
-        $('#myform').unbind('submit').bind('submit', function () {
-            var frm = $(this).serializeArray();
+        if(this.state.has_discrepancy){
+            //Popup stating that there is an unaddressed discrepancy somewhere
+            //Popup will be a bootstrap modal
+            console.log('There is discrepancy');
+            this.setState({show_modal:true});
+        }
+        else {
+            var frm = $("#myform").serializeArray();
             for (var i = frm.length - 1; i >= 0; i--) {
                 frm[i].name = frm[i].name.split("--")[0]
             }
@@ -134,7 +137,6 @@ var MedEntryInfoList = React.createClass({
                 patient_id: getUrlParameter('patient_id'),
                 formData: frm
             };
-
             console.log('I am about to POST this:\n\n' + JSON.stringify(dat, null, 2));
             $.ajax({
                 type: 'POST',
@@ -150,8 +152,42 @@ var MedEntryInfoList = React.createClass({
                 dataType: 'json',
                 contentType: 'application/json'
             });
-        });
+        }
     },
+    //handleChanges: function (e) {
+    //    var token = this.props.token;
+    //    console.log('Should put data into mongoDB');
+    //    //If name_sub exists, replace name
+    //
+    //    //Check if each node can be submitted.
+    //    //If node is empty, prevent submit and highlight
+    //    //Else check next node
+    //
+    //        var frm = $(this).serializeArray();
+    //        for (var i = frm.length - 1; i >= 0; i--) {
+    //            frm[i].name = frm[i].name.split("--")[0]
+    //        }
+    //        var dat = {
+    //            patient_id: getUrlParameter('patient_id'),
+    //            formData: frm
+    //        };
+    //
+    //        console.log('I am about to POST this:\n\n' + JSON.stringify(dat, null, 2));
+    //        $.ajax({
+    //            type: 'POST',
+    //            url: '/medentries',
+    //            headers: {'X-Auth-Token': token},
+    //            data: JSON.stringify(dat),
+    //            success: function (result) {
+    //                console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
+    //                //Unhides success message on successful submit
+    //                $('.success-message').removeAttr('hidden');
+    //                $('.panel.panel-default').attr('hidden', 'true');
+    //            },
+    //            dataType: 'json',
+    //            contentType: 'application/json'
+    //        });
+    //},
     orderMedAscending: function () {
         var allMeds = this.state.allMedications;
 
@@ -188,7 +224,7 @@ var MedEntryInfoList = React.createClass({
         this.setState({allMedications: this.props.fhirMedications});
     },
     handleDiscrepancy: function (status) {
-        this.setState({is_discrepancy: status});
+        this.setState({has_discrepancy: status});
     },
     handleComplete: function (medid, status) {
         var state = this.state.allMedications;
@@ -213,6 +249,14 @@ var MedEntryInfoList = React.createClass({
                 }
             }
         }
+    },
+    close: function (){
+        this.setState({show_modal:false});
+    },
+    continue:function(){
+        // async setState because React handles click events this way... handleChanges is the callback
+        this.setState({show_modal: false, has_discrepancy: false}, this.handleChanges);
+        //this.handleChanges();
     },
     render: function () {
         var self = this;
@@ -284,6 +328,20 @@ var MedEntryInfoList = React.createClass({
                                 onClick={this.handleChanges}>submit list
                         </button>
                     </div>
+                </div>
+                <div>
+                    <Modal show={this.state.show_modal} onHide={this.close}>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Form</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <strong>Replace this text with an error</strong>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <button onClick={this.close}>Cancel</button>
+                            <button onClick={this.continue}>Continue</button>
+                        </Modal.Footer>
+                    </Modal>
                 </div>
                 <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
             </form>
