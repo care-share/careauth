@@ -291,24 +291,6 @@ var MedEntryInfoList = React.createClass({
     }
 });
 
-/**
- * Cases where row switches yellow:
- *  1. When a discrepancy is triggered
- *  2. When row is designated as missing, then switched to found and a discrepancy has not been addressed (in notes)
- *  3. When there is a discrepancy and notes addressing said discrepancy get removed
- *
- * Cases where row switches off:
- *  1. When a discrepancy is addressed in notes
- *  2. When a discrepancy is changed in the dosage or frequency fields
- *  3. When a medication is designated as missing
- *  4. When a medication is designated as missing, then switches to found and a discrepancy HAS been addressed (in notes)
- *
- * What to call:
- * 1:   Call Transcript API (if checking discrepancy)
- * 1t:  Set discrepancy to true, add yellow border
- * 1f:  Set discrepancy to false, remove yellow border
- */
-
 var MedEntryInfo = React.createClass({
     getInitialState: function () {
         return {
@@ -348,6 +330,17 @@ var MedEntryInfo = React.createClass({
         }
         obj[event.target.name] = value;
         this.setState(obj);
+
+        if(event.target.name === 'note'){
+            //if value === '' then check if discrepancy. If so, indicate unaddressed discrepancy
+            if(this.state.row_discrepancy) {
+                if (value === '') {
+                    this.addRowDisc();
+                } else {
+                    this.removeRowDisc();
+                }
+            }
+        }
     },
     handleMedChange: function (event) {
         if (this.state.is_fhir_med === false) { // if not a fhir medication name field then can edit and update state
@@ -359,6 +352,8 @@ var MedEntryInfo = React.createClass({
     /**
      * handleNotFoundChange
      * indicates whether or not this medication is present within the home
+     * event.target.value === true ; indicates that medication is MISSING
+     * else ; indicates that row is FOUND
      */
     handleNotFoundChange: function (event) {
         var inv = !this.state.click_alt;
@@ -369,11 +364,39 @@ var MedEntryInfo = React.createClass({
             click_alt: (event.target.value === 'false'),
             alt_hidden: true
         });
-        if ((event.target.value === 'true') || ((this.state.dose !== '') && (this.state.freq !== ''))) {
+        //If medication is missing, remove row highlighting and indicate to parent this is ready to submit
+        if ((event.target.value === 'true')) {
+            this.removeRowDisc();
             this.props.handleComplete(this.state.med_id, true);
-        } else {
-            this.props.handleComplete(this.state.med_id, false);
         }
+        //If medication is found, check if discrepancy exists. If discrepancy does exist, check if note exists.
+        else {
+            if(this.state.dose && this.state.freq)
+                this.props.handleComplete(this.state.med_id, true);
+            else
+                this.props.handleComplete(this.state.med_id, false);
+
+            //Check if there is an unaddressed discrepancy for this medication
+            if(this.state.row_discrepancy){
+                //Check if the discrepancy has been addressed via note
+                if(this.state.note !== ''){
+                    this.props.handleComplete(this.state.med_id, true);
+                    this.removeRowDisc();
+                }
+                //Otherwise discrepancy has not been addressed, restore highlighting / discrepancy
+                else {
+                    this.addRowDisc();
+                }
+            }
+        }
+    },
+    addRowDisc: function() {
+        this.props.handleDiscrepancy(true);
+        $('#' + this.state.med_id).addClass('med_row');
+    },
+    removeRowDisc: function() {
+        this.props.handleDiscrepancy(false);
+        $('#' + this.state.med_id).removeClass('med_row');
     },
     handleOnChange: function (e) {
         this.setState({not_found: false});
@@ -571,20 +594,15 @@ var MedEntryInfo = React.createClass({
                     //When done, check both states. if either one is true, set row discrepancy to true
                     //If false, set row discrepancy to false
                     if (this.state.freqDiscrepancy || this.state.doseDiscrepancy){
-                        this.setState({row_discrepancy: true});
-                        this.props.handleDiscrepancy(true);
-                        $('#' + this.state.med_id).addClass('med_row');
                         //Set row discrepancy to true
                         //Set color of row to yellow
                         //Indicate to parent there is discrepancy
-
+                        this.setState({row_discrepancy: true}, this.addRowDisc);
                     } else {
-                        this.setState({row_discrepancy: false});
-                        this.props.handleDiscrepancy(false);
-                        $('#' + this.state.med_id).removeClass('med_row');
                         //Set row discrepancy to false
                         //Remove yellow color
                         //Indicate to parent there is no discrepancy
+                        this.setState({row_discrepancy: false}, this.removeRowDisc);
                     }
                     finish();
                 }
