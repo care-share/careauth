@@ -344,7 +344,8 @@ var MedEntryInfo = React.createClass({
             hideload: true,
             med_order: {},
             click_alt: true,
-            row_discrepancy: false //Indicates whether or not this medication has a un-addressed discrepancy
+            row_discrepancy: false, //Indicates whether or not this medication has a un-addressed discrepancy,
+            show_tooltip: false //displays tooltip
         };
     },
     handleChange: function (event) {
@@ -388,6 +389,7 @@ var MedEntryInfo = React.createClass({
             not_found: (event.target.value === 'true'),
             doseDiscrepancy: false,
             freqDiscrepancy: false,
+            show_tooltip: false,
             click_alt: (event.target.value === 'false'),
             alt_hidden: true
         });
@@ -565,7 +567,7 @@ var MedEntryInfo = React.createClass({
         var medpair = {'medentry': medentry, 'medorder': this.state.med_order};
 
         // reset states
-        this.setState({doseDiscrepancy: false, freqDiscrepancy: false, hideload: false});
+        this.setState({doseDiscrepancy: false, freqDiscrepancy: false, hideload: false, show_tooltip: false});
 
         var self = this;
 
@@ -621,15 +623,13 @@ var MedEntryInfo = React.createClass({
                     //When done, check both states. if either one is true, set row discrepancy to true
                     //If false, set row discrepancy to false
                     if (this.state.freqDiscrepancy || this.state.doseDiscrepancy){
-                        //Set row discrepancy to true
-                        //Set color of row to yellow
-                        //Indicate to parent there is discrepancy
-                        this.setState({row_discrepancy: true}, this.addRowDisc);
+                        //Has to be structured this way otherwise tooltip cannot find button
+                        this.setState({row_discrepancy: true},this.addRowDisc);
+                        this.setState({show_tooltip: true});
                     } else {
-                        //Set row discrepancy to false
-                        //Remove yellow color
-                        //Indicate to parent there is no discrepancy
+                        //Has to be structured this way otherwise tooltip cannot find button
                         this.setState({row_discrepancy: false}, this.removeRowDisc);
+                        this.setState({show_tooltip: false});
                     }
                     finish();
                 }
@@ -681,11 +681,11 @@ var MedEntryInfo = React.createClass({
             this.props.handleComplete(this.state.med_id,false);
         }
     },
-    flipDose: function () {
-        this.setState({doseDiscrepancy: false});
+    flipDisc: function () {
+        this.setState({show_tooltip: !this.state.show_tooltip});
     },
-    flipFreq: function () {
-        this.setState({freqDiscrepancy: false});
+    offDisc: function (){
+        this.setState({show_tooltip: false});
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
@@ -699,20 +699,14 @@ var MedEntryInfo = React.createClass({
                 {label: 'AC', value: 'with meals'}
             ];
 
-        var doseTooltip = (<Tooltip id={this.state.med_id}>
+        //TODO: Fix frequency hidden attribute to be dynamic
+        var discTooltip = (<Tooltip id={this.state.med_id}>
             <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}}
-               onClick={this.flipDose}>x</a>
+               onClick={this.flipDisc}>x</a>
             <br/>
-            <strong>This dosage differs from VA provider records. Did you meant {this.state.ehr_dose}? If more
-                information is available, please explain in the note.</strong>
-        </Tooltip>);
-
-        var freqTooltip = (<Tooltip id={this.state.med_id}>
-            <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}}
-               onClick={this.flipFreq}>x</a>
-            <br/>
-            <strong>This frequency differs from VA provider records. Did you meant {this.state.ehr_freq}? If more
-                information is available, please explain in the note.</strong>
+            <strong hidden={!this.state.doseDiscrepancy}>Prescriber dosage: {this.state.ehr_dose}</strong>
+            <br hidden={!this.state.doseDiscrepancy} />
+            <strong hidden={!this.state.row_discrepancy}>Prescriber frequency: {this.state.ehr_freq}</strong>
         </Tooltip>);
 
         return (
@@ -749,19 +743,12 @@ var MedEntryInfo = React.createClass({
                     </div>
                 </td>
                 <td className='col-xs-2'>
-
                     <div hidden={this.state.not_found === true}>
                         <input
                             className={'col-xs-12 removePadding ' + ((this.state.doseDiscrepancy == false) ? "valid" : "invalid")}
                             type='text' value={this.state.dose} name='dose'
-                            ref='doseTarget'
                             onChange={this.handleChange} onBlur={this.doseFreqValidation}
                             style={{background: 'inherit'}}/>
-                        <Overlay show={(this.state.doseDiscrepancy == false) ? false : true}
-                                 target={() => ReactDOM.findDOMNode(this.refs.doseTarget)}
-                                 placement='bottom'>
-                            {doseTooltip}
-                        </Overlay>
                         <div className='loader' hidden={this.state.hideload}><img src='../images/spinner.gif'/></div>
                     </div>
 
@@ -770,7 +757,6 @@ var MedEntryInfo = React.createClass({
                     <div hidden={this.state.not_found === true}>
                         <SimpleSelect options={options} placeholder='Freq' className='col-xs-12 removePadding'
                                       style={{width: '100% !important'}}
-                                      ref='freqTarget'
                                       onBlur={this.doseFreqValidation}
                                       onValueChange={function(freq){
                                          self.setState({freq:freq.label});
@@ -791,11 +777,6 @@ var MedEntryInfo = React.createClass({
                                             <span>{item.value}</span>
                                         </div> }}
                         />
-                        <Overlay show={(this.state.freqDiscrepancy == false) ? false : true}
-                                 target={() => ReactDOM.findDOMNode(this.refs.freqTarget)}
-                                 placement='right'>
-                            {freqTooltip}
-                        </Overlay>
                         <input type='text' value={this.state.freq} name='freq' hidden/>
                     </div>
                 </td>
@@ -845,16 +826,23 @@ var MedEntryInfo = React.createClass({
                               hidden={this.state.med_bool}></textarea>
                     </div>
                 </td>
-                <td className='col-xs-1' hidden={this.state.not_found}>
-                    <button>
-                    <span ref='tipTarget' style={{color: '#ffcc00',background: 'black',padding: '3px'}}
-                          className='glyphicon glyphicon-warning-sign'></span>
-                    </button>
+                <td className='col-xs-1' hidden={this.state.not_found} id={'tooltip_'+this.state.med_id}>
+                    <div hidden={!this.state.row_discrepancy}>
+                        <button onClick={this.flipDisc} hidden={this.state.not_found}>
+                            <span ref='tipTarget' id={'disc_span_'+this.state.med_id} style={{color: '#ffcc00',background: 'yellow',padding: '3px'}}
+                                className='glyphicon glyphicon-warning-sign black'></span>
+                        </button>
+                        <Overlay show={this.state.show_tooltip}
+                                 target={() => ReactDOM.findDOMNode(this.refs.tipTarget)}
+                                 placement='right'>
+                            {discTooltip}
+                        </Overlay>
+                    </div>
                 </td>
                 <td className='col-xs-2' hidden={this.state.not_found === true}>
                     <div>
                     <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
-                              rows="1" onChange={this.handleChange} onFocus={this.flipFreq}
+                              rows="1" onChange={this.handleChange} onFocus={this.offDisc}
                               style={{background: 'inherit'}}/>
                     </div>
                 </td>
@@ -865,6 +853,10 @@ var MedEntryInfo = React.createClass({
 
     }
 });
+/**
+ *  <span ref='tipTarget' id={'disc_span_'+this.state.med_id} style={{color: '#ffcc00',background: 'black',padding: '3px'}}
+ className='glyphicon glyphicon-warning-sign'></span>
+ */
 
 /**
  * Renders the entire page

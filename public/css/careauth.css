@@ -234,6 +234,10 @@ body {
     background-color: yellow !important;
 }
 
+.black {
+    color: black !important;
+}
+
 .success-message {
     background-color: #48ff2c;
 }
