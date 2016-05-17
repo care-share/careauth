@@ -107,6 +107,16 @@ var MedEntryInfoList = React.createClass({
             show_modal: false
         };
     },
+    updateName: function (id, name){
+        console.log('update name is called');
+        var meds = this.state.allMedications;
+        for(var i = 0; i < meds.length; i++)
+            if(meds[i])
+                if(meds[i].id === id)
+                    meds[i].text = name;
+
+        this.setState({allMedications:meds});
+    },
     handleAdd: function () {
         // changed state of allMedications, append empty MedEntryInfo item
         var newMed = this.state.allMedications;
@@ -242,8 +252,8 @@ var MedEntryInfoList = React.createClass({
                                 </th>
                                 <th className='col-xs-2'>
                                     <div className="order pull-left">
-                                        <a className="asc" onClick={this.orderMedAscending}>&uarr;</a>
-                                        <a className="desc" onClick={this.orderMedDescending}>&darr;</a>
+                                        <a style={{cursor:'pointer'}} className="asc" onClick={this.orderMedAscending}>&uarr;</a>
+                                        <a style={{cursor:'pointer'}} className="desc" onClick={this.orderMedDescending}>&darr;</a>
                                     </div>
                                     Medication Name
                                 </th>
@@ -278,6 +288,7 @@ var MedEntryInfoList = React.createClass({
                                                      medOrder={medication.medorder}
                                                      handleComplete={self.handleComplete}
                                                      handleDiscrepancy={self.handleDiscrepancy}
+                                                     updateName={self.updateName}
                                 />; // display each medication
                             })}
                             </tbody>
@@ -318,6 +329,14 @@ var MedEntryInfoList = React.createClass({
     }
 });
 
+
+/**
+ * indicated by this.state.is_fhir_med;
+ * If medication is new:
+ * 1) remove 'Enter Alternate Name'
+ * 2) remove found/missing toggle
+ * 3) Prevent any kind of tooltip stuff from happening
+ */
 var MedEntryInfo = React.createClass({
     getInitialState: function () {
         return {
@@ -356,17 +375,20 @@ var MedEntryInfo = React.createClass({
         if (event.target.type === 'checkbox') {
             value = (value === 'false');
         }
+        if(event.target.name === 'name_sub'){
+            value = value.toUpperCase();
+            this.props.updateName(this.state.med_id,event.target.value);
+        }
         obj[event.target.name] = value;
         this.setState(obj);
 
         if(event.target.name === 'note'){
             //if value === '' then check if discrepancy. If so, indicate unaddressed discrepancy
             if(this.state.row_discrepancy) {
-                if (value === '') {
+                if (value === '')
                     this.addRowDisc();
-                } else {
+                 else
                     this.removeRowDisc();
-                }
             }
         }
     },
@@ -458,8 +480,6 @@ var MedEntryInfo = React.createClass({
             click_alt: invert,
             alt_hidden: invert
         });
-        console.log(invert);
-        console.log(this.state.is_fhir_med);
     },
     displayText: function (obj) { // spelled out summary of the repeat pattern
         var frequency = obj['frequency'];
@@ -658,20 +678,6 @@ var MedEntryInfo = React.createClass({
         });
     },
     doseFreqValidation: function () {
-
-        console.log('Dose Freq Validation called');
-        console.log('Current frequency is: ' + this.state.freq);
-
-        //Check the state of freq. If empty, indicate it needs to be filled out via highlighting
-
-        if (this.state.freq.length == 0) {
-            //Freq is empty, need to indicate it must be filled out AND prevent submit until it is cleared up
-            //1. Set certain state to indicate that Freq can't be submitted
-            //
-            this.setState({freqDiscrepancy: false});
-        }
-
-
         // dose & freq field must be filled out
         if ((this.state.dose != '') && (this.state.freq != '')) {
             console.log('Calls loadMedPairData');
@@ -712,7 +718,7 @@ var MedEntryInfo = React.createClass({
         return (
             <tr id={this.state.med_id} style={{position: 'relative'}}>
                 <td className='col-xs-1'>
-                    <div className="switch switch-blue">
+                    <div className="switch switch-blue" hidden={!this.state.is_fhir_med}>
                         <input id={this.state.med_id + 'found'} className='switch-input' type='radio'
                                name={'not_found--' + this.state.med_id} value='false'
                                checked={this.state.not_found === false} hidden={!this.state.is_fhir_med}
@@ -732,8 +738,8 @@ var MedEntryInfo = React.createClass({
                     <div>
                         <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                                onChange={this.handleMedChange}/>
-                        <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick} hidden={!this.state.click_alt}>Enter
-                            Alternate Name</a>
+                        <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick}
+                           hidden={!this.state.click_alt || !this.state.is_fhir_id}>EnterAlternate Name</a>
                         <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub}
                                name='name_sub'
                                onChange={this.handleChange} placeholder={this.state.placeholder}
@@ -751,7 +757,6 @@ var MedEntryInfo = React.createClass({
                             style={{background: 'inherit'}}/>
                         <div className='loader' hidden={this.state.hideload}><img src='../images/spinner.gif'/></div>
                     </div>
-
                 </td>
                 <td className='col-xs-1'>
                     <div hidden={this.state.not_found === true}>
