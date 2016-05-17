@@ -710,7 +710,7 @@ var MedEntryInfo = React.createClass({
         </Tooltip>);
 
         return (
-            <tr id={this.state.med_id}>
+            <tr id={this.state.med_id} style={{position: 'relative'}}>
                 <td className='col-xs-1'>
                     <div className="switch switch-blue">
                         <input id={this.state.med_id + 'found'} className='switch-input' type='radio'
@@ -826,15 +826,15 @@ var MedEntryInfo = React.createClass({
                               hidden={this.state.med_bool}></textarea>
                     </div>
                 </td>
-                <td className='col-xs-1' hidden={this.state.not_found} id={'tooltip_'+this.state.med_id}>
+                <td className='col-xs-1' hidden={this.state.not_found} id={'tooltip_'+this.state.med_id} style={{position: 'relative'}}>
                     <div hidden={!this.state.row_discrepancy}>
                         <button onClick={this.flipDisc} hidden={this.state.not_found}>
                             <span ref='tipTarget' id={'disc_span_'+this.state.med_id} style={{color: '#ffcc00',background: 'yellow',padding: '3px'}}
                                 className='glyphicon glyphicon-warning-sign black'></span>
                         </button>
-                        <Overlay show={this.state.show_tooltip}
+                        <Overlay show={this.state.show_tooltip} container={document.getElementById('tooltip_'+this.state.med_id)}
                                  target={() => ReactDOM.findDOMNode(this.refs.tipTarget)}
-                                 placement='right'>
+                                 placement='bottom'>
                             {discTooltip}
                         </Overlay>
                     </div>
