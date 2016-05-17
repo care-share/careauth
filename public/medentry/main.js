@@ -832,7 +832,7 @@ var MedEntryInfo = React.createClass({
                     </div>
                 </td>
                 <td className='col-xs-1' hidden={this.state.not_found} id={'tooltip_'+this.state.med_id} style={{position: 'relative'}}>
-                    <div hidden={!this.state.row_discrepancy}>
+                    <div hidden={!this.state.row_discrepancy || !this.state.is_fhir_med}>
                         <button onClick={this.flipDisc} hidden={this.state.not_found}>
                             <span ref='tipTarget' id={'disc_span_'+this.state.med_id} style={{color: '#ffcc00',background: 'yellow',padding: '3px'}}
                                 className='glyphicon glyphicon-warning-sign black'></span>
