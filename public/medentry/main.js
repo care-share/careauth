@@ -5,6 +5,7 @@ var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 var Overlay = ReactBootstrap.Overlay;
 var Modal = ReactBootstrap.Modal;
+var Alert = ReactBootstrap.Alert;
 
 function getUrlParameter(sParam) {
     var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -53,7 +54,7 @@ var ViewPage = React.createClass({
                     if (resType === 'Medication') {
                         var id = result.entry[i].resource.id;
                         var text = result.entry[i].resource.code.text;
-                        state[nextMed] = {id: id, text: text, completed: false};
+                        state[nextMed] = {id: id, text: text, completed: false, not_found: '', prescriber: 'true'};
                         map[id] = nextMed++;
                     } else if (resType === 'MedicationOrder') {
                         medOrders.push(result.entry[i].resource);
@@ -106,24 +107,50 @@ var ViewPage = React.createClass({
     }
 });
 
+
+
+function doSort (param, isAscending) {
+    return function (a, b) {
+        if (a[param] < b[param]) {
+            return isAscending ? -1 : 1;
+        }
+        if (a[param] > b[param]) {
+            return isAscending ? 1 : -1;
+        }
+        return 0;
+    }
+}
+
+/**
+ * Adjusting the structure medication_list_response
+ * 1. Add found/not found for sorting purposes (fix update name to update notfound,prescriber,discrepancy)
+ * 2. Add prescriber for sorting purposes
+ * 3. Add discrepancy in order to alter
+ */
 var MedEntryInfoList = React.createClass({
     getInitialState: function () {
         return {
             allMedications: [],
             id: 10000000,
             addHidden: false,
-            submitHidden: false,
             disable_submit: true,
             has_discrepancy: false,
             show_modal: false
         };
     },
-    updateName: function (id, name){
+    updateName: function (medid, field, val){
         var meds = this.state.allMedications;
-        for(var i = 0; i < meds.length; i++)
-            if(meds[i])
-                if(meds[i].id === id)
-                    meds[i].text = name;
+        var loc = meds.map(function (x) {
+            return x.id
+        }).indexOf(medid);
+
+        if(loc!== -1){
+            //update states
+            console.log('Id is found, updating '+ field + ' to ' + val);
+            var updated_med = meds[loc];
+            updated_med[field] = val;
+            meds[loc] = updated_med;
+        }
 
         this.setState({allMedications:meds});
     },
@@ -164,43 +191,18 @@ var MedEntryInfoList = React.createClass({
                     console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
                     //Unhides success message on successful submit
                     $('.success-message').removeAttr('hidden');
-                    $('.panel.panel-default').attr('hidden', 'true');
+                    $('.submitBtn').attr('hidden', 'true');
+                    $('.add_button').attr('hidden', 'true');
+
                 },
                 dataType: 'json',
                 contentType: 'application/json'
             });
         }
     },
-    orderMedAscending: function () {
+    sortMedList: function (key, isAscending){
         var allMeds = this.state.allMedications;
-
-        allMeds.sort(function (a, b) {
-            if (a.text > b.text) {
-                return 1;
-            }
-            if (a.text < b.text) {
-                return -1;
-            }
-
-            return 0;
-        });
-
-        this.setState({allMedications: allMeds});
-    },
-    orderMedDescending: function () {
-        var allMeds = this.state.allMedications;
-
-        allMeds.sort(function (a, b) {
-            if (a.text < b.text) {
-                return 1;
-            }
-            if (a.text > b.text) {
-                return -1;
-            }
-
-            return 0;
-        });
-
+        allMeds.sort(doSort(key,isAscending));
         this.setState({allMedications: allMeds});
     },
     componentDidMount: function () {
@@ -253,11 +255,16 @@ var MedEntryInfoList = React.createClass({
                             <thead>
                             <tr>
                                 <th className='col-xs-1'>
+                                    <div className="order pull-left">
+                                        <a style={{cursor:'pointer'}} className="asc" onClick={() => this.sortMedList('not_found',true)}>&uarr;</a>
+                                        <a style={{cursor:'pointer'}} className="desc" onClick={() => this.sortMedList('not_found',false)}>&darr;</a>
+                                    </div>
+                                    Found
                                 </th>
                                 <th className='col-xs-2'>
                                     <div className="order pull-left">
-                                        <a style={{cursor:'pointer'}} className="asc" onClick={this.orderMedAscending}>&uarr;</a>
-                                        <a style={{cursor:'pointer'}} className="desc" onClick={this.orderMedDescending}>&darr;</a>
+                                        <a style={{cursor:'pointer'}} className="asc" onClick={() => this.sortMedList('text',true)}>&uarr;</a>
+                                        <a style={{cursor:'pointer'}} className="desc" onClick={() => this.sortMedList('text',false)}>&darr;</a>
                                     </div>
                                     Medication Name
                                 </th>
@@ -271,6 +278,10 @@ var MedEntryInfoList = React.createClass({
                                     Patient Reports Adherence
                                 </th>
                                 <th className='col-xs-2'>
+                                    <div className="order pull-left">
+                                        <a style={{cursor:'pointer'}} className="asc" onClick={() => this.sortMedList('prescriber',true)}>&uarr;</a>
+                                        <a style={{cursor:'pointer'}} className="desc" onClick={() => this.sortMedList('prescriber',false)}>&darr;</a>
+                                    </div>
                                     Prescriber
                                 </th>
                                 <th className='col-xs-1'>
@@ -300,15 +311,15 @@ var MedEntryInfoList = React.createClass({
                     </div>
                 </div>
                 <div className='panel panel-default'>
-                    <div className='col-xs-2'>
-                        <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>add
-                            new
+                    <div className='col-xs-2  add_button'>
+                        <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>
+                            add new
                         </button>
                     </div>
-                    <div className='col-xs-7'></div>
-                    <div className='col-xs-1'>Please complete the form to submit</div>
-                    <div className='col-xs-2'>
-                        <button className='form-control submitBtn' disabled={this.state.disable_submit}
+                    <div className='col-xs-5'></div>
+                    <div className='col-xs-3'><span  hidden={!this.state.disable_submit}>Please complete the form to submit</span></div>
+                    <div className='col-xs-2 submitBtn'>
+                        <button className='form-control' disabled={this.state.disable_submit}
                                 onClick={this.handleChanges}>submit list
                         </button>
                     </div>
@@ -327,20 +338,16 @@ var MedEntryInfoList = React.createClass({
                         </Modal.Footer>
                     </Modal>
                 </div>
-                <div hidden className='success-message' name='submit_success'>Submitted Successfully!</div>
+                <div hidden className='success-message' name='submit_success'>
+                    <Alert bsStyle='success'>
+                        <strong>Submitted Successfully!</strong>
+                    </Alert>
+                </div>
             </form>
         );
     }
 });
 
-
-/**
- * indicated by this.state.is_fhir_med;
- * If medication is new:
- * 1) remove 'Enter Alternate Name'
- * 2) remove found/missing toggle
- * 3) Prevent any kind of tooltip stuff from happening
- */
 var MedEntryInfo = React.createClass({
     getInitialState: function () {
         return {
@@ -381,7 +388,7 @@ var MedEntryInfo = React.createClass({
         }
         if(event.target.name === 'name_sub'){
             value = value.toUpperCase();
-            this.props.updateName(this.state.med_id,event.target.value);
+            this.props.updateName(this.state.med_id,'text',event.target.value);
         }
         obj[event.target.name] = value;
         this.setState(obj);
@@ -419,6 +426,7 @@ var MedEntryInfo = React.createClass({
             click_alt: (event.target.value === 'false'),
             alt_hidden: true
         });
+        this.props.updateName(this.state.med_id,'not_found',event.target.value);
         //If medication is missing, remove row highlighting and indicate to parent this is ready to submit
         if ((event.target.value === 'true')) {
             this.removeRowDisc();
@@ -458,11 +466,16 @@ var MedEntryInfo = React.createClass({
 
         var obj = {};
         var value = (e.target.value === 'true');
+
         var stateName = e.target.name.split('--')[0];
         var that = this;
 
         obj[stateName] = value;
         this.setState(obj);
+
+        if(stateName === 'med_bool')
+            this.props.updateName(this.state.med_id,'prescriber',(this.state.med_bool) ? 'false' : 'true');
+
 
         if (that.state.compliance_bool) {
             setTimeout(function () {
