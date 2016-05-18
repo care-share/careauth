@@ -54,7 +54,7 @@ var ViewPage = React.createClass({
                     if (resType === 'Medication') {
                         var id = result.entry[i].resource.id;
                         var text = result.entry[i].resource.code.text;
-                        state[nextMed] = {id: id, text: text, completed: false, not_found: '', prescriber: 'true'};
+                        state[nextMed] = {id: id, text: text, completed: false, not_found: '', prescriber: 'true',med_discrepancy:false};
                         map[id] = nextMed++;
                     } else if (resType === 'MedicationOrder') {
                         medOrders.push(result.entry[i].resource);
@@ -134,8 +134,8 @@ var MedEntryInfoList = React.createClass({
             id: 10000000,
             addHidden: false,
             disable_submit: true,
-            has_discrepancy: false,
-            show_modal: false
+            show_modal: false,
+            disc_meds: []
         };
     },
     updateName: function (medid, field, val){
@@ -169,7 +169,14 @@ var MedEntryInfoList = React.createClass({
     handleChanges: function (e) {
         var token = this.props.token;
         console.log('Should put data into mongoDB');
-        if(this.state.has_discrepancy){
+        //Check discrepancies here
+        var state = this.state.allMedications;
+        var hasDisc = false;
+        for(var x = 0; x < state.length; x++)
+            if(state[x].med_discrepancy)
+                hasDisc = true;
+
+        if(hasDisc){
             this.setState({show_modal:true});
         }
         else {
@@ -208,9 +215,6 @@ var MedEntryInfoList = React.createClass({
     componentDidMount: function () {
         this.setState({allMedications: this.props.fhirMedications});
     },
-    handleDiscrepancy: function (status) {
-        this.setState({has_discrepancy: status});
-    },
     handleComplete: function (medid, status) {
         var state = this.state.allMedications;
         var loc = state.map(function (x) {
@@ -237,7 +241,7 @@ var MedEntryInfoList = React.createClass({
     },
     continue:function(){
         // async setState because React handles click events this way... handleChanges is the callback
-        this.setState({show_modal: false, has_discrepancy: false}, this.handleChanges);
+        this.setState({show_modal: false}, this.handleChanges);
         //this.handleChanges();
     },
     render: function () {
@@ -302,7 +306,6 @@ var MedEntryInfoList = React.createClass({
                                                      orderId={medication.orderId}
                                                      medOrder={medication.medorder}
                                                      handleComplete={self.handleComplete}
-                                                     handleDiscrepancy={self.handleDiscrepancy}
                                                      updateName={self.updateName}
                                 />; // display each medication
                             })}
@@ -331,6 +334,10 @@ var MedEntryInfoList = React.createClass({
                         </Modal.Header>
                         <Modal.Body>
                             <strong>There is an unaddressed discrepancy. Click cancel to address it, or continue to submit anyway</strong>
+                            {this.state.allMedications.map(function (medication) {
+                                if(medication.med_discrepancy)
+                                    return <div>{medication.text}</div>
+                            })}
                         </Modal.Body>
                         <Modal.Footer>
                             <button onClick={this.close}>Cancel</button>
@@ -454,11 +461,11 @@ var MedEntryInfo = React.createClass({
         }
     },
     addRowDisc: function() {
-        this.props.handleDiscrepancy(true);
+        this.props.updateName(this.state.med_id,'med_discrepancy',true);
         $('#' + this.state.med_id).addClass('med_row');
     },
     removeRowDisc: function() {
-        this.props.handleDiscrepancy(false);
+        this.props.updateName(this.state.med_id,'med_discrepancy',false);
         $('#' + this.state.med_id).removeClass('med_row');
     },
     handleOnChange: function (e) {
