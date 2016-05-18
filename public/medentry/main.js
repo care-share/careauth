@@ -44,17 +44,17 @@ var ViewPage = React.createClass({
             type: 'GET',
             headers: {'X-Auth-Token': token},
             success: function (result) {
-                //console.log(JSON.stringify(result.entry[0]));
                 var state = this.state.medication_list_response; // array
                 var map = {};
                 var medOrders = [];
+                var nextMed = 0;
                 for (var i = 0; i < result.entry.length; i++) {
                     var resType = result.entry[i].resource.resourceType;
                     if (resType === 'Medication') {
                         var id = result.entry[i].resource.id;
                         var text = result.entry[i].resource.code.text;
-                        state[i] = {id: id, text: text, completed: false};
-                        map[id] = i;
+                        state[nextMed] = {id: id, text: text, completed: false};
+                        map[id] = nextMed++;
                     } else if (resType === 'MedicationOrder') {
                         medOrders.push(result.entry[i].resource);
                     }
@@ -85,7 +85,7 @@ var ViewPage = React.createClass({
                     }
                     return 0;
                 });
-                
+
                 this.setState(state);
             }.bind(this),
             error: function (xhr, status, err) {
@@ -119,7 +119,6 @@ var MedEntryInfoList = React.createClass({
         };
     },
     updateName: function (id, name){
-        console.log('update name is called');
         var meds = this.state.allMedications;
         for(var i = 0; i < meds.length; i++)
             if(meds[i])
@@ -144,9 +143,6 @@ var MedEntryInfoList = React.createClass({
         var token = this.props.token;
         console.log('Should put data into mongoDB');
         if(this.state.has_discrepancy){
-            //Popup stating that there is an unaddressed discrepancy somewhere
-            //Popup will be a bootstrap modal
-            console.log('There is discrepancy');
             this.setState({show_modal:true});
         }
         else {
@@ -215,18 +211,15 @@ var MedEntryInfoList = React.createClass({
     },
     handleComplete: function (medid, status) {
         var state = this.state.allMedications;
-        console.log('Searching for medid of ' + medid);
         var loc = state.map(function (x) {
             return x.id
         }).indexOf(medid);
-        console.log(loc);
         if (loc !== -1) {
             state[loc].completed = status;
         }
         this.setState({allMedications: state});
         for (var it = 0; it < state.length; it++) {
             if (state[it] !== undefined) {
-                console.log(state[it]);
                 if (state[it].completed === false) {
                     this.setState({disable_submit: true});
                     break;
@@ -701,9 +694,6 @@ var MedEntryInfo = React.createClass({
     flipDisc: function () {
         this.setState({show_tooltip: !this.state.show_tooltip});
     },
-    offDisc: function (){
-        this.setState({show_tooltip: false});
-    },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
         var self = this,
@@ -856,7 +846,7 @@ var MedEntryInfo = React.createClass({
                 <td className='col-xs-2' hidden={this.state.not_found === true}>
                     <div>
                     <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
-                              rows="1" onChange={this.handleChange} onFocus={this.offDisc}
+                              rows="1" onChange={this.handleChange}
                               style={{background: 'inherit'}}/>
                     </div>
                 </td>
