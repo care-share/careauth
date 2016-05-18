@@ -75,6 +75,17 @@ var ViewPage = React.createClass({
                     }
                 }
 
+                // Loops through and sorts final array
+                state.sort(function (a, b) {
+                    if (a.text > b.text) {
+                        return 1;
+                    }
+                    if (a.text < b.text) {
+                        return -1;
+                    }
+                    return 0;
+                });
+                
                 this.setState(state);
             }.bind(this),
             error: function (xhr, status, err) {
@@ -766,7 +777,6 @@ var MedEntryInfo = React.createClass({
                                       onValueChange={function(freq){
                                          self.setState({freq:freq.label});
                                       }}
-
                                       createFromSearch={function(options, search){
                                         if (search.length == 0 || (options.map(function(option){
                                             return option.label;
@@ -775,7 +785,6 @@ var MedEntryInfo = React.createClass({
                                         else
                                             return {label: search, value: search};
                                       }}
-
                                       renderOption={function(item){
                                         return <div>
                                             <span style={{marginRight: 4, verticalAlign: 'middle', width: 24, fontWeight: 'bold'}}>{item.label}</span>
