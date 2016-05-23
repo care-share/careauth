@@ -328,25 +328,37 @@ var MedEntryInfoList = React.createClass({
                         </Modal.Header>
                         <Modal.Body>
                             <strong>There is an unaddressed discrepancy. Click cancel to address it, or continue to submit anyway</strong>
-                            {this.state.allMedications.map(function (medication) {
-                                //When textarea updates, need to send that data to the child
-                                var meds = self.state.allMedications;
-                                var loc = meds.map(function (x) {
-                                    return x.id
-                                }).indexOf(medication.id);
+                            <br />
+                            <table>
+                                    {this.state.allMedications.map(function (medication) {
+                                    //When textarea updates, need to send that data to the child
+                                        var disc_status = medication.med_discrepancy;
+                                        var meds = self.state.allMedications;
+                                         var loc = meds.map(function (x) {
+                                            return x.id
+                                         }).indexOf(medication.id);
 
-                                function update(e){
-                                    var obj = self.state.allMedications;
-                                    obj[loc].note = e.target.value;
-                                    self.setState({allMedications: obj});
-                                }
+                                    function update(e){
+                                        var obj = self.state.allMedications;
+                                        obj[loc].note = e.target.value;
+                                        self.setState({allMedications: obj});
+                                    }
 
-                                if(medication.med_discrepancy)
-                                    return <div>{medication.text +': '}
-                                        <textarea type='text' name='note' value={self.state.allMedications[loc].note} placeholder='Address Discrepancy'
-                                                  rows='1' onChange={update} onBlur={() => self.refs[medication.id].updateNote(self.state.allMedications[loc].note)}/>
-                                        </div>
-                            })}
+                                    if(disc_status)
+                                        return <tbody>
+                                            <tr><td><strong>{medication.text +': '}</strong></td></tr>
+                                            <tr>
+                                                <td><span>{disc_status}</span></td>
+                                                <td> <textarea type='text' name='note' placeholder='Address Discrepancy'
+                                                               value={self.state.allMedications[loc].note}
+                                                               rows='1' onChange={update}
+                                                               onBlur={() => self.refs[medication.id].updateNote(
+                                                               self.state.allMedications[loc].note)}/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    })}
+                            </table>
                         </Modal.Body>
                         <Modal.Footer>
                             <button onClick={this.close}>Cancel</button>
@@ -367,7 +379,6 @@ var MedEntryInfoList = React.createClass({
 /**
  * MedEntryInfo
  * Displays each medication via props passed from MedEntryInfoList
- *
  */
 var MedEntryInfo = React.createClass({
     //Defines and initializes all states for this medication
@@ -380,7 +391,7 @@ var MedEntryInfo = React.createClass({
             dose                : '',       // User entered dosage via dosage input
             ehr_dose            : '',       // Dosage found in database when Transcript API is called
             freq                : '',       // User entered frequency via frequency Type-a-head form
-            ehr_freq            : '',       // Frequency found in database when Trascript API is called
+            ehr_freq            : '',       // Frequency found in database when Transcript API is called
             compliance_bool     : true,     // Boolean indicating if the medication adheres to patient reports; manipulated via patient reports toggle
             noncompliance_note  : '',       // Textarea used to address noncompliance by user
             med_bool            : true,     // Boolean indicating if the medication is prescribed by VA/other; manipulated via Prescriber toggle
@@ -396,7 +407,8 @@ var MedEntryInfo = React.createClass({
             med_order           : {},       // Object passed via props from MedEntryInfoList; used when calling Transcript API
             click_alt           : true,     // Boolean used to hide alternate name link
             row_discrepancy     : false,    // Boolean indicating whether or not this medication has a un-addressed discrepancy,
-            show_tooltip        : false     // Boolean used to set the visibility of Tooltip
+            show_tooltip        : false,    // Boolean used to set the visibility of Tooltip
+            tooltip_message     : ''        // String used by DiscTooltip to display discrepancies
         };
     },
 
@@ -452,6 +464,7 @@ var MedEntryInfo = React.createClass({
             alt_hidden: true
         });
         this.props.updateName(this.state.med_id,'not_found',event.target.value);
+
         //If medication is missing, remove row highlighting and indicate to parent this is ready to submit
         if ((event.target.value === 'true')) {
             this.removeRowDisc();
@@ -479,7 +492,16 @@ var MedEntryInfo = React.createClass({
         }
     },
     addRowDisc: function() {
-        this.props.updateName(this.state.med_id,'med_discrepancy',true);
+        var toolString = '';
+        if(this.state.dose_discrepancy){
+            toolString += ('Prescriber dose is: ' + this.state.ehr_dose + '\n');
+        }
+        if(this.state.freq_discrepancy){
+            toolString += ('Prescriber freq is: ' + this.state.ehr_freq);
+        }
+        this.setState({tooltip_message: toolString});
+
+        this.props.updateName(this.state.med_id,'med_discrepancy',toolString);
         $('#' + this.state.med_id).addClass('med_row');
     },
     removeRowDisc: function() {
@@ -748,10 +770,8 @@ var MedEntryInfo = React.createClass({
         var discTooltip = (<Tooltip id={this.state.med_id}>
             <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}}
                onClick={this.flipDisc}>x</a>
-            <br/>
-            <strong hidden={!this.state.dose_discrepancy}>Prescriber dosage: {this.state.ehr_dose}</strong>
-            <br hidden={!this.state.dose_discrepancy} />
-            <strong hidden={!this.state.row_discrepancy}>Prescriber frequency: {this.state.ehr_freq}</strong>
+            <br />
+            <strong>{this.state.tooltip_message}</strong>
         </Tooltip>);
 
         return (
