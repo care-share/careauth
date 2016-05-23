@@ -392,7 +392,7 @@ var MedEntryInfo = React.createClass({
             alt_hidden          : true,     // Boolean used to hide alternate name form
             dose_discrepancy    : false,    // Boolean used to indicate if there is a discrepancy between dose and ehr_dose on Transcript API
             freq_discrepancy    : false,    // Boolean used to indicate if there is a discrepancy between freq and ehr_freq on Transcript API
-            hide_load            : true,     // Boolean used to set the visibility of loading wheel
+            hide_load           : true,     // Boolean used to set the visibility of loading wheel
             med_order           : {},       // Object passed via props from MedEntryInfoList; used when calling Transcript API
             click_alt           : true,     // Boolean used to hide alternate name link
             row_discrepancy     : false,    // Boolean indicating whether or not this medication has a un-addressed discrepancy,
@@ -778,7 +778,7 @@ var MedEntryInfo = React.createClass({
                         <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
                                onChange={this.handleChange}/>
                         <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick}
-                           hidden={!this.state.click_alt || !this.state.is_fhir_id}>EnterAlternate Name</a>
+                           hidden={!this.state.click_alt || !this.state.is_fhir_med}>Enter Alternate Name</a>
                         <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub}
                                name='name_sub'
                                onChange={this.handleChange} placeholder={this.state.placeholder}
