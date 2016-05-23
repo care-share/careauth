@@ -173,9 +173,9 @@ var MedEntryInfoList = React.createClass({
             this.setState({show_modal:true});
         }
         else {
-            var frm = $("#myform").serializeArray();
+            var frm = $('#myform').serializeArray();
             for (var i = frm.length - 1; i >= 0; i--) {
-                frm[i].name = frm[i].name.split("--")[0]
+                frm[i].name = frm[i].name.split('--')[0]
             }
             var dat = {
                 patient_id: getUrlParameter('patient_id'),
@@ -248,20 +248,20 @@ var MedEntryInfoList = React.createClass({
                                 This list will be reconciled with VA provider records,
                                 and you may be contacted for clarification later.</h2>
                         </div>
-                        <table className="table table-hover">
+                        <table className='table table-hover'>
                             <thead>
                             <tr>
                                 <th className='col-xs-1'>
-                                    <div className="order pull-left">
-                                        <a style={{cursor:'pointer'}} className="asc" onClick={() => this.sortMedList('not_found',true)}>&uarr;</a>
-                                        <a style={{cursor:'pointer'}} className="desc" onClick={() => this.sortMedList('not_found',false)}>&darr;</a>
+                                    <div className='order pull-left'>
+                                        <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('not_found',true)}>&uarr;</a>
+                                        <a style={{cursor:'pointer'}} className='desc' onClick={() => this.sortMedList('not_found',false)}>&darr;</a>
                                     </div>
                                     Found
                                 </th>
                                 <th className='col-xs-2'>
-                                    <div className="order pull-left">
-                                        <a style={{cursor:'pointer'}} className="asc" onClick={() => this.sortMedList('text',true)}>&uarr;</a>
-                                        <a style={{cursor:'pointer'}} className="desc" onClick={() => this.sortMedList('text',false)}>&darr;</a>
+                                    <div className='order pull-left'>
+                                        <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('text',true)}>&uarr;</a>
+                                        <a style={{cursor:'pointer'}} className='desc' onClick={() => this.sortMedList('text',false)}>&darr;</a>
                                     </div>
                                     Medication Name
                                 </th>
@@ -275,9 +275,9 @@ var MedEntryInfoList = React.createClass({
                                     Patient Reports Adherence
                                 </th>
                                 <th className='col-xs-2'>
-                                    <div className="order pull-left">
-                                        <a style={{cursor:'pointer'}} className="asc" onClick={() => this.sortMedList('prescriber',true)}>&uarr;</a>
-                                        <a style={{cursor:'pointer'}} className="desc" onClick={() => this.sortMedList('prescriber',false)}>&darr;</a>
+                                    <div className='order pull-left'>
+                                        <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('prescriber',true)}>&uarr;</a>
+                                        <a style={{cursor:'pointer'}} className='desc' onClick={() => this.sortMedList('prescriber',false)}>&darr;</a>
                                     </div>
                                     Prescriber
                                 </th>
@@ -417,14 +417,12 @@ var MedEntryInfo = React.createClass({
         obj[event.target.name] = value;
         this.setState(obj);
 
-        if(event.target.name === 'note'){
-            //if value === '' then check if discrepancy. If so, indicate unaddressed discrepancy
-            if(this.state.row_discrepancy) {
-                if (value === '')
-                    this.addRowDisc();
-                 else
-                    this.removeRowDisc();
-            }
+        //If changing state of note AND there is a discrepancy, remove row disc
+        if(event.target.name === 'note' && this.state.row_discrepancy) {
+            if (value === '')
+                this.addRowDisc();
+            else
+                this.removeRowDisc();
         }
     },
 
@@ -432,9 +430,9 @@ var MedEntryInfo = React.createClass({
     updateNote: function (myNote) {
         if(myNote === '')
             this.addRowDisc();
-        else {
+        else
             this.removeRowDisc();
-        }
+
         this.setState({note: myNote});
     },
     /**
@@ -562,7 +560,7 @@ var MedEntryInfo = React.createClass({
         var encodedPattern = frequency + ' ' + frequencyMax + ' ' + period + ' ' + periodMax + ' ' + periodUnits;
         console.log(encodedPattern);
 
-        // FIXME: don't use a "truthy" comparison (use ===)
+        // FIXME: don't use a 'truthy' comparison (use ===)
         if (!frequency || (frequency == 1 && !frequencyMax)) {
             if (period) {
                 // frequency is 1 or not set, but we have a period.
@@ -585,7 +583,7 @@ var MedEntryInfo = React.createClass({
                 }
                 encodedPattern = 'Q' + encodedPeriod;
             }
-            // FIXME: don't use a "truthy" comparison (use ===)
+            // FIXME: don't use a 'truthy' comparison (use ===)
         } else if (!period || (period == 1 && !periodMax)) {
             if (frequency) {
                 // period is 1 or not set, but we have a frequency.
@@ -759,18 +757,18 @@ var MedEntryInfo = React.createClass({
         return (
             <tr id={this.state.med_id} style={{position: 'relative'}}>
                 <td className='col-xs-1'>
-                    <div className="switch switch-blue" hidden={!this.state.is_fhir_med}>
+                    <div className='switch switch-blue' hidden={!this.state.is_fhir_med}>
                         <input id={this.state.med_id + 'found'} className='switch-input' type='radio'
                                name={'not_found--' + this.state.med_id} value='false'
                                checked={this.state.not_found === false} hidden={!this.state.is_fhir_med}
                                onChange={this.handleNotFoundChange}/>
                         <label htmlFor={this.state.med_id + 'found'}
-                               className="switch-label switch-label-off">found</label>
+                               className='switch-label switch-label-off'>found</label>
                         <input id={this.state.med_id + 'not_found'} className='switch-input' type='radio'
                                name={'not_found--' + this.state.med_id} value='true'
                                checked={this.state.not_found === true} hidden={!this.state.is_fhir_med}
                                onChange={this.handleNotFoundChange}/>
-                        <label htmlFor={this.state.med_id + 'not_found'} className="switch-label switch-label-on">missing</label>
+                        <label htmlFor={this.state.med_id + 'not_found'} className='switch-label switch-label-on'>missing</label>
                         <span className={(this.state.not_found == 'unknown') ? 'hidden' : 'switch-selection'}> </span>
                     </div>
                 </td>
@@ -792,7 +790,7 @@ var MedEntryInfo = React.createClass({
                 <td className='col-xs-2'>
                     <div hidden={this.state.not_found === true}>
                         <input
-                            className={'col-xs-12 removePadding ' + ((this.state.dose_discrepancy == false) ? "valid" : "invalid")}
+                            className={'col-xs-12 removePadding ' + ((this.state.dose_discrepancy == false) ? 'valid' : 'invalid')}
                             type='text' value={this.state.dose} name='dose'
                             onChange={this.handleChange} onBlur={this.doseFreqValidation}
                             style={{background: 'inherit'}}/>
@@ -826,47 +824,47 @@ var MedEntryInfo = React.createClass({
                 </td>
                 <td className='col-xs-2'>
                     <div hidden={this.state.not_found === true}>
-                        <div className="switch switch-blue">
+                        <div className='switch switch-blue'>
                             <input id={this.state.med_id + 'yes'} className='switch-input' type='radio'
                                    name={'compliance_bool--' + this.state.med_id} value='true'
                                    checked={this.state.compliance_bool === true} hidden={!this.state.is_fhir_med}
                                    onChange={this.handleOnChange}/>
                             <label htmlFor={this.state.med_id + 'yes'}
-                                   className="switch-label switch-label-off">yes</label>
+                                   className='switch-label switch-label-off'>yes</label>
                             <input id={this.state.med_id + 'no'} className='switch-input' type='radio'
                                    name={'compliance_bool--' + this.state.med_id} value='false'
                                    checked={this.state.compliance_bool === false} hidden={!this.state.is_fhir_med}
                                    onChange={this.handleOnChange}/>
                             <label htmlFor={this.state.med_id + 'no'}
-                                   className="switch-label switch-label-on">no</label>
+                                   className='switch-label switch-label-on'>no</label>
                             <span className='switch-selection'> </span>
                         </div>
                     <textarea id={'complianceNote' + this.state.med_id} className='col-xs-12 removePadding' type='text'
                               value={this.state.noncompliance_note} name='noncompliance_note'
-                              rows="1" onChange={this.handleChange} placeholder='please explain'
+                              rows='1' onChange={this.handleChange} placeholder='please explain'
                               hidden={this.state.compliance_bool}></textarea>
                     </div>
                 </td>
                 <td className='col-xs-2' hidden={this.state.not_found === true}>
                     <div hidden={this.state.not_found === true}>
-                        <div className="switch switch-blue">
+                        <div className='switch switch-blue'>
                             <input id={this.state.med_id + 'VA'} className='switch-input' type='radio'
                                    name={'med_bool--' + this.state.med_id} value='true'
                                    checked={this.state.med_bool === true} hidden={!this.state.is_fhir_med}
                                    onChange={this.handleOnChange}/>
                             <label htmlFor={this.state.med_id + 'VA'}
-                                   className="switch-label switch-label-off">VA</label>
+                                   className='switch-label switch-label-off'>VA</label>
                             <input id={this.state.med_id + 'other'} className='switch-input' type='radio'
                                    name={'med_bool--' + this.state.med_id} value='false'
                                    checked={this.state.med_bool === false} hidden={!this.state.is_fhir_med}
                                    onChange={this.handleOnChange}/>
                             <label htmlFor={this.state.med_id + 'other'}
-                                   className="switch-label switch-label-on">other</label>
+                                   className='switch-label switch-label-on'>other</label>
                             <span className='switch-selection'> </span>
                         </div>
                     <textarea id={'prescriberNote' + this.state.med_id} className='col-xs-12 removePadding' type='text'
                               value={this.state.prescriber_note} name='prescriber_note'
-                              rows="1" onChange={this.handleChange} placeholder='please enter prescriber'
+                              rows='1' onChange={this.handleChange} placeholder='please enter prescriber'
                               hidden={this.state.med_bool}></textarea>
                     </div>
                 </td>
@@ -886,7 +884,7 @@ var MedEntryInfo = React.createClass({
                 <td className='col-xs-2' hidden={this.state.not_found === true}>
                     <div>
                     <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
-                              rows="1" onChange={this.handleChange}
+                              rows='1' onChange={this.handleChange}
                               style={{background: 'inherit'}}/>
                     </div>
                 </td>
