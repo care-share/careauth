@@ -399,18 +399,21 @@ var MedEntryInfo = React.createClass({
             show_tooltip        : false     // Boolean used to set the visibility of Tooltip
         };
     },
+
+    //Used to change the state from inputs and toggles within Medication row
     handleChange: function (event) {
         this.setState({not_found: false});
 
         var obj = {};
         var value = event.target.value;
-        if (event.target.type === 'checkbox') {
+        if (event.target.type === 'checkbox')
             value = (value === 'false');
-        }
-        if(event.target.name === 'name_sub'){
+
+        if(event.target.name === 'name_sub') {
             value = value.toUpperCase();
             this.props.updateName(this.state.med_id,'text',event.target.value);
         }
+
         obj[event.target.name] = value;
         this.setState(obj);
 
@@ -424,6 +427,8 @@ var MedEntryInfo = React.createClass({
             }
         }
     },
+
+    //Used to update note from Modal once MedEntryInfoList gets submitted
     updateNote: function (myNote) {
         if(myNote === '')
             this.addRowDisc();
@@ -432,6 +437,8 @@ var MedEntryInfo = React.createClass({
         }
         this.setState({note: myNote});
     },
+
+
     handleMedChange: function (event) {
         if (this.state.is_fhir_med === false) { // if not a fhir medication name field then can edit and update state
             var obj = {};
