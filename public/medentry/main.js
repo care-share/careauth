@@ -437,15 +437,6 @@ var MedEntryInfo = React.createClass({
         }
         this.setState({note: myNote});
     },
-
-
-    handleMedChange: function (event) {
-        if (this.state.is_fhir_med === false) { // if not a fhir medication name field then can edit and update state
-            var obj = {};
-            obj[event.target.name] = event.target.value;
-            this.setState(obj);
-        }
-    },
     /**
      * handleNotFoundChange
      * indicates whether or not this medication is present within the home
@@ -787,7 +778,7 @@ var MedEntryInfo = React.createClass({
                     <span className='original-med-name medNameText'>{this.state.med_name}</span>
                     <div>
                         <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
-                               onChange={this.handleMedChange}/>
+                               onChange={this.handleChange}/>
                         <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick}
                            hidden={!this.state.click_alt || !this.state.is_fhir_id}>EnterAlternate Name</a>
                         <input className='col-xs-12 alternativeName' type='text' value={this.state.name_sub}
