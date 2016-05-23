@@ -25,7 +25,4 @@ RUN bower install --allow-root
 COPY . /usr/src/app
 
 # binary to execute
-ENTRYPOINT ["/usr/local/bin/npm"]
-
-# default command: start the server
-CMD ["start"]
+CMD ["/usr/src/app/start-server.sh"]
