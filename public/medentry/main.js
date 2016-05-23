@@ -408,7 +408,8 @@ var MedEntryInfo = React.createClass({
             click_alt           : true,     // Boolean used to hide alternate name link
             row_discrepancy     : false,    // Boolean indicating whether or not this medication has a un-addressed discrepancy,
             show_tooltip        : false,    // Boolean used to set the visibility of Tooltip
-            tooltip_message     : ''        // String used by DiscTooltip to display discrepancies
+            tooltip_message     : '',       // String used by DiscTooltip to display discrepancies
+            dropdown_direction  : 1         // Int used by Frequency Dropdown to determine direction to display dropdown
         };
     },
 
@@ -822,6 +823,7 @@ var MedEntryInfo = React.createClass({
                         <SimpleSelect options={options} placeholder='Freq' className='col-xs-12 removePadding'
                                       style={{width: '100% !important'}}
                                       onBlur={this.doseFreqValidation}
+                                      ref = 'select'
                                       onValueChange={function(freq){
                                          self.setState({freq:freq.label});
                                       }}
