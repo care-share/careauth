@@ -122,14 +122,6 @@ function doSort (param, isAscending) {
     }
 }
 
-/**
- * Discrepancy stuff:
- * 1. Modal loads if a discrepancy is detected
- * 2. Modal displays names of medications where discrepancies exist
- * 3. Next to names, textarea where user can enter notes to address discrepancy
- *      A. Needs its own 'note' state
- *      B. Will pass this to medication child in a prop. How?
- */
 var MedEntryInfoList = React.createClass({
     getInitialState: function () {
         return {
@@ -372,34 +364,39 @@ var MedEntryInfoList = React.createClass({
     }
 });
 
+/**
+ * MedEntryInfo
+ * Displays each medication via props passed from MedEntryInfoList
+ *
+ */
 var MedEntryInfo = React.createClass({
+    //Defines and initializes all states for this medication
     getInitialState: function () {
         return {
-            med_id: '', // FHIR ID of this Medication (if applicable)
-            order_id: '', // FHIR ID of the MedicationOrder that references this Medication (if applicable)
-            med_name: '',
-            name_sub: '',
-            dose: '',
-            ehr_dose: '',
-            freq: '',
-            ehr_freq: '',
-            compliance_bool: true,
-            noncompliance_note: '',
-            med_bool: true,
-            prescriber_note: '',
-            note: '',
-            is_fhir_med: false,
-            placeholder: '',
-            not_found: 'unknown',
-            freq_array: [],
-            alt_hidden: true,
-            doseDiscrepancy: false,
-            freqDiscrepancy: false,
-            hideload: true,
-            med_order: {},
-            click_alt: true,
-            row_discrepancy: false, //Indicates whether or not this medication has a un-addressed discrepancy,
-            show_tooltip: false //displays tooltip
+            med_id              : '',       // FHIR ID of this Medication (if applicable)
+            order_id            : '',       // FHIR ID of the MedicationOrder that references this Medication (if applicable)
+            med_name            : '',       // Name of Medication passed from MedEntryInfoList
+            name_sub            : '',       // User entered name via alternate name form OR if User Medication
+            dose                : '',       // User entered dosage via dosage input
+            ehr_dose            : '',       // Dosage found in database when Transcript API is called
+            freq                : '',       // User entered frequency via frequency Type-a-head form
+            ehr_freq            : '',       // Frequency found in database when Trascript API is called
+            compliance_bool     : true,     // Boolean indicating if the medication adheres to patient reports; manipulated via patient reports toggle
+            noncompliance_note  : '',       // Textarea used to address noncompliance by user
+            med_bool            : true,     // Boolean indicating if the medication is prescribed by VA/other; manipulated via Prescriber toggle
+            prescriber_note     : '',       // Textarea used to address who prescribed medication
+            note                : '',       // Textarea used to address discrepancies found via Transcript API
+            is_fhir_med         : false,    // Boolean used when a user enters a new medication
+            placeholder         : '',       // String used when user enters new medication to set placeholder text
+            not_found           : 'unknown',// Boolean used when a user sets the medication to missing; manipulated via Found toggle
+            alt_hidden          : true,     // Boolean used to hide alternate name form
+            dose_discrepancy    : false,    // Boolean used to indicate if there is a discrepancy between dose and ehr_dose on Transcript API
+            freq_discrepancy    : false,    // Boolean used to indicate if there is a discrepancy between freq and ehr_freq on Transcript API
+            hide_load            : true,     // Boolean used to set the visibility of loading wheel
+            med_order           : {},       // Object passed via props from MedEntryInfoList; used when calling Transcript API
+            click_alt           : true,     // Boolean used to hide alternate name link
+            row_discrepancy     : false,    // Boolean indicating whether or not this medication has a un-addressed discrepancy,
+            show_tooltip        : false     // Boolean used to set the visibility of Tooltip
         };
     },
     handleChange: function (event) {
@@ -452,8 +449,8 @@ var MedEntryInfo = React.createClass({
         var inv = !this.state.click_alt;
         this.setState({
             not_found: (event.target.value === 'true'),
-            doseDiscrepancy: false,
-            freqDiscrepancy: false,
+            dose_discrepancy: false,
+            freq_discrepancy: false,
             show_tooltip: false,
             click_alt: (event.target.value === 'false'),
             alt_hidden: true
@@ -636,12 +633,12 @@ var MedEntryInfo = React.createClass({
         var medpair = {'medentry': medentry, 'medorder': this.state.med_order};
 
         // reset states
-        this.setState({doseDiscrepancy: false, freqDiscrepancy: false, hideload: false, show_tooltip: false});
+        this.setState({dose_discrepancy: false, freq_discrepancy: false, hide_load: false, show_tooltip: false});
 
         var self = this;
 
         function finish() {
-            self.setState({hideload: true});
+            self.setState({hide_load: true});
         }
 
         $.ajax({
@@ -660,7 +657,7 @@ var MedEntryInfo = React.createClass({
                     //TODO: See if dosage got fixed, currently doesn't check unless using a specific format (problem with Transcript API)
                     if (result.data.discrepancy.dose) {
                         this.setState({
-                                doseDiscrepancy: result.data.discrepancy.dose,
+                                dose_discrepancy: result.data.discrepancy.dose,
                                 ehr_dose: result.data.ehrMed.dosageInstruction[0].doseQuantity.value
                                 + ' ' + result.data.ehrMed.dosageInstruction[0].doseQuantity.unit
                             },
@@ -672,7 +669,7 @@ var MedEntryInfo = React.createClass({
                     //If undefined, set states to none
                     if (result.data.discrepancy.dose == undefined) {
                         this.setState({
-                            doseDiscrepancy: false,
+                            dose_discrepancy: false,
                             ehr_dose: ''
                         });
                     }
@@ -681,17 +678,17 @@ var MedEntryInfo = React.createClass({
                     if (result.data.discrepancy.freq) {
                         var ehrfreq = self.displayCode(result.data.ehrMed.dosageInstruction[0].timing.repeat);
                         console.log(ehrfreq);
-                        this.setState({freqDiscrepancy: result.data.discrepancy.freq, ehr_freq: ehrfreq});
+                        this.setState({freq_discrepancy: result.data.discrepancy.freq, ehr_freq: ehrfreq});
                     }
 
                     //If undefined, set states to none
                     if (result.data.discrepancy.freq == undefined) {
-                        this.setState({freqDiscrepancy: false, ehr_freq: ''});
+                        this.setState({freq_discrepancy: false, ehr_freq: ''});
                     }
 
                     //When done, check both states. if either one is true, set row discrepancy to true
                     //If false, set row discrepancy to false
-                    if (this.state.freqDiscrepancy || this.state.doseDiscrepancy){
+                    if (this.state.freq_discrepancy || this.state.dose_discrepancy){
                         //Has to be structured this way otherwise tooltip cannot find button
                         this.setState({row_discrepancy: true},this.addRowDisc);
                         this.setState({show_tooltip: true});
@@ -756,8 +753,8 @@ var MedEntryInfo = React.createClass({
             <a style={{position: 'absolute',top: '0px',right: '16px',fontSize:'large',cursor:'pointer'}}
                onClick={this.flipDisc}>x</a>
             <br/>
-            <strong hidden={!this.state.doseDiscrepancy}>Prescriber dosage: {this.state.ehr_dose}</strong>
-            <br hidden={!this.state.doseDiscrepancy} />
+            <strong hidden={!this.state.dose_discrepancy}>Prescriber dosage: {this.state.ehr_dose}</strong>
+            <br hidden={!this.state.dose_discrepancy} />
             <strong hidden={!this.state.row_discrepancy}>Prescriber frequency: {this.state.ehr_freq}</strong>
         </Tooltip>);
 
@@ -797,11 +794,11 @@ var MedEntryInfo = React.createClass({
                 <td className='col-xs-2'>
                     <div hidden={this.state.not_found === true}>
                         <input
-                            className={'col-xs-12 removePadding ' + ((this.state.doseDiscrepancy == false) ? "valid" : "invalid")}
+                            className={'col-xs-12 removePadding ' + ((this.state.dose_discrepancy == false) ? "valid" : "invalid")}
                             type='text' value={this.state.dose} name='dose'
                             onChange={this.handleChange} onBlur={this.doseFreqValidation}
                             style={{background: 'inherit'}}/>
-                        <div className='loader' hidden={this.state.hideload}><img src='../images/spinner.gif'/></div>
+                        <div className='loader' hidden={this.state.hide_load}><img src='../images/spinner.gif'/></div>
                     </div>
                 </td>
                 <td className='col-xs-1'>
@@ -902,10 +899,6 @@ var MedEntryInfo = React.createClass({
 
     }
 });
-/**
- *  <span ref='tipTarget' id={'disc_span_'+this.state.med_id} style={{color: '#ffcc00',background: 'black',padding: '3px'}}
- className='glyphicon glyphicon-warning-sign'></span>
- */
 
 /**
  * Renders the entire page
