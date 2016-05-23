@@ -54,7 +54,8 @@ var ViewPage = React.createClass({
                     if (resType === 'Medication') {
                         var id = result.entry[i].resource.id;
                         var text = result.entry[i].resource.code.text;
-                        state[nextMed] = {id: id, text: text, completed: false, not_found: '', prescriber: 'true',med_discrepancy:false};
+                        state[nextMed] =
+                        {id: id, text: text, completed: false, not_found: '', prescriber: 'true',med_discrepancy:false,note: ''};
                         map[id] = nextMed++;
                     } else if (resType === 'MedicationOrder') {
                         medOrders.push(result.entry[i].resource);
@@ -122,10 +123,12 @@ function doSort (param, isAscending) {
 }
 
 /**
- * Adjusting the structure medication_list_response
- * 1. Add found/not found for sorting purposes (fix update name to update notfound,prescriber,discrepancy)
- * 2. Add prescriber for sorting purposes
- * 3. Add discrepancy in order to alter
+ * Discrepancy stuff:
+ * 1. Modal loads if a discrepancy is detected
+ * 2. Modal displays names of medications where discrepancies exist
+ * 3. Next to names, textarea where user can enter notes to address discrepancy
+ *      A. Needs its own 'note' state
+ *      B. Will pass this to medication child in a prop. How?
  */
 var MedEntryInfoList = React.createClass({
     getInitialState: function () {
@@ -134,8 +137,7 @@ var MedEntryInfoList = React.createClass({
             id: 10000000,
             addHidden: false,
             disable_submit: true,
-            show_modal: false,
-            disc_meds: []
+            show_modal: false
         };
     },
     updateName: function (medid, field, val){
@@ -151,7 +153,6 @@ var MedEntryInfoList = React.createClass({
             updated_med[field] = val;
             meds[loc] = updated_med;
         }
-
         this.setState({allMedications:meds});
     },
     handleAdd: function () {
@@ -200,7 +201,7 @@ var MedEntryInfoList = React.createClass({
                     $('.success-message').removeAttr('hidden');
                     $('.submitBtn').attr('hidden', 'true');
                     $('.add_button').attr('hidden', 'true');
-
+                    $('.panel').attr('hidden','true');
                 },
                 dataType: 'json',
                 contentType: 'application/json'
@@ -307,6 +308,7 @@ var MedEntryInfoList = React.createClass({
                                                      medOrder={medication.medorder}
                                                      handleComplete={self.handleComplete}
                                                      updateName={self.updateName}
+                                                     ref = {medication.id}
                                 />; // display each medication
                             })}
                             </tbody>
@@ -335,8 +337,23 @@ var MedEntryInfoList = React.createClass({
                         <Modal.Body>
                             <strong>There is an unaddressed discrepancy. Click cancel to address it, or continue to submit anyway</strong>
                             {this.state.allMedications.map(function (medication) {
+                                //When textarea updates, need to send that data to the child
+                                var meds = self.state.allMedications;
+                                var loc = meds.map(function (x) {
+                                    return x.id
+                                }).indexOf(medication.id);
+
+                                function update(e){
+                                    var obj = self.state.allMedications;
+                                    obj[loc].note = e.target.value;
+                                    self.setState({allMedications: obj});
+                                }
+
                                 if(medication.med_discrepancy)
-                                    return <div>{medication.text}</div>
+                                    return <div>{medication.text +': '}
+                                        <textarea type='text' name='note' value={self.state.allMedications[loc].note} placeholder='Address Discrepancy'
+                                                  rows='1' onChange={update} onBlur={() => self.refs[medication.id].updateNote(self.state.allMedications[loc].note)}/>
+                                        </div>
                             })}
                         </Modal.Body>
                         <Modal.Footer>
@@ -409,6 +426,14 @@ var MedEntryInfo = React.createClass({
                     this.removeRowDisc();
             }
         }
+    },
+    updateNote: function (myNote) {
+        if(myNote === '')
+            this.addRowDisc();
+        else {
+            this.removeRowDisc();
+        }
+        this.setState({note: myNote});
     },
     handleMedChange: function (event) {
         if (this.state.is_fhir_med === false) { // if not a fhir medication name field then can edit and update state
