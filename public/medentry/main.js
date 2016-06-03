@@ -266,7 +266,7 @@ var MedEntryInfoList = React.createClass({
                                     Medication Name
                                 </th>
                                 <th className='col-xs-2'>
-                                    Dosage
+                                    Dosage & Strength
                                 </th>
                                 <th className='col-xs-1'>
                                     Frequency
@@ -317,7 +317,7 @@ var MedEntryInfoList = React.createClass({
                     <div className='col-xs-3'><span  hidden={!this.state.disable_submit}>Please complete the form to submit</span></div>
                     <div className='col-xs-2 submitBtn'>
                         <button className='form-control' disabled={this.state.disable_submit}
-                                onClick={this.handleChanges}>submit list
+                                onClick={this.handleChanges}>done
                         </button>
                     </div>
                 </div>
@@ -759,12 +759,12 @@ var MedEntryInfo = React.createClass({
         // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
         var self = this,
             options = [
-                {label: 'QD', value: 'every day'}, {label: 'QOD', value: 'every other day'},
-                {label: 'QAM', value: 'every morning'}, {label: 'QPM', value: 'every afternoon'},
-                {label: 'QHS', value: 'every evening'}, {label: 'BID', value: 'two times per day'},
-                {label: 'TID', value: 'three times per day'}, {label: 'QID', value: 'four times per day'},
-                {label: 'PRN', value: 'as needed'}, {label: 'QW', value: 'every week'},
-                {label: 'AC', value: 'with meals'}
+                {label: 'every day', value: 'every day'}, {label: 'every other day', value: 'every other day'},
+                {label: 'every morning', value: 'every morning'}, {label: 'every afternoon', value: 'every afternoon'},
+                {label: 'every evening', value: 'every evening'}, {label: 'two times per day', value: 'two times per day'},
+                {label: 'three times per day', value: 'three times per day'}, {label: 'four times per day', value: 'four times per day'},
+                {label: 'as needed', value: 'as needed'}, {label: 'every week', value: 'every week'},
+                {label: 'with meals', value: 'with meals'}
             ];
 
         //TODO: Fix frequency hidden attribute to be dynamic
@@ -838,7 +838,6 @@ var MedEntryInfo = React.createClass({
                                       renderOption={function(item){
                                         return <div>
                                             <span style={{marginRight: 4, verticalAlign: 'middle', width: 24, fontWeight: 'bold'}}>{item.label}</span>
-                                            <span>{item.value}</span>
                                         </div> }}
                         />
                         <input type='text' value={this.state.freq} name='freq' hidden/>
