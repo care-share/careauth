@@ -241,7 +241,7 @@ var MedEntryInfoList = React.createClass({
         var self = this;
         return (
             <form id='myform' onSubmit={this.handleSubmit} autoComplete='off'>
-                <div className='col-sm-13'>
+                <div className='col-sm-12'>
                     <div className='panel panel-default'>
                         <div className='panel-heading'>
                             <h2 className='panel-title'>Please enter medications as you find them in the home.
@@ -271,10 +271,10 @@ var MedEntryInfoList = React.createClass({
                                 <th className='col-xs-1'>
                                     Frequency
                                 </th>
-                                <th className='col-xs-2'>
+                                <th className='col-xs-1'>
                                     Patient Reports Adherence
                                 </th>
-                                <th className='col-xs-2'>
+                                <th className='col-xs-1'>
                                     <div className='order pull-left'>
                                         <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('prescriber',true)}>&uarr;</a>
                                         <a style={{cursor:'pointer'}} className='desc' onClick={() => this.sortMedList('prescriber',false)}>&darr;</a>
@@ -284,14 +284,14 @@ var MedEntryInfoList = React.createClass({
                                 <th className='col-xs-1'>
                                     Discrepancy
                                 </th>
-                                <th className='col-xs-2'>
+                                <th className='col-xs-3'>
                                     Notes
                                 </th>
                             </tr>
                             </thead>
                         </table>
                         <table className='table table-striped table-hover'>
-                            <tbody style={{'height': '600px', 'overflow':'scroll', 'display': 'block'}}>
+                            <tbody style={{'height': '600px', 'overflowY':'scroll', 'overflowX':'hidden', 'display': 'block'}}>
                             {this.state.allMedications.map(function (medication) {
                                 return <MedEntryInfo fhirMedications={medication.text}
                                                      key={medication.id}
@@ -845,7 +845,7 @@ var MedEntryInfo = React.createClass({
                         <input type='text' value={this.state.freq} name='freq' hidden/>
                     </div>
                 </td>
-                <td className='col-xs-2'>
+                <td className='col-xs-1'>
                     <div hidden={this.state.not_found === true}>
                         <div className='switch switch-blue'>
                             <input id={this.state.med_id + 'yes'} className='switch-input' type='radio'
@@ -868,7 +868,7 @@ var MedEntryInfo = React.createClass({
                               hidden={this.state.compliance_bool}></textarea>
                     </div>
                 </td>
-                <td className='col-xs-2' hidden={this.state.not_found === true}>
+                <td className='col-xs-1' hidden={this.state.not_found === true}>
                     <div hidden={this.state.not_found === true}>
                         <div className='switch switch-blue'>
                             <input id={this.state.med_id + 'VA'} className='switch-input' type='radio'
@@ -904,11 +904,11 @@ var MedEntryInfo = React.createClass({
                         </Overlay>
                     </div>
                 </td>
-                <td className='col-xs-2' hidden={this.state.not_found === true}>
+                <td className='col-xs-3' hidden={this.state.not_found === true}>
                     <div>
                     <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
                               rows='1' onChange={this.handleChange}
-                              style={{background: 'inherit'}}/>
+                              style={{background: 'inherit',resize:'vertical',height:'50px'}}/>
                     </div>
                 </td>
                 <input type='hidden' value={this.state.med_id} name='medication_id'/>
