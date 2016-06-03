@@ -240,7 +240,7 @@ var MedEntryInfoList = React.createClass({
     render: function () {
         var self = this;
         return (
-            <form id='myform' onSubmit={this.handleSubmit}>
+            <form id='myform' onSubmit={this.handleSubmit} autoComplete='off'>
                 <div className='col-sm-13'>
                     <div className='panel panel-default'>
                         <div className='panel-heading'>
@@ -415,7 +415,9 @@ var MedEntryInfo = React.createClass({
 
     //Used to change the state from inputs and toggles within Medication row
     handleChange: function (event) {
-        this.setState({not_found: false});
+        if (event.target.name !== 'note')
+            this.setState({not_found: false});
+
 
         var obj = {};
         var value = event.target.value;
