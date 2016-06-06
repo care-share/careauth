@@ -813,7 +813,6 @@ var MedEntryInfo = React.createClass({
                             type='text' value={this.state.dose} name='dose'
                             onChange={this.handleChange} onBlur={this.doseFreqValidation}
                             style={{background: 'inherit'}}/>
-                        <div className='loader' hidden={this.state.hide_load}><img src='../images/spinner.gif'/></div>
                     </div>
                 </div>
                 <div className='col-xs-2' style={{padding:'0',margin:'0'}}>
@@ -899,6 +898,7 @@ var MedEntryInfo = React.createClass({
                             {discTooltip}
                         </Overlay>
                     </div>
+                    <div className='loader' hidden={this.state.hide_load}><img src='../images/spinner.gif'/></div>
                 </div>
                 <div className='col-xs-3' hidden={this.state.not_found === true}>
                     <div>
