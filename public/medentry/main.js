@@ -108,8 +108,6 @@ var ViewPage = React.createClass({
     }
 });
 
-
-
 function doSort (param, isAscending) {
     return function (a, b) {
         if (a[param] < b[param]) {
@@ -288,7 +286,7 @@ var MedEntryInfoList = React.createClass({
                                 </div>
                             </div>
                         </div>
-                        <div className='container-fluid full-width' style={{'height': '600px', 'overflowY':'scroll', 'overflowX':'hidden', 'display': 'block'}}>
+                        <div className='container-fluid full-width' style={{'height': '80vh', 'overflowY':'scroll', 'overflowX':'hidden', 'display': 'block'}}>
                             {this.state.allMedications.map(function (medication) {
                                 return <MedEntryInfo fhirMedications={medication.text}
                                                      key={medication.id}
