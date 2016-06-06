@@ -210,10 +210,6 @@ body {
     background-color: #4bc2ca;
 }
 
-.med-list .header div {
-    /* TODO: make headers align to bottom of row */
-}
-
 .med-list .row {
     padding-top: 5px;
     padding-bottom: 5px;
@@ -225,6 +221,10 @@ body {
 .med-list .med:nth-child(odd){
     background-color: #f2f7fc;
 }
+.med-list .med:hover {
+    background-color: #c9def2;
+}
+
 
 .med-list .buttons {
     padding-top: 15px;

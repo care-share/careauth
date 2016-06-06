@@ -246,8 +246,8 @@ var MedEntryInfoList = React.createClass({
                                 This list will be reconciled with VA provider records,
                                 and you may be contacted for clarification later.</h2>
                         </div>
-                        <div className='container-fluid full-width'>
-                            <div className='row'>
+                        <div className='container-fluid full-width med-list'>
+                            <div className='row header'>
                                 <div className='col-xs-1'>
                                     <div className='order pull-left'>
                                         <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('not_found',true)}>&uarr;</a>
@@ -286,7 +286,7 @@ var MedEntryInfoList = React.createClass({
                                 </div>
                             </div>
                         </div>
-                        <div className='container-fluid full-width' style={{'height': '80vh', 'overflowY':'scroll', 'overflowX':'hidden', 'display': 'block'}}>
+                        <div className='container-fluid full-width med-list' style={{'height': '80vh', 'overflowY':'scroll', 'overflowX':'hidden', 'display': 'block'}}>
                             {this.state.allMedications.map(function (medication) {
                                 return <MedEntryInfo fhirMedications={medication.text}
                                                      key={medication.id}
@@ -772,7 +772,7 @@ var MedEntryInfo = React.createClass({
         </Tooltip>);
 
         return (
-            <div className='row' id={this.state.med_id}>
+            <div className='row med' id={this.state.med_id}>
                 <div className='col-xs-1' style={{paddingLeft:'5px'}}>
                     <div className='switch switch-blue' hidden={!this.state.is_fhir_med}>
                         <input id={this.state.med_id + 'found'} className='switch-input' type='radio'
@@ -816,7 +816,7 @@ var MedEntryInfo = React.createClass({
                 <div className='col-xs-2' style={{padding:'0',margin:'0'}}>
                     <div hidden={this.state.not_found === true}>
                         <SimpleSelect options={options} placeholder='Frequency' className='col-xs-12 removePadding'
-                                      style={{width: '100% !important'}}
+                                      style={{width: '100% !important',background:'inherit'}}
                                       onBlur={this.doseFreqValidation}
                                       ref = 'select'
                                       onValueChange={function(freq){
