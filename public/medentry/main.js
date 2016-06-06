@@ -248,50 +248,47 @@ var MedEntryInfoList = React.createClass({
                                 This list will be reconciled with VA provider records,
                                 and you may be contacted for clarification later.</h2>
                         </div>
-                        <table className='table table-hover'>
-                            <thead>
-                            <tr>
-                                <th className='col-xs-1'>
+                        <div className='container-fluid full-width'>
+                            <div className='row'>
+                                <div className='col-xs-1'>
                                     <div className='order pull-left'>
                                         <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('not_found',true)}>&uarr;</a>
                                         <a style={{cursor:'pointer'}} className='desc' onClick={() => this.sortMedList('not_found',false)}>&darr;</a>
                                     </div>
-                                    Found
-                                </th>
-                                <th className='col-xs-2'>
+                                     Found
+                                </div>
+                                <div className='col-xs-2'>
                                     <div className='order pull-left'>
                                         <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('text',true)}>&uarr;</a>
                                         <a style={{cursor:'pointer'}} className='desc' onClick={() => this.sortMedList('text',false)}>&darr;</a>
                                     </div>
                                     Medication Name
-                                </th>
-                                <th className='col-xs-2'>
+                                </div>
+                                <div className='col-xs-1'>
                                     Dosage & Strength
-                                </th>
-                                <th className='col-xs-1'>
+                                </div>
+                                <div className='col-xs-2' style={{padding:'0',margin:'0'}}>
                                     Frequency
-                                </th>
-                                <th className='col-xs-1'>
+                                </div>
+                                <div className='col-xs-1' style={{padding:'0',margin:'0'}}>
                                     Patient Reports Adherence
-                                </th>
-                                <th className='col-xs-1'>
+                                </div>
+                                <div className='col-xs-1'>
                                     <div className='order pull-left'>
                                         <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('prescriber',true)}>&uarr;</a>
                                         <a style={{cursor:'pointer'}} className='desc' onClick={() => this.sortMedList('prescriber',false)}>&darr;</a>
                                     </div>
                                     Prescriber
-                                </th>
-                                <th className='col-xs-1'>
+                                </div>
+                                <div className='col-xs-1'>
                                     Discrepancy
-                                </th>
-                                <th className='col-xs-3'>
+                                </div>
+                                <div className='col-xs-3'>
                                     Notes
-                                </th>
-                            </tr>
-                            </thead>
-                        </table>
-                        <table className='table table-striped table-hover'>
-                            <tbody style={{'height': '600px', 'overflowY':'scroll', 'overflowX':'hidden', 'display': 'block'}}>
+                                </div>
+                            </div>
+                        </div>
+                        <div className='container-fluid full-width' style={{'height': '600px', 'overflowY':'scroll', 'overflowX':'hidden', 'display': 'block'}}>
                             {this.state.allMedications.map(function (medication) {
                                 return <MedEntryInfo fhirMedications={medication.text}
                                                      key={medication.id}
@@ -303,8 +300,7 @@ var MedEntryInfoList = React.createClass({
                                                      ref = {medication.id}
                                 />; // display each medication
                             })}
-                            </tbody>
-                        </table>
+                        </div>
                     </div>
                 </div>
                 <div className='panel panel-default'>
@@ -778,8 +774,8 @@ var MedEntryInfo = React.createClass({
         </Tooltip>);
 
         return (
-            <tr id={this.state.med_id} style={{position: 'relative'}}>
-                <td className='col-xs-1'>
+            <div className='row' id={this.state.med_id}>
+                <div className='col-xs-1' style={{paddingLeft:'5px'}}>
                     <div className='switch switch-blue' hidden={!this.state.is_fhir_med}>
                         <input id={this.state.med_id + 'found'} className='switch-input' type='radio'
                                name={'not_found--' + this.state.med_id} value='false'
@@ -794,11 +790,11 @@ var MedEntryInfo = React.createClass({
                         <label htmlFor={this.state.med_id + 'not_found'} className='switch-label switch-label-on'>missing</label>
                         <span className={(this.state.not_found == 'unknown') ? 'hidden' : 'switch-selection'}> </span>
                     </div>
-                </td>
-                <td className='col-xs-2'>
-                    <span className='original-med-name medNameText'>{this.state.med_name}</span>
+                </div>
+                <div className='col-xs-2'>
+                    <span className='original-med-name medNameText' style={{width:'100%',wordWrap:'break-word'}}>{this.state.med_name}</span>
                     <div>
-                        <input className='col-xs-12' type='hidden' value={this.state.med_name} name='med_name'
+                        <input type='hidden' value={this.state.med_name} name='med_name'
                                onChange={this.handleChange}/>
                         <a style={{'cursor':'pointer'}} onClick={this.alternateMedClick}
                            hidden={!this.state.click_alt || !this.state.is_fhir_med}>Enter Alternate Name</a>
@@ -809,8 +805,8 @@ var MedEntryInfo = React.createClass({
                                style={{background: 'inherit'}}
                                hidden={this.state.alt_hidden && (this.state.is_fhir_med)}/>
                     </div>
-                </td>
-                <td className='col-xs-2'>
+                </div>
+                <div className='col-xs-1'>
                     <div hidden={this.state.not_found === true}>
                         <input
                             className={'col-xs-12 removePadding ' + ((this.state.dose_discrepancy == false) ? 'valid' : 'invalid')}
@@ -819,10 +815,10 @@ var MedEntryInfo = React.createClass({
                             style={{background: 'inherit'}}/>
                         <div className='loader' hidden={this.state.hide_load}><img src='../images/spinner.gif'/></div>
                     </div>
-                </td>
-                <td className='col-xs-1'>
+                </div>
+                <div className='col-xs-2' style={{padding:'0',margin:'0'}}>
                     <div hidden={this.state.not_found === true}>
-                        <SimpleSelect options={options} placeholder='Freq' className='col-xs-12 removePadding'
+                        <SimpleSelect options={options} placeholder='Frequency' className='col-xs-12 removePadding'
                                       style={{width: '100% !important'}}
                                       onBlur={this.doseFreqValidation}
                                       ref = 'select'
@@ -844,8 +840,8 @@ var MedEntryInfo = React.createClass({
                         />
                         <input type='text' value={this.state.freq} name='freq' hidden/>
                     </div>
-                </td>
-                <td className='col-xs-1'>
+                </div>
+                <div className='col-xs-1' style={{padding:'0',margin:'0'}}>
                     <div hidden={this.state.not_found === true}>
                         <div className='switch switch-blue'>
                             <input id={this.state.med_id + 'yes'} className='switch-input' type='radio'
@@ -867,8 +863,8 @@ var MedEntryInfo = React.createClass({
                               rows='1' onChange={this.handleChange} placeholder='please explain'
                               hidden={this.state.compliance_bool}></textarea>
                     </div>
-                </td>
-                <td className='col-xs-1' hidden={this.state.not_found === true}>
+                </div>
+                <div className='col-xs-1' hidden={this.state.not_found === true}>
                     <div hidden={this.state.not_found === true}>
                         <div className='switch switch-blue'>
                             <input id={this.state.med_id + 'VA'} className='switch-input' type='radio'
@@ -890,9 +886,9 @@ var MedEntryInfo = React.createClass({
                               rows='1' onChange={this.handleChange} placeholder='please enter prescriber'
                               hidden={this.state.med_bool}></textarea>
                     </div>
-                </td>
-                <td className='col-xs-1' hidden={this.state.not_found} id={'tooltip_'+this.state.med_id} style={{position: 'relative'}}>
-                    <div hidden={!this.state.row_discrepancy || !this.state.is_fhir_med}>
+                </div>
+                <div className='col-xs-1' id={'tooltip_'+this.state.med_id} style={{textAlign:'center'}} >
+                    <div hidden={!this.state.row_discrepancy || !this.state.is_fhir_med || this.state.not_found}>
                         <button onClick={this.flipDisc} hidden={this.state.not_found}>
                             <span ref='tipTarget' id={'disc_span_'+this.state.med_id} style={{color: '#ffcc00',background: 'yellow',padding: '3px'}}
                                 className='glyphicon glyphicon-warning-sign black'></span>
@@ -903,17 +899,17 @@ var MedEntryInfo = React.createClass({
                             {discTooltip}
                         </Overlay>
                     </div>
-                </td>
-                <td className='col-xs-3' hidden={this.state.not_found === true}>
+                </div>
+                <div className='col-xs-3' hidden={this.state.not_found === true}>
                     <div>
-                    <textarea className='col-xs-12 removePadding' type='text' name='note' value={this.state.note}
+                    <textarea type='text' name='note' value={this.state.note}
                               rows='1' onChange={this.handleChange}
-                              style={{background: 'inherit',resize:'vertical',height:'50px'}}/>
+                              style={{background: 'inherit',resize:'vertical',height:'50px',width:'100%'}}/>
                     </div>
-                </td>
+                </div>
                 <input type='hidden' value={this.state.med_id} name='medication_id'/>
                 <input type='hidden' value={this.state.order_id} name='medication_order_id'/>
-            </tr>
+            </div>
         );
 
     }
