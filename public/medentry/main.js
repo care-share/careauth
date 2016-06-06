@@ -896,7 +896,7 @@ var MedEntryInfo = React.createClass({
                             {discTooltip}
                         </Overlay>
                     </div>
-                    <div className='loader' hidden={this.state.hide_load}><img src='../images/spinner.gif'/></div>
+                    <div className='loader' hidden={this.state.hide_load}><img src='../images/spinner2.gif'/></div>
                 </div>
                 <div className='col-xs-3' hidden={this.state.not_found === true}>
                     <div>
