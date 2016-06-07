@@ -426,6 +426,22 @@ var MedEntryInfo = React.createClass({
         obj[event.target.name] = value;
         this.setState(obj);
 
+        if(event.target.name === 'freq' && event.target.value === ''){
+            if(this.state.dose === '') {
+                this.removeRowDisc();
+                this.setState({row_discrepancy:false});
+                this.flipDisc();
+            }
+        }
+
+        if(event.target.name === 'dose' && event.target.value === ''){
+            if(this.state.freq === '') {
+                this.removeRowDisc();
+                this.setState({row_discrepancy:false});
+                this.flipDisc();
+            }
+        }
+
         //If changing state of note AND there is a discrepancy, remove row disc
         if(event.target.name === 'note' && this.state.row_discrepancy) {
             if (value === '')
@@ -491,10 +507,10 @@ var MedEntryInfo = React.createClass({
     addRowDisc: function() {
         var toolString = '';
         if(this.state.dose_discrepancy){
-            toolString += ('Prescriber dose is: ' + this.state.ehr_dose + '\n');
+            toolString += ('Prescriber Dose Is: ' + this.state.ehr_dose + '\n');
         }
         if(this.state.freq_discrepancy){
-            toolString += ('Prescriber freq is: ' + this.state.ehr_freq);
+            toolString += ('Prescriber Freq Is: ' + this.state.ehr_freq);
         }
         this.setState({tooltip_message: toolString});
 
@@ -820,7 +836,10 @@ var MedEntryInfo = React.createClass({
                                       onBlur={this.doseFreqValidation}
                                       ref = 'select'
                                       onValueChange={function(freq){
+                                      if(freq !== undefined)
                                          self.setState({freq:freq.label});
+                                      else
+                                         self.setState({freq:''});
                                       }}
                                       createFromSearch={function(options, search){
                                         if (search.length == 0 || (options.map(function(option){
