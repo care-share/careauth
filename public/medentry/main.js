@@ -304,14 +304,14 @@ var MedEntryInfoList = React.createClass({
                 <div className='panel panel-default'>
                     <div className='col-xs-2  add_button'>
                         <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>
-                            add new
+                            Add New
                         </button>
                     </div>
                     <div className='col-xs-5'></div>
-                    <div className='col-xs-3'><span  hidden={!this.state.disable_submit}>Please complete the form to submit</span></div>
+                    <div className='col-xs-3'><span  hidden={!this.state.disable_submit}>Please Complete The Form To Submit</span></div>
                     <div className='col-xs-2 submitBtn'>
                         <button className='form-control' disabled={this.state.disable_submit}
-                                onClick={this.handleChanges}>done
+                                onClick={this.handleChanges}>Done
                         </button>
                     </div>
                 </div>
@@ -321,7 +321,7 @@ var MedEntryInfoList = React.createClass({
                             <Modal.Title>Discrepancy</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            <strong>There is an unaddressed discrepancy. Click cancel to address it, or continue to submit anyway</strong>
+                            <strong>There Is An Unaddressed Discrepancy. Click Cancel To Address It, Or Continue To Submit Anyway</strong>
                             <br />
                             <table>
                                     {this.state.allMedications.map(function (medication) {
@@ -755,12 +755,12 @@ var MedEntryInfo = React.createClass({
         // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
         var self = this,
             options = [
-                {label: 'every day', value: 'every day'}, {label: 'every other day', value: 'every other day'},
-                {label: 'every morning', value: 'every morning'}, {label: 'every afternoon', value: 'every afternoon'},
-                {label: 'every evening', value: 'every evening'}, {label: 'two times per day', value: 'two times per day'},
-                {label: 'three times per day', value: 'three times per day'}, {label: 'four times per day', value: 'four times per day'},
-                {label: 'as needed', value: 'as needed'}, {label: 'every week', value: 'every week'},
-                {label: 'with meals', value: 'with meals'}
+                {label: 'Every Day', value: 'every day'}, {label: 'Every Other Day', value: 'every other day'},
+                {label: 'Every Morning', value: 'every morning'}, {label: 'Every Afternoon', value: 'every afternoon'},
+                {label: 'Every Evening', value: 'every evening'}, {label: 'Two Times Per Day', value: 'two times per day'},
+                {label: 'Three Times Per Day', value: 'three times per day'}, {label: 'Four Times Per Day', value: 'four times per day'},
+                {label: 'As Needed', value: 'as needed'}, {label: 'Every Week', value: 'every week'},
+                {label: 'With Meals', value: 'with meals'}
             ];
 
         //TODO: Fix frequency hidden attribute to be dynamic
@@ -780,12 +780,12 @@ var MedEntryInfo = React.createClass({
                                checked={this.state.not_found === false} hidden={!this.state.is_fhir_med}
                                onChange={this.handleNotFoundChange}/>
                         <label htmlFor={this.state.med_id + 'found'}
-                               className='switch-label switch-label-off'>found</label>
+                               className='switch-label switch-label-off'>Found</label>
                         <input id={this.state.med_id + 'not_found'} className='switch-input' type='radio'
                                name={'not_found--' + this.state.med_id} value='true'
                                checked={this.state.not_found === true} hidden={!this.state.is_fhir_med}
                                onChange={this.handleNotFoundChange}/>
-                        <label htmlFor={this.state.med_id + 'not_found'} className='switch-label switch-label-on'>missing</label>
+                        <label htmlFor={this.state.med_id + 'not_found'} className='switch-label switch-label-on'>Missing</label>
                         <span className={(this.state.not_found == 'unknown') ? 'hidden' : 'switch-selection'}> </span>
                     </div>
                 </div>
@@ -846,13 +846,13 @@ var MedEntryInfo = React.createClass({
                                    checked={this.state.compliance_bool === true} hidden={!this.state.is_fhir_med}
                                    onChange={this.handleOnChange}/>
                             <label htmlFor={this.state.med_id + 'yes'}
-                                   className='switch-label switch-label-off'>yes</label>
+                                   className='switch-label switch-label-off'>Yes</label>
                             <input id={this.state.med_id + 'no'} className='switch-input' type='radio'
                                    name={'compliance_bool--' + this.state.med_id} value='false'
                                    checked={this.state.compliance_bool === false} hidden={!this.state.is_fhir_med}
                                    onChange={this.handleOnChange}/>
                             <label htmlFor={this.state.med_id + 'no'}
-                                   className='switch-label switch-label-on'>no</label>
+                                   className='switch-label switch-label-on'>No</label>
                             <span className='switch-selection'> </span>
                         </div>
                     <textarea id={'complianceNote' + this.state.med_id} className='col-xs-12 removePadding' type='text'
@@ -875,7 +875,7 @@ var MedEntryInfo = React.createClass({
                                    checked={this.state.med_bool === false} hidden={!this.state.is_fhir_med}
                                    onChange={this.handleOnChange}/>
                             <label htmlFor={this.state.med_id + 'other'}
-                                   className='switch-label switch-label-on'>other</label>
+                                   className='switch-label switch-label-on'>Other</label>
                             <span className='switch-selection'> </span>
                         </div>
                     <textarea id={'prescriberNote' + this.state.med_id} className='col-xs-12 removePadding' type='text'
