@@ -55,7 +55,15 @@ var ViewPage = React.createClass({
                         var id = result.entry[i].resource.id;
                         var text = result.entry[i].resource.code.text;
                         state[nextMed] =
-                        {id: id, text: text, completed: false, not_found: '', prescriber: 'true',med_discrepancy:false,note: ''};
+                        {
+                            id: id,
+                            text: text,
+                            completed: false,
+                            not_found: '',
+                            prescriber: 'true',
+                            med_discrepancy: false,
+                            note: ''
+                        };
                         map[id] = nextMed++;
                     } else if (resType === 'MedicationOrder') {
                         medOrders.push(result.entry[i].resource);
@@ -102,13 +110,13 @@ var ViewPage = React.createClass({
         var token = getUrlParameter('token');
         return (
             <div>
-                <MedEntryInfoList fhirMedications={this.state.medication_list_response} token={token} />
+                <MedEntryInfoList fhirMedications={this.state.medication_list_response} token={token}/>
             </div>
         )
     }
 });
 
-function doSort (param, isAscending) {
+function doSort(param, isAscending) {
     return function (a, b) {
         if (a[param] < b[param]) {
             return isAscending ? -1 : 1;
@@ -130,20 +138,20 @@ var MedEntryInfoList = React.createClass({
             show_modal: false
         };
     },
-    updateName: function (medid, field, val){
+    updateName: function (medid, field, val) {
         var meds = this.state.allMedications;
         var loc = meds.map(function (x) {
             return x.id
         }).indexOf(medid);
 
-        if(loc!== -1){
+        if (loc !== -1) {
             //update states
-            console.log('Id is found, updating '+ field + ' to ' + val);
+            console.log('Id is found, updating ' + field + ' to ' + val);
             var updated_med = meds[loc];
             updated_med[field] = val;
             meds[loc] = updated_med;
         }
-        this.setState({allMedications:meds});
+        this.setState({allMedications: meds});
     },
     handleAdd: function () {
         // changed state of allMedications, append empty MedEntryInfo item
@@ -163,12 +171,12 @@ var MedEntryInfoList = React.createClass({
         //Check discrepancies here
         var state = this.state.allMedications;
         var hasDisc = false;
-        for(var x = 0; x < state.length; x++)
-            if(state[x].med_discrepancy)
+        for (var x = 0; x < state.length; x++)
+            if (state[x].med_discrepancy)
                 hasDisc = true;
 
-        if(hasDisc){
-            this.setState({show_modal:true});
+        if (hasDisc) {
+            this.setState({show_modal: true});
         }
         else {
             var frm = $('#myform').serializeArray();
@@ -191,16 +199,16 @@ var MedEntryInfoList = React.createClass({
                     $('.success-message').removeAttr('hidden');
                     $('.submitBtn').attr('hidden', 'true');
                     $('.add_button').attr('hidden', 'true');
-                    $('.panel').attr('hidden','true');
+                    $('.panel').attr('hidden', 'true');
                 },
                 dataType: 'json',
                 contentType: 'application/json'
             });
         }
     },
-    sortMedList: function (key, isAscending){
+    sortMedList: function (key, isAscending) {
         var allMeds = this.state.allMedications;
-        allMeds.sort(doSort(key,isAscending));
+        allMeds.sort(doSort(key, isAscending));
         this.setState({allMedications: allMeds});
     },
     componentDidMount: function () {
@@ -227,38 +235,49 @@ var MedEntryInfoList = React.createClass({
             }
         }
     },
-    close: function (){
-        this.setState({show_modal:false});
+    close: function () {
+        this.setState({show_modal: false});
     },
-    continue:function(){
+    continue: function () {
         // async setState because React handles click events this way... handleChanges is the callback
         this.setState({show_modal: false}, this.handleChanges);
         //this.handleChanges();
     },
     render: function () {
         var self = this;
+        /**
+         * Need to set container to 100%
+         *   o How big does the header need to be?
+         *   o How big does the footer need to be?
+         *   o How to set the middle bit to flex?
+         *     -  Determine the vh requirements.
+         */
         return (
             <form id='myform' onSubmit={this.handleSubmit} autoComplete='off'>
                 <div className='col-sm-12'>
-                    <div className='panel panel-default'>
-                        <div className='panel-heading'>
-                            <h2 className='panel-title'>Please enter medications as you find them in the home.
-                                This list will be reconciled with VA provider records,
-                                and you may be contacted for clarification later.</h2>
+                    <div className='panel panel-default' style={{display:'flex',flexDirection:'column',height:'100vh'}}>
+                        <div className='panel-heading' style={{padding:'10px 15px 20px'}}>
+                            <h2 className='panel-title'>Please Enter Medications As You Find Them In The Home.
+                                This List Will Be Reconciled With VA Provider Records,
+                                And You May Be Contacted For Clarification Later.</h2>
                         </div>
-                        <div className='container-fluid full-width med-list'>
+                        <div className='container-fluid full-width med-list' style={{width:'100%'}}>
                             <div className='row header'>
                                 <div className='col-xs-1'>
                                     <div className='order pull-left'>
-                                        <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('not_found',true)}>&uarr;</a>
-                                        <a style={{cursor:'pointer'}} className='desc' onClick={() => this.sortMedList('not_found',false)}>&darr;</a>
+                                        <a style={{cursor:'pointer'}} className='asc'
+                                           onClick={() => this.sortMedList('not_found',true)}>&uarr;</a>
+                                        <a style={{cursor:'pointer'}} className='desc'
+                                           onClick={() => this.sortMedList('not_found',false)}>&darr;</a>
                                     </div>
-                                     Found
+                                    Found
                                 </div>
                                 <div className='col-xs-2'>
                                     <div className='order pull-left'>
-                                        <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('text',true)}>&uarr;</a>
-                                        <a style={{cursor:'pointer'}} className='desc' onClick={() => this.sortMedList('text',false)}>&darr;</a>
+                                        <a style={{cursor:'pointer'}} className='asc'
+                                           onClick={() => this.sortMedList('text',true)}>&uarr;</a>
+                                        <a style={{cursor:'pointer'}} className='desc'
+                                           onClick={() => this.sortMedList('text',false)}>&darr;</a>
                                     </div>
                                     Medication Name
                                 </div>
@@ -273,8 +292,10 @@ var MedEntryInfoList = React.createClass({
                                 </div>
                                 <div className='col-xs-1'>
                                     <div className='order pull-left'>
-                                        <a style={{cursor:'pointer'}} className='asc' onClick={() => this.sortMedList('prescriber',true)}>&uarr;</a>
-                                        <a style={{cursor:'pointer'}} className='desc' onClick={() => this.sortMedList('prescriber',false)}>&darr;</a>
+                                        <a style={{cursor:'pointer'}} className='asc'
+                                           onClick={() => this.sortMedList('prescriber',true)}>&uarr;</a>
+                                        <a style={{cursor:'pointer'}} className='desc'
+                                           onClick={() => this.sortMedList('prescriber',false)}>&darr;</a>
                                     </div>
                                     Prescriber
                                 </div>
@@ -286,7 +307,8 @@ var MedEntryInfoList = React.createClass({
                                 </div>
                             </div>
                         </div>
-                        <div className='container-fluid full-width med-list' style={{'height': '80vh', 'overflowY':'scroll', 'overflowX':'hidden', 'display': 'block'}}>
+                        <div className='container panel-body med-list' style={{'overflowY':'scroll',
+                         'overflowX':'hidden',width:'100%'}}>
                             {this.state.allMedications.map(function (medication) {
                                 return <MedEntryInfo fhirMedications={medication.text}
                                                      key={medication.id}
@@ -295,63 +317,69 @@ var MedEntryInfoList = React.createClass({
                                                      medOrder={medication.medorder}
                                                      handleComplete={self.handleComplete}
                                                      updateName={self.updateName}
-                                                     ref = {medication.id}
+                                                     ref={medication.id}
                                 />; // display each medication
                             })}
                         </div>
+                        <div className='panel-footer' style={{height:'65px',padding:'15px 15px 30px'}}>
+                            <div className='col-xs-2  add_button'>
+                                <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>
+                                    Add New
+                                </button>
+                            </div>
+                            <div className='col-xs-5'></div>
+                            <div className='col-xs-3'>
+                                <span hidden={!this.state.disable_submit}>Please Complete The Form To Submit</span>
+                            </div>
+                            <div className='col-xs-2 submitBtn'>
+                                <button className='form-control' disabled={this.state.disable_submit}
+                                    onClick={this.handleChanges}>Done
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className='panel panel-default'>
-                    <div className='col-xs-2  add_button'>
-                        <button className='form-control' onClick={this.handleAdd} hidden={this.state.addHidden}>
-                            Add New
-                        </button>
-                    </div>
-                    <div className='col-xs-5'></div>
-                    <div className='col-xs-3'><span  hidden={!this.state.disable_submit}>Please Complete The Form To Submit</span></div>
-                    <div className='col-xs-2 submitBtn'>
-                        <button className='form-control' disabled={this.state.disable_submit}
-                                onClick={this.handleChanges}>Done
-                        </button>
-                    </div>
-                </div>
+
                 <div>
                     <Modal show={this.state.show_modal} onHide={this.close}>
                         <Modal.Header closeButton>
                             <Modal.Title>Discrepancy</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            <strong>There Is An Unaddressed Discrepancy. Click Cancel To Address It, Or Continue To Submit Anyway</strong>
+                            <strong>There Is An Unaddressed Discrepancy. Click Cancel To Address It, Or Continue To
+                                Submit Anyway</strong>
                             <br />
                             <table>
-                                    {this.state.allMedications.map(function (medication) {
+                                {this.state.allMedications.map(function (medication) {
                                     //When textarea updates, need to send that data to the child
-                                        var disc_status = medication.med_discrepancy;
-                                        var meds = self.state.allMedications;
-                                         var loc = meds.map(function (x) {
-                                            return x.id
-                                         }).indexOf(medication.id);
+                                    var disc_status = medication.med_discrepancy;
+                                    var meds = self.state.allMedications;
+                                    var loc = meds.map(function (x) {
+                                        return x.id
+                                    }).indexOf(medication.id);
 
-                                    function update(e){
+                                    function update(e) {
                                         var obj = self.state.allMedications;
                                         obj[loc].note = e.target.value;
                                         self.setState({allMedications: obj});
                                     }
 
-                                    if(disc_status)
+                                    if (disc_status)
                                         return <tbody>
-                                            <tr><td><strong>{medication.text +': '}</strong></td></tr>
-                                            <tr>
-                                                <td><span>{disc_status}</span></td>
-                                                <td> <textarea type='text' name='note' placeholder='Address Discrepancy'
-                                                               value={self.state.allMedications[loc].note}
-                                                               rows='1' onChange={update}
-                                                               onBlur={() => self.refs[medication.id].updateNote(
+                                        <tr>
+                                            <td><strong>{medication.text + ': '}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span>{disc_status}</span></td>
+                                            <td> <textarea type='text' name='note' placeholder='Address Discrepancy'
+                                                           value={self.state.allMedications[loc].note}
+                                                           rows='1' onChange={update}
+                                                           onBlur={() => self.refs[medication.id].updateNote(
                                                                self.state.allMedications[loc].note)}/>
-                                                </td>
-                                            </tr>
+                                            </td>
+                                        </tr>
                                         </tbody>
-                                    })}
+                                })}
                             </table>
                         </Modal.Body>
                         <Modal.Footer>
@@ -378,32 +406,32 @@ var MedEntryInfo = React.createClass({
     //Defines and initializes all states for this medication
     getInitialState: function () {
         return {
-            med_id              : '',       // FHIR ID of this Medication (if applicable)
-            order_id            : '',       // FHIR ID of the MedicationOrder that references this Medication (if applicable)
-            med_name            : '',       // Name of Medication passed from MedEntryInfoList
-            name_sub            : '',       // User entered name via alternate name form OR if User Medication
-            dose                : '',       // User entered dosage via dosage input
-            ehr_dose            : '',       // Dosage found in database when Transcript API is called
-            freq                : '',       // User entered frequency via frequency Type-a-head form
-            ehr_freq            : '',       // Frequency found in database when Transcript API is called
-            compliance_bool     : true,     // Boolean indicating if the medication adheres to patient reports; manipulated via patient reports toggle
-            noncompliance_note  : '',       // Textarea used to address noncompliance by user
-            med_bool            : true,     // Boolean indicating if the medication is prescribed by VA/other; manipulated via Prescriber toggle
-            prescriber_note     : '',       // Textarea used to address who prescribed medication
-            note                : '',       // Textarea used to address discrepancies found via Transcript API
-            is_fhir_med         : false,    // Boolean used when a user enters a new medication
-            placeholder         : '',       // String used when user enters new medication to set placeholder text
-            not_found           : 'unknown',// Boolean used when a user sets the medication to missing; manipulated via Found toggle
-            alt_hidden          : true,     // Boolean used to hide alternate name form
-            dose_discrepancy    : false,    // Boolean used to indicate if there is a discrepancy between dose and ehr_dose on Transcript API
-            freq_discrepancy    : false,    // Boolean used to indicate if there is a discrepancy between freq and ehr_freq on Transcript API
-            hide_load           : true,     // Boolean used to set the visibility of loading wheel
-            med_order           : {},       // Object passed via props from MedEntryInfoList; used when calling Transcript API
-            click_alt           : true,     // Boolean used to hide alternate name link
-            row_discrepancy     : false,    // Boolean indicating whether or not this medication has a un-addressed discrepancy,
-            show_tooltip        : false,    // Boolean used to set the visibility of Tooltip
-            tooltip_message     : '',       // String used by DiscTooltip to display discrepancies
-            dropdown_direction  : 1         // Int used by Frequency Dropdown to determine direction to display dropdown
+            med_id: '',       // FHIR ID of this Medication (if applicable)
+            order_id: '',       // FHIR ID of the MedicationOrder that references this Medication (if applicable)
+            med_name: '',       // Name of Medication passed from MedEntryInfoList
+            name_sub: '',       // User entered name via alternate name form OR if User Medication
+            dose: '',       // User entered dosage via dosage input
+            ehr_dose: '',       // Dosage found in database when Transcript API is called
+            freq: '',       // User entered frequency via frequency Type-a-head form
+            ehr_freq: '',       // Frequency found in database when Transcript API is called
+            compliance_bool: true,     // Boolean indicating if the medication adheres to patient reports; manipulated via patient reports toggle
+            noncompliance_note: '',       // Textarea used to address noncompliance by user
+            med_bool: true,     // Boolean indicating if the medication is prescribed by VA/other; manipulated via Prescriber toggle
+            prescriber_note: '',       // Textarea used to address who prescribed medication
+            note: '',       // Textarea used to address discrepancies found via Transcript API
+            is_fhir_med: false,    // Boolean used when a user enters a new medication
+            placeholder: '',       // String used when user enters new medication to set placeholder text
+            not_found: 'unknown',// Boolean used when a user sets the medication to missing; manipulated via Found toggle
+            alt_hidden: true,     // Boolean used to hide alternate name form
+            dose_discrepancy: false,    // Boolean used to indicate if there is a discrepancy between dose and ehr_dose on Transcript API
+            freq_discrepancy: false,    // Boolean used to indicate if there is a discrepancy between freq and ehr_freq on Transcript API
+            hide_load: true,     // Boolean used to set the visibility of loading wheel
+            med_order: {},       // Object passed via props from MedEntryInfoList; used when calling Transcript API
+            click_alt: true,     // Boolean used to hide alternate name link
+            row_discrepancy: false,    // Boolean indicating whether or not this medication has a un-addressed discrepancy,
+            show_tooltip: false,    // Boolean used to set the visibility of Tooltip
+            tooltip_message: '',       // String used by DiscTooltip to display discrepancies
+            dropdown_direction: 1         // Integer used by Frequency Dropdown to determine direction to display dropdown
         };
     },
 
@@ -412,38 +440,37 @@ var MedEntryInfo = React.createClass({
         if (event.target.name !== 'note')
             this.setState({not_found: false});
 
-
         var obj = {};
         var value = event.target.value;
         if (event.target.type === 'checkbox')
             value = (value === 'false');
 
-        if(event.target.name === 'name_sub') {
+        if (event.target.name === 'name_sub') {
             value = value.toUpperCase();
-            this.props.updateName(this.state.med_id,'text',event.target.value);
+            this.props.updateName(this.state.med_id, 'text', event.target.value);
         }
 
         obj[event.target.name] = value;
         this.setState(obj);
 
-        if(event.target.name === 'freq' && event.target.value === ''){
-            if(this.state.dose === '') {
+        if (event.target.name === 'freq' && event.target.value === '') {
+            if (this.state.dose === '') {
                 this.removeRowDisc();
-                this.setState({row_discrepancy:false});
+                this.setState({row_discrepancy: false});
                 this.flipDisc();
             }
         }
 
-        if(event.target.name === 'dose' && event.target.value === ''){
-            if(this.state.freq === '') {
+        if (event.target.name === 'dose' && event.target.value === '') {
+            if (this.state.freq === '') {
                 this.removeRowDisc();
-                this.setState({row_discrepancy:false});
+                this.setState({row_discrepancy: false});
                 this.flipDisc();
             }
         }
 
         //If changing state of note AND there is a discrepancy, remove row disc
-        if(event.target.name === 'note' && this.state.row_discrepancy) {
+        if (event.target.name === 'note' && this.state.row_discrepancy) {
             if (value === '')
                 this.addRowDisc();
             else
@@ -453,7 +480,7 @@ var MedEntryInfo = React.createClass({
 
     //Used to update note from Modal once MedEntryInfoList gets submitted
     updateNote: function (myNote) {
-        if(myNote === '')
+        if (myNote === '')
             this.addRowDisc();
         else
             this.removeRowDisc();
@@ -476,7 +503,7 @@ var MedEntryInfo = React.createClass({
             click_alt: (event.target.value === 'false'),
             alt_hidden: true
         });
-        this.props.updateName(this.state.med_id,'not_found',event.target.value);
+        this.props.updateName(this.state.med_id, 'not_found', event.target.value);
 
         //If medication is missing, remove row highlighting and indicate to parent this is ready to submit
         if ((event.target.value === 'true')) {
@@ -485,15 +512,15 @@ var MedEntryInfo = React.createClass({
         }
         //If medication is found, check if discrepancy exists. If discrepancy does exist, check if note exists.
         else {
-            if(this.state.dose && this.state.freq)
+            if (this.state.dose && this.state.freq)
                 this.props.handleComplete(this.state.med_id, true);
             else
                 this.props.handleComplete(this.state.med_id, false);
 
             //Check if there is an unaddressed discrepancy for this medication
-            if(this.state.row_discrepancy){
+            if (this.state.row_discrepancy) {
                 //Check if the discrepancy has been addressed via note
-                if(this.state.note !== ''){
+                if (this.state.note !== '') {
                     this.props.handleComplete(this.state.med_id, true);
                     this.removeRowDisc();
                 }
@@ -504,21 +531,21 @@ var MedEntryInfo = React.createClass({
             }
         }
     },
-    addRowDisc: function() {
+    addRowDisc: function () {
         var toolString = '';
-        if(this.state.dose_discrepancy){
+        if (this.state.dose_discrepancy) {
             toolString += ('Prescriber Dose Is: ' + this.state.ehr_dose + '\n');
         }
-        if(this.state.freq_discrepancy){
+        if (this.state.freq_discrepancy) {
             toolString += ('Prescriber Freq Is: ' + this.state.ehr_freq);
         }
         this.setState({tooltip_message: toolString});
 
-        this.props.updateName(this.state.med_id,'med_discrepancy',toolString);
+        this.props.updateName(this.state.med_id, 'med_discrepancy', toolString);
         $('#' + this.state.med_id).addClass('med_row');
     },
-    removeRowDisc: function() {
-        this.props.updateName(this.state.med_id,'med_discrepancy',false);
+    removeRowDisc: function () {
+        this.props.updateName(this.state.med_id, 'med_discrepancy', false);
         $('#' + this.state.med_id).removeClass('med_row');
     },
     handleOnChange: function (e) {
@@ -533,8 +560,8 @@ var MedEntryInfo = React.createClass({
         obj[stateName] = value;
         this.setState(obj);
 
-        if(stateName === 'med_bool')
-            this.props.updateName(this.state.med_id,'prescriber',(this.state.med_bool) ? 'false' : 'true');
+        if (stateName === 'med_bool')
+            this.props.updateName(this.state.med_id, 'prescriber', (this.state.med_bool) ? 'false' : 'true');
 
 
         if (that.state.compliance_bool) {
@@ -719,9 +746,9 @@ var MedEntryInfo = React.createClass({
 
                     //When done, check both states. if either one is true, set row discrepancy to true
                     //If false, set row discrepancy to false
-                    if (this.state.freq_discrepancy || this.state.dose_discrepancy){
+                    if (this.state.freq_discrepancy || this.state.dose_discrepancy) {
                         //Has to be structured this way otherwise tooltip cannot find button
-                        this.setState({row_discrepancy: true},this.addRowDisc);
+                        this.setState({row_discrepancy: true}, this.addRowDisc);
                         this.setState({show_tooltip: true});
                     } else {
                         //Has to be structured this way otherwise tooltip cannot find button
@@ -759,9 +786,9 @@ var MedEntryInfo = React.createClass({
         if ((this.state.dose != '') && (this.state.freq != '')) {
             console.log('Calls loadMedPairData');
             this.loadMedPairData();
-            this.props.handleComplete(this.state.med_id,true);
+            this.props.handleComplete(this.state.med_id, true);
         } else {
-            this.props.handleComplete(this.state.med_id,false);
+            this.props.handleComplete(this.state.med_id, false);
         }
     },
     flipDisc: function () {
@@ -773,8 +800,14 @@ var MedEntryInfo = React.createClass({
             options = [
                 {label: 'Every Day', value: 'every day'}, {label: 'Every Other Day', value: 'every other day'},
                 {label: 'Every Morning', value: 'every morning'}, {label: 'Every Afternoon', value: 'every afternoon'},
-                {label: 'Every Evening', value: 'every evening'}, {label: 'Two Times Per Day', value: 'two times per day'},
-                {label: 'Three Times Per Day', value: 'three times per day'}, {label: 'Four Times Per Day', value: 'four times per day'},
+                {label: 'Every Evening', value: 'every evening'}, {
+                    label: 'Two Times Per Day',
+                    value: 'two times per day'
+                },
+                {label: 'Three Times Per Day', value: 'three times per day'}, {
+                    label: 'Four Times Per Day',
+                    value: 'four times per day'
+                },
                 {label: 'As Needed', value: 'as needed'}, {label: 'Every Week', value: 'every week'},
                 {label: 'With Meals', value: 'with meals'}
             ];
@@ -806,7 +839,8 @@ var MedEntryInfo = React.createClass({
                     </div>
                 </div>
                 <div className='col-xs-2'>
-                    <span className='original-med-name medNameText' style={{width:'100%',wordWrap:'break-word'}}>{this.state.med_name}</span>
+                    <span className='original-med-name medNameText'
+                          style={{width:'100%',wordWrap:'break-word'}}>{this.state.med_name}</span>
                     <div>
                         <input type='hidden' value={this.state.med_name} name='med_name'
                                onChange={this.handleChange}/>
@@ -834,7 +868,7 @@ var MedEntryInfo = React.createClass({
                         <SimpleSelect options={options} placeholder='Frequency' className='col-xs-12 removePadding'
                                       style={{width: '100% !important',background:'inherit'}}
                                       onBlur={this.doseFreqValidation}
-                                      ref = 'select'
+                                      ref='select'
                                       onValueChange={function(freq){
                                       if(freq !== undefined)
                                          self.setState({freq:freq.label});
@@ -903,13 +937,15 @@ var MedEntryInfo = React.createClass({
                               hidden={this.state.med_bool}></textarea>
                     </div>
                 </div>
-                <div className='col-xs-1' id={'tooltip_'+this.state.med_id} style={{textAlign:'center'}} >
+                <div className='col-xs-1' id={'tooltip_'+this.state.med_id} style={{textAlign:'center'}}>
                     <div hidden={!this.state.row_discrepancy || !this.state.is_fhir_med || this.state.not_found}>
                         <button onClick={this.flipDisc} hidden={this.state.not_found}>
-                            <span ref='tipTarget' id={'disc_span_'+this.state.med_id} style={{color: '#ffcc00',background: 'yellow',padding: '3px'}}
-                                className='glyphicon glyphicon-warning-sign black'></span>
+                            <span ref='tipTarget' id={'disc_span_'+this.state.med_id}
+                                  style={{color: '#ffcc00',background: 'yellow',padding: '3px'}}
+                                  className='glyphicon glyphicon-warning-sign black'></span>
                         </button>
-                        <Overlay show={this.state.show_tooltip} container={document.getElementById('tooltip_'+this.state.med_id)}
+                        <Overlay show={this.state.show_tooltip}
+                                 container={document.getElementById('tooltip_'+this.state.med_id)}
                                  target={() => ReactDOM.findDOMNode(this.refs.tipTarget)}
                                  placement='bottom'>
                             {discTooltip}
