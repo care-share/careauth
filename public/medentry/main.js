@@ -424,7 +424,8 @@ var MedEntryInfo = React.createClass({
             row_discrepancy: false,    // Boolean indicating whether or not this medication has a un-addressed discrepancy,
             show_tooltip: false,    // Boolean used to set the visibility of Tooltip
             tooltip_message: '',       // String used by DiscTooltip to display discrepancies
-            dropdown_direction: 1         // Integer used by Frequency Dropdown to determine direction to display dropdown
+            dropdown_direction: 1,         // Integer used by Frequency Dropdown to determine direction to display dropdown
+            offset: 0   //Double used by Frequency Dropdown to determine Y location
         };
     },
 
@@ -757,6 +758,11 @@ var MedEntryInfo = React.createClass({
             }
         });
     },
+    getOffset: function() {
+        var offset = $('#'+this.state.med_id).offset();
+        this.setState({offset: offset});
+        console.log(this.state.med_name+': '+JSON.stringify(offset));
+    },
     componentDidMount: function () {
         var isFhirMed = true;
         var placeText = 'Enter Alternate Name';
@@ -772,7 +778,7 @@ var MedEntryInfo = React.createClass({
             placeholder: placeText,
             alt_hidden: isFhirMed,
             med_order: this.props.medOrder
-        });
+        }, this.getOffset);
     },
     doseFreqValidation: function () {
         // dose & freq field must be filled out
@@ -889,6 +895,8 @@ var MedEntryInfo = React.createClass({
                                       style={{width: '100% !important',background:'inherit'}}
                                       onBlur={this.doseFreqValidation}
                                       ref='select'
+                                      
+                                      onFocus={this.getOffset}
                                       onValueChange={function(freq){
                                       if(freq !== undefined)
                                          self.setState({freq:freq.label});
@@ -1008,13 +1016,6 @@ var MedEntryInfo = React.createClass({
         );
     }
 });
-/**
- * Objective: Textarea autogrow when a new line is detected by the textarea
- * Detect whether or not the user's note has been given a /n
- *   If true, set vertical length to be x px bigger (x being the row size)
- *   If false, leave size as is
- */
-
 
 /**
  * Renders the entire page
