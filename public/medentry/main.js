@@ -245,13 +245,6 @@ var MedEntryInfoList = React.createClass({
     },
     render: function () {
         var self = this;
-        /**
-         * Need to set container to 100%
-         *   o How big does the header need to be?
-         *   o How big does the footer need to be?
-         *   o How to set the middle bit to flex?
-         *     -  Determine the vh requirements.
-         */
         return (
             <form id='myform' onSubmit={this.handleSubmit} autoComplete='off'>
                 <div className='col-sm-12'>
@@ -796,6 +789,7 @@ var MedEntryInfo = React.createClass({
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
+        $('.note'+this.state.med_id).elastic();
         var self = this,
             options = [
                 {label: 'Every Day', value: 'every day'}, {label: 'Every Other Day', value: 'every other day'},
@@ -822,7 +816,17 @@ var MedEntryInfo = React.createClass({
 
         return (
             <div className='row med' id={this.state.med_id}>
+                {/*
+                    This div defines the medication row, and is the Bootstrap container for all medication info.
+                    Each element (paired with a column of varying size) must be given it's own unique 'id'.
+                */}
+
                 <div className='col-xs-1' style={{paddingLeft:'5px'}}>
+                    {/*
+                        This column contains the Not Found switch.
+                        o  The 'switch' is implemented using Vanilla CSS found in Careauth.css @ ln 93
+                        o  Updates state: not_found
+                    */}
                     <div className='switch switch-blue' hidden={!this.state.is_fhir_med}>
                         <input id={this.state.med_id + 'found'} className='switch-input' type='radio'
                                name={'not_found--' + this.state.med_id} value='false'
@@ -838,7 +842,12 @@ var MedEntryInfo = React.createClass({
                         <span className={(this.state.not_found == 'unknown') ? 'hidden' : 'switch-selection'}> </span>
                     </div>
                 </div>
+
                 <div className='col-xs-2'>
+                    {/*
+                        This column contains Medication name and Alternate Med name.
+                        o  Updates state: med_name, name_sub
+                    */}
                     <span className='original-med-name medNameText'
                           style={{width:'100%',wordWrap:'break-word'}}>{this.state.med_name}</span>
                     <div>
@@ -854,7 +863,12 @@ var MedEntryInfo = React.createClass({
                                hidden={this.state.alt_hidden && (this.state.is_fhir_med)}/>
                     </div>
                 </div>
+
                 <div className='col-xs-1'>
+                    {/*
+                     This column contains Dosage & Strength input
+                     o  Updates state: dose
+                     */}
                     <div hidden={this.state.not_found === true}>
                         <input
                             className={'col-xs-12 removePadding ' + ((this.state.dose_discrepancy == false) ? 'valid' : 'invalid')}
@@ -863,7 +877,13 @@ var MedEntryInfo = React.createClass({
                             style={{background: 'inherit'}}/>
                     </div>
                 </div>
+
                 <div className='col-xs-2' style={{padding:'0',margin:'0'}}>
+                    {/*
+                     This column contains the Frequency type-ahead input.
+                     o  Created with the React Selectize tool.
+                     o  Updates state: freq
+                     */}
                     <div hidden={this.state.not_found === true}>
                         <SimpleSelect options={options} placeholder='Frequency' className='col-xs-12 removePadding'
                                       style={{width: '100% !important',background:'inherit'}}
@@ -891,7 +911,13 @@ var MedEntryInfo = React.createClass({
                         <input type='text' value={this.state.freq} name='freq' hidden/>
                     </div>
                 </div>
+
                 <div className='col-xs-1' style={{padding:'0',margin:'0'}}>
+                    {/*
+                     This column contains Patient Reports Adherence toggle
+                     o  Textarea becomes visible if toggle is set to no
+                     o  Updates state: compliance_bool, noncompliance_note
+                     */}
                     <div hidden={this.state.not_found === true}>
                         <div className='switch switch-blue'>
                             <input id={this.state.med_id + 'yes'} className='switch-input' type='radio'
@@ -914,7 +940,13 @@ var MedEntryInfo = React.createClass({
                               hidden={this.state.compliance_bool}></textarea>
                     </div>
                 </div>
+
                 <div className='col-xs-1' hidden={this.state.not_found === true}>
+                    {/*
+                     This column contains Prescriber toggle
+                     o  Textarea becomes visible if toggle is set to other
+                     o  Updates state: med_bool, prescriber_note
+                     */}
                     <div hidden={this.state.not_found === true}>
                         <div className='switch switch-blue'>
                             <input id={this.state.med_id + 'VA'} className='switch-input' type='radio'
@@ -937,9 +969,15 @@ var MedEntryInfo = React.createClass({
                               hidden={this.state.med_bool}></textarea>
                     </div>
                 </div>
+
                 <div className='col-xs-1' id={'tooltip_'+this.state.med_id} style={{textAlign:'center'}}>
+                    {/*
+                     This column contains discrepancy tooltip
+                     o  Tooltip becomes visible if row has a discrepancy (via Transcript API)
+                     o  Loading wheel becomes visible while the AJAX call to Transcript is executing
+                     */}
                     <div hidden={!this.state.row_discrepancy || !this.state.is_fhir_med || this.state.not_found}>
-                        <button onClick={this.flipDisc} hidden={this.state.not_found}>
+                        <button onClick={this.flipDisc} hidden={this.state.not_found} style={{padding:'0',border:'none',background:'none'}}>
                             <span ref='tipTarget' id={'disc_span_'+this.state.med_id}
                                   style={{color: '#ffcc00',background: 'yellow',padding: '3px'}}
                                   className='glyphicon glyphicon-warning-sign black'></span>
@@ -953,20 +991,30 @@ var MedEntryInfo = React.createClass({
                     </div>
                     <div className='loader' hidden={this.state.hide_load}><img src='../images/spinner2.gif'/></div>
                 </div>
+                {/*
+                 This column contains notes textarea
+                 o  Textarea uses Elastic.js to autosize based upon content.
+                 o  Updates state: note
+                 */}
                 <div className='col-xs-3' hidden={this.state.not_found === true}>
                     <div>
-                    <textarea type='text' name='note' value={this.state.note}
-                              rows='1' onChange={this.handleChange}
-                              style={{background: 'inherit',resize:'vertical',height:'50px',width:'100%'}}/>
+                    <textarea type='text' name='note' value={this.state.note} onChange={this.handleChange} className={'note'+this.state.med_id}
+                              style={{background:'inherit', resize:'vertical',width:'100%'}}/>
                     </div>
                 </div>
                 <input type='hidden' value={this.state.med_id} name='medication_id'/>
                 <input type='hidden' value={this.state.order_id} name='medication_order_id'/>
             </div>
         );
-
     }
 });
+/**
+ * Objective: Textarea autogrow when a new line is detected by the textarea
+ * Detect whether or not the user's note has been given a /n
+ *   If true, set vertical length to be x px bigger (x being the row size)
+ *   If false, leave size as is
+ */
+
 
 /**
  * Renders the entire page
