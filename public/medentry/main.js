@@ -242,6 +242,11 @@ var MedEntryInfoList = React.createClass({
     },
     continue: function () {
         // async setState because React handles click events this way... handleChanges is the callback
+        var self = this;
+        this.state.allMedications.map(function (medication){
+            if(medication.note !== '')
+                self.refs[medication.id].updateNote(medication.note);
+        });
         this.setState({show_modal: false}, this.handleChanges);
         //this.handleChanges();
     },
@@ -345,7 +350,8 @@ var MedEntryInfoList = React.createClass({
                                 Submit Anyway</strong>
                             <br />
                             <table>
-                                {this.state.allMedications.map(function (medication) {
+                                {
+                                    this.state.allMedications.map(function (medication) {
                                     //When textarea updates, need to send that data to the child
                                     var disc_status = medication.med_discrepancy;
                                     var meds = self.state.allMedications;
@@ -369,8 +375,7 @@ var MedEntryInfoList = React.createClass({
                                             <td> <textarea type='text' name='note' placeholder='Address Discrepancy'
                                                            value={self.state.allMedications[loc].note}
                                                            rows='1' onChange={update}
-                                                           onBlur={() => self.refs[medication.id].updateNote(
-                                                               self.state.allMedications[loc].note)}/>
+                                                           />
                                             </td>
                                         </tr>
                                         </tbody>
