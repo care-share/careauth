@@ -165,10 +165,7 @@ var MedEntryInfoList = React.createClass({
     handleSubmit: function (e) {
         e.preventDefault();
     },
-    handleChanges: function (e) {
-        var token = this.props.token;
-        console.log('Should put data into mongoDB');
-        //Check discrepancies here
+    checkDisc: function () {
         var state = this.state.allMedications;
         var hasDisc = false;
         for (var x = 0; x < state.length; x++)
@@ -177,34 +174,39 @@ var MedEntryInfoList = React.createClass({
 
         if (hasDisc) {
             this.setState({show_modal: true});
+        } else {
+            this.handleChanges();
         }
-        else {
-            var frm = $('#myform').serializeArray();
-            for (var i = frm.length - 1; i >= 0; i--) {
-                frm[i].name = frm[i].name.split('--')[0]
-            }
-            var dat = {
-                patient_id: getUrlParameter('patient_id'),
-                formData: frm
-            };
-            console.log('I am about to POST this:\n\n' + JSON.stringify(dat, null, 2));
-            $.ajax({
-                type: 'POST',
-                url: '/medentries',
-                headers: {'X-Auth-Token': token},
-                data: JSON.stringify(dat),
-                success: function (result) {
-                    console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
-                    //Unhides success message on successful submit
-                    $('.success-message').removeAttr('hidden');
-                    $('.submitBtn').attr('hidden', 'true');
-                    $('.add_button').attr('hidden', 'true');
-                    $('.panel').attr('hidden', 'true');
-                },
-                dataType: 'json',
-                contentType: 'application/json'
-            });
+    },
+    handleChanges: function (e) {
+        var token = this.props.token;
+        //Check discrepancies here
+        console.log('Should put data into mongoDB');
+        var frm = $('#myform').serializeArray();
+        for (var i = frm.length - 1; i >= 0; i--) {
+            frm[i].name = frm[i].name.split('--')[0]
         }
+        var dat = {
+            patient_id: getUrlParameter('patient_id'),
+            formData: frm
+        };
+        console.log('I am about to POST this:\n\n' + JSON.stringify(dat, null, 2));
+        $.ajax({
+            type: 'POST',
+            url: '/medentries',
+            headers: {'X-Auth-Token': token},
+            data: JSON.stringify(dat),
+            success: function (result) {
+                console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
+                //Unhides success message on successful submit
+                $('.success-message').removeAttr('hidden');
+                $('.submitBtn').attr('hidden', 'true');
+                $('.add_button').attr('hidden', 'true');
+                $('.myContainer').attr('hidden', 'true');
+            },
+            dataType: 'json',
+            contentType: 'application/json'
+        });
     },
     sortMedList: function (key, isAscending) {
         var allMeds = this.state.allMedications;
@@ -247,7 +249,7 @@ var MedEntryInfoList = React.createClass({
         var self = this;
         return (
             <form id='myform' onSubmit={this.handleSubmit} autoComplete='off'>
-                <div className='col-sm-12'>
+                <div className='col-sm-12 myContainer'>
                     <div className='panel panel-default' style={{display:'flex',flexDirection:'column',height:'100vh'}}>
                         <div className='panel-heading' style={{padding:'10px 15px 20px'}}>
                             <h2 className='panel-title'>Please Enter Medications As You Find Them In The Home.
@@ -326,7 +328,7 @@ var MedEntryInfoList = React.createClass({
                             </div>
                             <div className='col-xs-2 submitBtn'>
                                 <button className='form-control' disabled={this.state.disable_submit}
-                                    onClick={this.handleChanges}>Done
+                                    onClick={this.checkDisc}>Done
                                 </button>
                             </div>
                         </div>
@@ -707,7 +709,15 @@ var MedEntryInfo = React.createClass({
 
                     //Checks to see if dosage has a discrepancy
                     //TODO: See if dosage got fixed, currently doesn't check unless using a specific format (problem with Transcript API)
-                    if (result.data.discrepancy.dose) {
+                    //If undefined, set states to none
+                    if (result.data.discrepancy.dose == undefined) {
+                        this.setState({
+                            dose_discrepancy: false,
+                            ehr_dose: ''
+                        });
+                    }
+                    else if (result.data.discrepancy.dose) {
+                        //If a 'cannot get value from undefined' error is thrown, ehrMed might not have doseQuantity.
                         this.setState({
                                 dose_discrepancy: result.data.discrepancy.dose,
                                 ehr_dose: result.data.ehrMed.dosageInstruction[0].doseQuantity.value
@@ -719,23 +729,15 @@ var MedEntryInfo = React.createClass({
                     }
 
                     //If undefined, set states to none
-                    if (result.data.discrepancy.dose == undefined) {
-                        this.setState({
-                            dose_discrepancy: false,
-                            ehr_dose: ''
-                        });
+                    if (result.data.discrepancy.freq == undefined) {
+                        this.setState({freq_discrepancy: false, ehr_freq: ''});
                     }
 
                     //Checks to see if frequency has a discrepancy
-                    if (result.data.discrepancy.freq) {
+                    else if (result.data.discrepancy.freq) {
                         var ehrfreq = self.displayCode(result.data.ehrMed.dosageInstruction[0].timing.repeat);
                         console.log(ehrfreq);
                         this.setState({freq_discrepancy: result.data.discrepancy.freq, ehr_freq: ehrfreq});
-                    }
-
-                    //If undefined, set states to none
-                    if (result.data.discrepancy.freq == undefined) {
-                        this.setState({freq_discrepancy: false, ehr_freq: ''});
                     }
 
                     //When done, check both states. if either one is true, set row discrepancy to true
@@ -877,7 +879,7 @@ var MedEntryInfo = React.createClass({
                      */}
                     <div hidden={this.state.not_found === true}>
                         <input
-                            className={'col-xs-12 removePadding ' + ((this.state.dose_discrepancy == false) ? 'valid' : 'invalid')}
+                            className={'col-xs-12 removePadding '}
                             type='text' value={this.state.dose} name='dose'
                             onChange={this.handleChange} onBlur={this.doseFreqValidation}
                             style={{background: 'inherit'}}/>
