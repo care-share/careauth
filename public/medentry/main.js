@@ -895,7 +895,6 @@ var MedEntryInfo = React.createClass({
                                       style={{width: '100% !important',background:'inherit'}}
                                       onBlur={this.doseFreqValidation}
                                       ref='select'
-                                      
                                       onFocus={this.getOffset}
                                       onValueChange={function(freq){
                                       if(freq !== undefined)
@@ -949,7 +948,7 @@ var MedEntryInfo = React.createClass({
                     </div>
                 </div>
 
-                <div className='col-xs-1' hidden={this.state.not_found === true}>
+                <div className='col-xs-1'>
                     {/*
                      This column contains Prescriber toggle
                      o  Textarea becomes visible if toggle is set to other
@@ -1004,7 +1003,7 @@ var MedEntryInfo = React.createClass({
                  o  Textarea uses Elastic.js to autosize based upon content.
                  o  Updates state: note
                  */}
-                <div className='col-xs-3' hidden={this.state.not_found === true}>
+                <div className='col-xs-3'>
                     <div>
                     <textarea type='text' name='note' value={this.state.note} onChange={this.handleChange} className={'note'+this.state.med_id}
                               style={{background:'inherit', resize:'vertical',width:'100%'}}/>
