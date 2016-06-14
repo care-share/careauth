@@ -11,6 +11,7 @@ module.exports = function (server, passport) {
     // import controllers
     var account = require('../controllers/account');
     var auth = require('../controllers/auth');
+    var clone = require('../controllers/clone');
     var user = require('../controllers/user');
     var comm = require('../controllers/comm');
     var medrec = require('../controllers/medrec');
@@ -167,4 +168,11 @@ module.exports = function (server, passport) {
     // * email: email of user to change
     server.route('profile/users/:id/picture')
         .delete(auth.checkAdminOrOwnerToken, user.removeUserPicture);
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CLONE CONTROLLER
+    ///////////////////////////////////////////////////////////////////////////
+
+    server.route('/clone/patient_id/:patient_id')
+        .post(auth.checkToken, clone.clonePatient);
 };
