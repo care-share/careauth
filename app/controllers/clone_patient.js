@@ -10,84 +10,87 @@ const HTTP = require('q-io/http');
 
 const uuid = require("node-uuid");
 
-const configString = fs.readFileSync("clone_patient_config.json", {encoding: "UTF-8"});
-const config = JSON.parse(configString);
+function FhirCloner()
+{
+    var configString = fs.readFileSync("clone_patient_config.json", {encoding: "UTF-8"});
+    this.config = JSON.parse(configString);
 
-const maxRecursion = config.hasOwnProperty("maxRecursion") ? config.maxRecursion : 10;
-const maxObjectsPerResponse =
-    config.hasOwnProperty("maxObjectsPerResponse") ? config.maxObjectsPerResponse : 10;
+    this.maxRecursion = this.config.hasOwnProperty("maxRecursion") ? this.config.maxRecursion : 10;
+    this.maxObjectsPerResponse =
+        this.config.hasOwnProperty("maxObjectsPerResponse") ? this.config.maxObjectsPerResponse : 10;
 
-const baseUrlString = config.baseUrlString;
+    this.baseUrlString = this.config.baseUrlString;
 
-console.log("base url string: " + baseUrlString);
-console.log("max recursion: " + maxRecursion);
-console.log("max objects per response: " + maxObjectsPerResponse);
+    console.log("base url string: " + this.baseUrlString);
+    console.log("max recursion: " + this.maxRecursion);
+    console.log("max objects per response: " + this.maxObjectsPerResponse);
 
-const inputOutputMapKeysWithoutPatient = ["Condition", "Goal", "ProcedureRequest", "MedicationOrder", "CarePlan"];
-var inputOutputMapKeysWithPatient = inputOutputMapKeysWithoutPatient.slice();
-inputOutputMapKeysWithPatient.push("Patient");
+    this.inputOutputMapKeysWithoutPatient = ["Condition", "Goal", "ProcedureRequest", "MedicationOrder", "CarePlan"];
+    this.inputOutputMapKeysWithPatient = this.inputOutputMapKeysWithoutPatient.slice();
+    this.inputOutputMapKeysWithPatient.push("Patient");
 
 
-console.log("BEGINNING of clone patient...");
-console.log("number of arguments: " + process.argv.length);
+    console.log("BEGINNING of clone patient...");
 
-var parameters = parseParameters(process.argv);
+    this.currentSequenceNumberForPatientMap = {};
+}
 
-var currentSequenceNumberForPatientMap = {};
-
-var inputPatientId = parameters.inputPatientId;
-var outputPatientId = parameters.outputPatientId;
+FhirCloner.prototype.clonePatient =
+  function(inputPatientId) {
+      
+  };
 
 // ***** MAIN CALL *****
-clonePatientMain(inputPatientId, outputPatientId);
+//clonePatientMain(inputPatientId, outputPatientId);
 // ***** MAIN CALL *****
 
 
 
-function generateNewPatientId()
+FhirCloner.prototype.generateNewPatientId = function()
 {
     var currentTimestampMs = (new Date()).getTime();
     var currentSequenceNumber = 0;
-    var currentPatientIdSuffix = calculatePatientIdSuffix(currentTimestampMs);
+    var currentPatientIdSuffix = this.calculatePatientIdSuffix(currentTimestampMs);
     var newId = "" + currentTimestampMs + currentPatientIdSuffix;
     
-    currentSequenceNumberForPatientMap[newId] = 0;
+    this.currentSequenceNumberForPatientMap[newId] = 0;
     
     return newId;
 }
 
-function setupSpecifiedNewPatientId(newId)
+FhirCloner.prototype.setupSpecifiedNewPatientId = function(newId)
 {
     
-    currentSequenceNumberForPatientMap[newId] = 0;
+    this.currentSequenceNumberForPatientMap[newId] = 0;
     
     return newId;
 }
 
 
 
-function calculatePatientIdSuffix(timestampMs)
+FhirCloner.prototype.calculatePatientIdSuffix = function(timestampMs)
 {
     return "-" + uuid.v4();
 }
 
-function calculateNextSubidForPatient(patientId)
+FhirCloner.prototype.calculateNextSubidForPatient = function(patientId)
 {
-    var sequenceNumber = currentSequenceNumberForPatientMap[patientId]++;
-    var sequenceLetter = calculateLetterSequence(sequenceNumber);
+    var sequenceNumber = this.currentSequenceNumberForPatientMap[patientId]++;
+    var sequenceLetter = this.calculateLetterSequence(sequenceNumber);
     var newSubid = patientId + sequenceLetter;
     return newSubid;
 }
 
+FhirCloner.prototype.clonePatient =
 function clonePatientMain(inputPatientId, outputPatientId)
 {
 
     if (outputPatientId)
     {
-        setupSpecifiedNewPatientId(outputPatientId);
+        this.setupSpecifiedNewPatientId(outputPatientId);
     } else
     {
-        outputPatientId = generateNewPatientId();
+        this.outputPatientId = this.generateNewPatientId();
     }
 
     console.log("%%% input (source) patient id: " + inputPatientId);
@@ -103,9 +106,9 @@ function clonePatientMain(inputPatientId, outputPatientId)
     // collect mapping from old id to new id (for patient object)
     oldToNewIdMap[inputPatientId] = outputPatientId;
 
-    console.log("switch inputMethod: " + config.inputMethod);
+    console.log("switch inputMethod: " + this.config.inputMethod);
 
-    switch (config.inputMethod)
+    switch (this.config.inputMethod)
     {
         case "file":
             console.log("reading from file...");
@@ -126,8 +129,8 @@ function clonePatientMain(inputPatientId, outputPatientId)
 
         case "server":
             console.log("reading from server...");
-            var basePatientUrlString = baseUrlString + 'Patient';
-            var basePatientUrl = url.parse(basePatientUrlString);
+            var basePatientUrlString = this.baseUrlString + 'Patient';
+            var basePatientUrl = url.parse(this.basePatientUrlString);
 
             inputMap.Patient = [];
             inputMap.CarePlan = [];
@@ -146,17 +149,19 @@ function clonePatientMain(inputPatientId, outputPatientId)
                 };
             var patientUrlString = url.format(patientUrl);
 
-            pullDataFromFhir(patientUrlString, inputMap, 0, oldToNewIdMap, outputPatientId);
+            this.pullDataFromFhir(patientUrlString, inputMap, 0, oldToNewIdMap, outputPatientId);
 
             break;
         default:
             console.log("WARNING: no inputMethod specified!!!");
             break;
     }
+    
+    return oldToNewIdMap;
 
 }
 
-function processLoadedData(inputMap, oldToNewIdMap, outputPatientId)
+FhirCloner.prototype.processLoadedData = function(inputMap, oldToNewIdMap, outputPatientId)
 {
 
 var patientList = inputMap.Patient;
@@ -294,7 +299,7 @@ console.log("=== OUTPUT JSON DATA/end ===");
 return outputMap;
 }
 
-function readData(fileName) {
+FhirCloner.prototype.readData = function(fileName) {
   process.stdout.write('READING JSON FILE: ' + fileName);
   //var modelData = require( path.join(__dirname, 'data/' + fileName) );
   var cwd = process.cwd();
@@ -326,7 +331,7 @@ function readData(fileName) {
     return s;
 }
 
-function pullDataFromFhir(patientUrlString, inputMap, currentRecursion, oldToNewIdMap, outputPatientId)
+FhirCloner.prototype.pullDataFromFhir = function(patientUrlString, inputMap, currentRecursion, oldToNewIdMap, outputPatientId)
 {
     // ------ BEGIN ------ //
     console.log("%%%%%");
@@ -381,9 +386,9 @@ function pullDataFromFhir(patientUrlString, inputMap, currentRecursion, oldToNew
         {
             console.log("#@#@#@#@#@#@ THIS SHOULD BE THE LAST STATEMENT (in reading data from server) ... @#@#@#@#@#@#");
             printSummaryOfLoadedData(inputMap);
-            var outputMap = processLoadedData(inputMap, oldToNewIdMap, outputPatientId);
+            var outputMap = this.processLoadedData(inputMap, oldToNewIdMap, outputPatientId);
             
-            saveAllToServer(outputMap);
+            this.saveAllToServer(outputMap);
 
 
         }
@@ -418,7 +423,7 @@ function stringify(s)
   return JSON.stringify(s, null, 2)
 };
 
-function printSummaryOfLoadedData(inputMap)
+FhirCloner.prototype.printSummaryOfLoadedData = function(inputMap)
 {
     var keys = Object.keys(inputMap);
 
@@ -430,7 +435,7 @@ function printSummaryOfLoadedData(inputMap)
         console.log("number of " + currentKey  + ": " + entryList.length);
     }
 }
-function saveObjectToServer(objectType, o)
+FhirCloner.prototype.saveObjectToServer = function(objectType, o)
 {
     //console.log(">>>>> saveObjectToServer on object type " + objectType + "; BEGIN");
     //console.log("===DEBUG/begin===");
@@ -499,7 +504,7 @@ function saveObjectToServer(objectType, o)
     });
 }
 
-function saveAllToServer(outputMap)
+FhirCloner.prototype.saveAllToServer = function(outputMap)
 {
     var processingBlocks = { "beginning": [], "middle": [], "end": [] };
 
@@ -562,7 +567,7 @@ function ClonePatientException(message)
     this.message = message;
 }
 
-function parseParameters(argv)
+FhirCloner.prototype.parseParameters = function(argv)
 {
     var response = {};
     
