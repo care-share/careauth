@@ -6,6 +6,7 @@ var HTTP = require('q-io/http');
 
 // import internal modules
 var app = require('../../lib/app');
+var MedEntry = app.MedEntry;
 var respond = require('../../lib/utils').respond;
 var dasherize = require('../../lib/utils').dasherize;
 
@@ -46,8 +47,49 @@ function cloneFhirData(params) {
 
 // params: {patientId, idMap}
 function cloneMedEntryData(params) {
-    // TODO: remove this stub code
-    return Q.resolve(params);
+    var patientId = params.patientId;
+    var idMap = params.idMap;
+
+    // recursive method to sequentially save new medentry documents
+    function saveMedEntries(medEntries) {
+        if (medEntries.length === 0) {
+            return Q.resolve();
+        }
+        var medEntry = medEntries.pop();
+        var medId = medEntry.medication_id;
+        var orderId = medEntry.medication_order_id;
+        var idNotFound;
+        if (medId.length > 0 || orderId > 0) {
+            // medId and orderId should both only be non-empty at the same time, but we check both to be safe
+            medId = idMap[medId];
+            orderId = idMap[orderId];
+            idNotFound = !medId || !orderId;
+        }
+
+        if (!idNotFound) {
+            medEntry._id = app.mongoose.Types.ObjectId();
+            medEntry.isNew = true;
+            medEntry.patient_id = idMap[patientId];
+            medEntry.medication_id = medId;
+            medEntry.medication_order_id = orderId;
+            return medEntry.saveQ()
+                .catch(function (err) {
+                    // ran into a problem cloning this particular MedEntry; skip it and continue
+                    app.logger.error('clone controller: Unable to clone MedEntry "%s" for: patientId "%s", medicationId "%s", medicationOrderId "%s":',
+                        medEntry._id, patientId, medEntry.medication_id, medEntry.medication_order_id, err.message);
+                }).thenResolve(medEntries)
+                .then(saveMedEntries);
+        } else {
+            // ran into a problem cloning this particular MedEntry; skip it and continue
+            app.logger.error('clone controller: Unable to clone MedEntry "%s" for: patientId "%s", medicationId "%s", medicationOrderId "%s" (no mapped medication ID or medication order ID)',
+                medEntry._id, patientId, medEntry.medication_id, medEntry.medication_order_id);
+            return saveMedEntries(medEntries);
+        }
+    }
+
+    return MedEntry.findQ({patient_id: patientId})
+        .then(saveMedEntries)
+        .thenResolve(params);
 }
 
 // params: {patientId, idMap}
@@ -78,7 +120,8 @@ function cloneNominationData(params) {
             headers: {'Content-Type': 'application/json'},
             body: [bodyString]
         }, function (err) {
-            app.logger.error('clone controller: Failed to PUT nomination:', err.message);
+            // ran into a problem cloning this particular Nomination; skip it and continue
+            app.logger.error('clone controller: Unable to PUT nomination:', err.message);
         }).then(function () {
             // recurse
             return putNominations(nominations);
@@ -115,8 +158,9 @@ function cloneNominationData(params) {
                         // object relation attributes are automatically approved (not stored as nominations)
                         list.push(nomination);
                     } else {
-                        app.logger.error('clone controller: Failed to clone nomination for: patientId "%s", carePlanId "%s", authorId "%s", resourceId "%s" (no mapped resource ID)',
-                            patientId, changeReq.carePlanId, changeReq.authorId, entry.resourceId)
+                        // ran into a problem cloning this particular Nomination; skip it and continue
+                        app.logger.error('clone controller: Unable to clone nomination for: patientId "%s", carePlanId "%s", authorId "%s", resourceId "%s" (no mapped resource ID)',
+                            patientId, changeReq.carePlanId, changeReq.authorId, entry.resourceId);
                     }
                 }
             };
