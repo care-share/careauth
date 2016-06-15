@@ -37,11 +37,18 @@ exports.clonePatient = function (req, res) {
 // params: {patientId}
 function cloneFhirData(params) {
     var patientId = params.patientId;
+    
+    var fhirCloner = new FhirCloner();
+    fhirCloner.clonePatientMain(patientId, null)
+        .then(function(idMap) {
+            var params = { "idMap": idMap};
+            Q.resolve(params);
+        });
 
-    // TODO: remove this stub code
-    params.idMap = {};
-    params.idMap[patientId] = new Date().getTime() + '-' + patientId;
-    return Q.resolve(params);
+    // // TODO: remove this stub code
+    // params.idMap = {};
+    // params.idMap[patientId] = new Date().getTime() + '-' + patientId;
+    // return Q.resolve(params);
 }
 
 // params: {patientId, idMap}

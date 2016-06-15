@@ -35,10 +35,9 @@ function FhirCloner()
     this.currentSequenceNumberForPatientMap = {};
 }
 
-FhirCloner.prototype.clonePatient =
-  function(inputPatientId) {
-      
-  };
+// FhirCloner.prototype.clonePatient =
+//   function(inputPatientId) {
+//   };
 
 // ***** MAIN CALL *****
 //clonePatientMain(inputPatientId, outputPatientId);
@@ -81,8 +80,8 @@ FhirCloner.prototype.calculateNextSubidForPatient = function(patientId)
     return newSubid;
 }
 
-FhirCloner.prototype.clonePatient =
-function clonePatientMain(inputPatientId, outputPatientId)
+FhirCloner.prototype.clonePatientMain =
+function(inputPatientId, outputPatientId)
 {
 
     if (outputPatientId)
@@ -388,7 +387,7 @@ FhirCloner.prototype.pullDataFromFhir = function(patientUrlString, inputMap, cur
             printSummaryOfLoadedData(inputMap);
             var outputMap = this.processLoadedData(inputMap, oldToNewIdMap, outputPatientId);
             
-            this.saveAllToServer(outputMap);
+            this.saveAllToServer(outputMap, oldToNewIdMap);
 
 
         }
@@ -504,7 +503,7 @@ FhirCloner.prototype.saveObjectToServer = function(objectType, o)
     });
 }
 
-FhirCloner.prototype.saveAllToServer = function(outputMap)
+FhirCloner.prototype.saveAllToServer = function(outputMap, oldToNewIdMap)
 {
     var processingBlocks = { "beginning": [], "middle": [], "end": [] };
 
@@ -554,12 +553,17 @@ FhirCloner.prototype.saveAllToServer = function(outputMap)
     //console.log(">>>>> end of beginning Block");
 
     console.log(">>>>> BEFORE starting promises to save data to server");
-    invokeSetOfSaveRequests(beginningBlock)
+    var overallResultPromise = invokeSetOfSaveRequests(beginningBlock)
         .thenResolve(middleBlock)
         .then(invokeSetOfSaveRequests)
         .thenResolve(endBlock)
         .then(invokeSetOfSaveRequests)
-        .then(function() { console.log(">>>>> AFTER RESOLVING starting promises to save data to server"); });
+        .then(function() {
+            console.log(">>>>> AFTER RESOLVING starting promises to save data to server");
+            Q.resolve(oldToNewIdMap);
+         });
+         
+    return overallResultPromise;
 }
 
 function ClonePatientException(message)
@@ -582,10 +586,10 @@ FhirCloner.prototype.parseParameters = function(argv)
         throw e;
     }
 
-    response.inputPatientId = process.argv[2];
+    response.inputPatientId = argv[2];
     console.log("[command line parameter] source patient id (to be cloned): " + response.inputPatientId);
 
-    response.outputPatientId = process.argv[3];
+    response.outputPatientId = argv[3];
     console.log("[command line parameter] output patient id (new patient): " + response.outputPatientId);
 
     return response;
