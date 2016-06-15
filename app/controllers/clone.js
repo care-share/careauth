@@ -39,11 +39,16 @@ function cloneFhirData(params) {
     var patientId = params.patientId;
     
     var fhirCloner = new FhirCloner();
-    fhirCloner.clonePatientMain(patientId, null)
-        .then(function(idMap) {
-            var params = { "idMap": idMap};
-            Q.resolve(params);
+    var fhirCloningResultPromise = fhirCloner.clonePatientMain(patientId, null)
+        .then(function(oldToNewIdMap) {
+            var params = { idMap: oldToNewIdMap};
+            
+            //Q.resolve(params);
+            
+            return params;
         });
+        
+    return fhirCloningResultPromise;
 
     // // TODO: remove this stub code
     // params.idMap = {};

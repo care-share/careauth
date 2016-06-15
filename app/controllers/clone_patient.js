@@ -107,6 +107,8 @@ function(inputPatientId, outputPatientId)
 
     console.log("switch inputMethod: " + this.config.inputMethod);
 
+    var pullDataResultPromise = null;
+    
     switch (this.config.inputMethod)
     {
         case "file":
@@ -148,7 +150,7 @@ function(inputPatientId, outputPatientId)
                 };
             var patientUrlString = url.format(patientUrl);
 
-            this.pullDataFromFhir(patientUrlString, inputMap, 0, oldToNewIdMap, outputPatientId);
+            pullDataResultPromise = this.pullDataFromFhir(patientUrlString, inputMap, 0, oldToNewIdMap, outputPatientId);
 
             break;
         default:
@@ -156,7 +158,12 @@ function(inputPatientId, outputPatientId)
             break;
     }
     
-    return oldToNewIdMap;
+    if (pullDataResultPromise != null)
+    {
+        return pullDataResultPromise;
+    }
+    
+    return null;
 
 }
 
@@ -377,6 +384,7 @@ FhirCloner.prototype.pullDataFromFhir = function(patientUrlString, inputMap, cur
 //        console.log("linkObject:");
 //        console.log(linkObject);
 
+        var saveResultPromise = null;
         var nextLink = null;
         if (linkObject.hasOwnProperty("next"))
         {
@@ -387,9 +395,8 @@ FhirCloner.prototype.pullDataFromFhir = function(patientUrlString, inputMap, cur
             printSummaryOfLoadedData(inputMap);
             var outputMap = this.processLoadedData(inputMap, oldToNewIdMap, outputPatientId);
             
-            this.saveAllToServer(outputMap, oldToNewIdMap);
-
-
+            saveResultPromise = this.saveAllToServer(outputMap, oldToNewIdMap);
+            return saveResultPromise;
         }
         console.log("next link: " + nextLink);
         console.log("");
@@ -398,15 +405,20 @@ FhirCloner.prototype.pullDataFromFhir = function(patientUrlString, inputMap, cur
 
 
         console.log("making recursive call to get next page of fhir data...");
+        var nextPullDataResultPromise = null;
         if (currentRecursion < maxRecursion && nextLink !== null)
         {
-            pullDataFromFhir(nextLink, inputMap, currentRecursion + 1, oldToNewIdMap, outputPatientId);
+            nextPullDataResultPromise = pullDataFromFhir(nextLink, inputMap, currentRecursion + 1, oldToNewIdMap, outputPatientId);
         }
         console.log("DONE making recursive call to get next page of fhir data.");
 
 
         console.log("inside response END.");
-        return json;
+        if (nextPullDataResultPromise != null)
+        {
+            return nextPullDataResultPromise;
+        }
+        return null;
     //}).catch(function (err) {
     //    console.log ("ERROR: " + err);
     }).done();
@@ -560,7 +572,7 @@ FhirCloner.prototype.saveAllToServer = function(outputMap, oldToNewIdMap)
         .then(invokeSetOfSaveRequests)
         .then(function() {
             console.log(">>>>> AFTER RESOLVING starting promises to save data to server");
-            Q.resolve(oldToNewIdMap);
+            return oldToNewIdMap;
          });
          
     return overallResultPromise;
