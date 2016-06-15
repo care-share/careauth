@@ -1,0 +1,7 @@
+{
+    "baseUrlString": "http://fhir.mcoarr-rh.mitre.org:8080/baseDstu2/",
+    "maxRecursion": 10,
+    "maxObjectsPerResponse": 10,
+    "inputMethod": "server",
+    "outputMethod": "server"
+}
