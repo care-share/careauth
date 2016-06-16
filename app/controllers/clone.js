@@ -26,6 +26,7 @@ var MedEntry = app.MedEntry;
 var Comm = app.Comm;
 var respond = require('../../lib/utils').respond;
 var dasherize = require('../../lib/utils').dasherize;
+var FhirCloner = require('../../lib/fhir_cloner').FhirCloner;
 
 // API: POST /clone/patient_id/:patient_id
 // returns: {newPatientId}
