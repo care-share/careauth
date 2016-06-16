@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 The MITRE Corporation, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this work except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 'use strict';
 
 // import external modules
@@ -6,6 +22,8 @@ var HTTP = require('q-io/http');
 
 // import internal modules
 var app = require('../../lib/app');
+var MedEntry = app.MedEntry;
+var Comm = app.Comm;
 var respond = require('../../lib/utils').respond;
 var dasherize = require('../../lib/utils').dasherize;
 
@@ -17,7 +35,7 @@ exports.clonePatient = function (req, res) {
 
     cloneFhirData(args)
         .then(cloneMedEntryData)
-        .then(cloneAnnotationData)
+        .then(cloneCommData)
         .then(cloneNominationData)
         .then(function (result) {
             // all the cloning was successful, let's return the new patient ID
@@ -50,22 +68,25 @@ function cloneFhirData(params) {
         
     return fhirCloningResultPromise;
 
-    // // TODO: remove this stub code
-    // params.idMap = {};
-    // params.idMap[patientId] = new Date().getTime() + '-' + patientId;
-    // return Q.resolve(params);
+    // TODO: remove this stub code
+    params.idMap = {
+        bar: 'bar2',
+        baz: 'baz2',
+        herp: 'herp2',
+        derp: 'derp2'
+    };
+    params.idMap[patientId] = new Date().getTime() + '-' + patientId;
+    return Q.resolve(params);
 }
 
 // params: {patientId, idMap}
 function cloneMedEntryData(params) {
-    // TODO: remove this stub code
-    return Q.resolve(params);
+    return cloneMongoDocs('MedEntry', params, ['medication_id', 'medication_order_id']);
 }
 
 // params: {patientId, idMap}
-function cloneAnnotationData(params) {
-    // TODO: remove this stub code
-    return Q.resolve(params);
+function cloneCommData(params) {
+    return cloneMongoDocs('Comm', params, ['careplan_id','resource_id']);
 }
 
 // params: {patientId, idMap}
@@ -90,7 +111,8 @@ function cloneNominationData(params) {
             headers: {'Content-Type': 'application/json'},
             body: [bodyString]
         }, function (err) {
-            app.logger.error('clone controller: Failed to PUT nomination:', err.message);
+            // ran into a problem cloning this particular Nomination; skip it and continue
+            app.logger.error('clone controller: Unable to PUT nomination:', err.message);
         }).then(function () {
             // recurse
             return putNominations(nominations);
@@ -127,8 +149,9 @@ function cloneNominationData(params) {
                         // object relation attributes are automatically approved (not stored as nominations)
                         list.push(nomination);
                     } else {
-                        app.logger.error('clone controller: Failed to clone nomination for: patientId "%s", carePlanId "%s", authorId "%s", resourceId "%s" (no mapped resource ID)',
-                            patientId, changeReq.carePlanId, changeReq.authorId, entry.resourceId)
+                        // ran into a problem cloning this particular Nomination; skip it and continue
+                        app.logger.error('clone controller: Unable to clone nomination for: patientId "%s", carePlanId "%s", authorId "%s", resourceId "%s" (no mapped resource ID)',
+                            patientId, changeReq.carePlanId, changeReq.authorId, entry.resourceId);
                     }
                 }
             };
@@ -147,4 +170,54 @@ function cloneNominationData(params) {
 
 function cloneObj(obj) {
     return JSON.parse(JSON.stringify(obj));
+}
+
+function cloneMongoDocs(model, params, attrs) {
+    var patientId = params.patientId;
+    var idMap = params.idMap;
+
+    // recursive method to sequentially save new medentry documents
+    function saveDocuments(documents) {
+        if (documents.length === 0) {
+            return;
+        }
+        var document = documents.pop();
+        var attrMap = {}; // map of attributes that should be transformed with the idMap
+        var idNotFound = false;
+        for (var i = 0; i < attrs.length; i++) {
+            var attr = attrs[i];
+            var entry = document[attr];
+            attrMap[attr] = entry;
+            if (!entry) { // should not be undefined, null, or blank
+                idNotFound = true;
+                break;
+            }
+        }
+
+        if (!idNotFound) {
+            document._id = app.mongoose.Types.ObjectId();
+            document.isNew = true;
+            document.patient_id = idMap[patientId];
+            for (var i = 0; i < attrs.length; i++) {
+                var attr = attrs[i];
+                document[attr] = idMap[document[attr]];
+            }
+            return document.saveQ()
+                .catch(function (err) {
+                    // ran into a problem cloning this particular document; skip it and continue
+                    app.logger.error('clone controller: Unable to clone %s "%s" for patientId "%s":',
+                        model, document._id, patientId, err.message);
+                }).thenResolve(documents)
+                .then(saveDocuments);
+        } else {
+            // ran into a problem cloning this particular document; skip it and continue
+            app.logger.error('clone controller: Unable to clone %s "%s" for patientId "%s" (mapped attribute ID missing)',
+                model, document._id, patientId);
+            return saveDocuments(documents);
+        }
+    }
+
+    return app[model].findQ({patient_id: patientId})
+        .then(saveDocuments)
+        .thenResolve(params);
 }

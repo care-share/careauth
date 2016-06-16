@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 The MITRE Corporation, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this work except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 //Includes React Selectize MultiSelect
 //MultiSelect = require('react-selectize').MultiSelect;
 var SimpleSelect = reactSelectize.SimpleSelect;
@@ -165,10 +181,7 @@ var MedEntryInfoList = React.createClass({
     handleSubmit: function (e) {
         e.preventDefault();
     },
-    handleChanges: function (e) {
-        var token = this.props.token;
-        console.log('Should put data into mongoDB');
-        //Check discrepancies here
+    checkDisc: function () {
         var state = this.state.allMedications;
         var hasDisc = false;
         for (var x = 0; x < state.length; x++)
@@ -177,34 +190,39 @@ var MedEntryInfoList = React.createClass({
 
         if (hasDisc) {
             this.setState({show_modal: true});
+        } else {
+            this.handleChanges();
         }
-        else {
-            var frm = $('#myform').serializeArray();
-            for (var i = frm.length - 1; i >= 0; i--) {
-                frm[i].name = frm[i].name.split('--')[0]
-            }
-            var dat = {
-                patient_id: getUrlParameter('patient_id'),
-                formData: frm
-            };
-            console.log('I am about to POST this:\n\n' + JSON.stringify(dat, null, 2));
-            $.ajax({
-                type: 'POST',
-                url: '/medentries',
-                headers: {'X-Auth-Token': token},
-                data: JSON.stringify(dat),
-                success: function (result) {
-                    console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
-                    //Unhides success message on successful submit
-                    $('.success-message').removeAttr('hidden');
-                    $('.submitBtn').attr('hidden', 'true');
-                    $('.add_button').attr('hidden', 'true');
-                    $('.panel').attr('hidden', 'true');
-                },
-                dataType: 'json',
-                contentType: 'application/json'
-            });
+    },
+    handleChanges: function (e) {
+        var token = this.props.token;
+        //Check discrepancies here
+        console.log('Should put data into mongoDB');
+        var frm = $('#myform').serializeArray();
+        for (var i = frm.length - 1; i >= 0; i--) {
+            frm[i].name = frm[i].name.split('--')[0]
         }
+        var dat = {
+            patient_id: getUrlParameter('patient_id'),
+            formData: frm
+        };
+        console.log('I am about to POST this:\n\n' + JSON.stringify(dat, null, 2));
+        $.ajax({
+            type: 'POST',
+            url: '/medentries',
+            headers: {'X-Auth-Token': token},
+            data: JSON.stringify(dat),
+            success: function (result) {
+                console.log('SUCCESS! ' + JSON.stringify(result, null, 2));
+                //Unhides success message on successful submit
+                $('.success-message').removeAttr('hidden');
+                $('.submitBtn').attr('hidden', 'true');
+                $('.add_button').attr('hidden', 'true');
+                $('.myContainer').attr('hidden', 'true');
+            },
+            dataType: 'json',
+            contentType: 'application/json'
+        });
     },
     sortMedList: function (key, isAscending) {
         var allMeds = this.state.allMedications;
@@ -240,21 +258,19 @@ var MedEntryInfoList = React.createClass({
     },
     continue: function () {
         // async setState because React handles click events this way... handleChanges is the callback
+        var self = this;
+        this.state.allMedications.map(function (medication){
+            if(medication.note !== '')
+                self.refs[medication.id].updateNote(medication.note);
+        });
         this.setState({show_modal: false}, this.handleChanges);
         //this.handleChanges();
     },
     render: function () {
         var self = this;
-        /**
-         * Need to set container to 100%
-         *   o How big does the header need to be?
-         *   o How big does the footer need to be?
-         *   o How to set the middle bit to flex?
-         *     -  Determine the vh requirements.
-         */
         return (
             <form id='myform' onSubmit={this.handleSubmit} autoComplete='off'>
-                <div className='col-sm-12'>
+                <div className='col-sm-12 myContainer'>
                     <div className='panel panel-default' style={{display:'flex',flexDirection:'column',height:'100vh'}}>
                         <div className='panel-heading' style={{padding:'10px 15px 20px'}}>
                             <h2 className='panel-title'>Please Enter Medications As You Find Them In The Home.
@@ -333,7 +349,7 @@ var MedEntryInfoList = React.createClass({
                             </div>
                             <div className='col-xs-2 submitBtn'>
                                 <button className='form-control' disabled={this.state.disable_submit}
-                                    onClick={this.handleChanges}>Done
+                                    onClick={this.checkDisc}>Done
                                 </button>
                             </div>
                         </div>
@@ -350,7 +366,8 @@ var MedEntryInfoList = React.createClass({
                                 Submit Anyway</strong>
                             <br />
                             <table>
-                                {this.state.allMedications.map(function (medication) {
+                                {
+                                    this.state.allMedications.map(function (medication) {
                                     //When textarea updates, need to send that data to the child
                                     var disc_status = medication.med_discrepancy;
                                     var meds = self.state.allMedications;
@@ -374,8 +391,7 @@ var MedEntryInfoList = React.createClass({
                                             <td> <textarea type='text' name='note' placeholder='Address Discrepancy'
                                                            value={self.state.allMedications[loc].note}
                                                            rows='1' onChange={update}
-                                                           onBlur={() => self.refs[medication.id].updateNote(
-                                                               self.state.allMedications[loc].note)}/>
+                                                           />
                                             </td>
                                         </tr>
                                         </tbody>
@@ -431,7 +447,8 @@ var MedEntryInfo = React.createClass({
             row_discrepancy: false,    // Boolean indicating whether or not this medication has a un-addressed discrepancy,
             show_tooltip: false,    // Boolean used to set the visibility of Tooltip
             tooltip_message: '',       // String used by DiscTooltip to display discrepancies
-            dropdown_direction: 1         // Integer used by Frequency Dropdown to determine direction to display dropdown
+            dropdown_direction: 1,         // Integer used by Frequency Dropdown to determine direction to display dropdown
+            offset: 0   //Double used by Frequency Dropdown to determine Y location
         };
     },
 
@@ -713,7 +730,15 @@ var MedEntryInfo = React.createClass({
 
                     //Checks to see if dosage has a discrepancy
                     //TODO: See if dosage got fixed, currently doesn't check unless using a specific format (problem with Transcript API)
-                    if (result.data.discrepancy.dose) {
+                    //If undefined, set states to none
+                    if (result.data.discrepancy.dose == undefined) {
+                        this.setState({
+                            dose_discrepancy: false,
+                            ehr_dose: ''
+                        });
+                    }
+                    else if (result.data.discrepancy.dose) {
+                        //If a 'cannot get value from undefined' error is thrown, ehrMed might not have doseQuantity.
                         this.setState({
                                 dose_discrepancy: result.data.discrepancy.dose,
                                 ehr_dose: result.data.ehrMed.dosageInstruction[0].doseQuantity.value
@@ -725,23 +750,15 @@ var MedEntryInfo = React.createClass({
                     }
 
                     //If undefined, set states to none
-                    if (result.data.discrepancy.dose == undefined) {
-                        this.setState({
-                            dose_discrepancy: false,
-                            ehr_dose: ''
-                        });
+                    if (result.data.discrepancy.freq == undefined) {
+                        this.setState({freq_discrepancy: false, ehr_freq: ''});
                     }
 
                     //Checks to see if frequency has a discrepancy
-                    if (result.data.discrepancy.freq) {
+                    else if (result.data.discrepancy.freq) {
                         var ehrfreq = self.displayCode(result.data.ehrMed.dosageInstruction[0].timing.repeat);
                         console.log(ehrfreq);
                         this.setState({freq_discrepancy: result.data.discrepancy.freq, ehr_freq: ehrfreq});
-                    }
-
-                    //If undefined, set states to none
-                    if (result.data.discrepancy.freq == undefined) {
-                        this.setState({freq_discrepancy: false, ehr_freq: ''});
                     }
 
                     //When done, check both states. if either one is true, set row discrepancy to true
@@ -764,6 +781,11 @@ var MedEntryInfo = React.createClass({
             }
         });
     },
+    getOffset: function() {
+        var offset = $('#'+this.state.med_id).offset();
+        this.setState({offset: offset});
+        console.log(this.state.med_name+': '+JSON.stringify(offset));
+    },
     componentDidMount: function () {
         var isFhirMed = true;
         var placeText = 'Enter Alternate Name';
@@ -779,7 +801,7 @@ var MedEntryInfo = React.createClass({
             placeholder: placeText,
             alt_hidden: isFhirMed,
             med_order: this.props.medOrder
-        });
+        }, this.getOffset);
     },
     doseFreqValidation: function () {
         // dose & freq field must be filled out
@@ -796,6 +818,7 @@ var MedEntryInfo = React.createClass({
     },
     render: function () {
         // IMPORTANT NOTE: for server-side processing to work correctly, not_found MUST be the first form field!
+        $('.note'+this.state.med_id).elastic();
         var self = this,
             options = [
                 {label: 'Every Day', value: 'every day'}, {label: 'Every Other Day', value: 'every other day'},
@@ -822,7 +845,17 @@ var MedEntryInfo = React.createClass({
 
         return (
             <div className='row med' id={this.state.med_id}>
+                {/*
+                    This div defines the medication row, and is the Bootstrap container for all medication info.
+                    Each element (paired with a column of varying size) must be given it's own unique 'id'.
+                */}
+
                 <div className='col-xs-1' style={{paddingLeft:'5px'}}>
+                    {/*
+                        This column contains the Not Found switch.
+                        o  The 'switch' is implemented using Vanilla CSS found in Careauth.css @ ln 93
+                        o  Updates state: not_found
+                    */}
                     <div className='switch switch-blue' hidden={!this.state.is_fhir_med}>
                         <input id={this.state.med_id + 'found'} className='switch-input' type='radio'
                                name={'not_found--' + this.state.med_id} value='false'
@@ -838,7 +871,12 @@ var MedEntryInfo = React.createClass({
                         <span className={(this.state.not_found == 'unknown') ? 'hidden' : 'switch-selection'}> </span>
                     </div>
                 </div>
+
                 <div className='col-xs-2'>
+                    {/*
+                        This column contains Medication name and Alternate Med name.
+                        o  Updates state: med_name, name_sub
+                    */}
                     <span className='original-med-name medNameText'
                           style={{width:'100%',wordWrap:'break-word'}}>{this.state.med_name}</span>
                     <div>
@@ -854,21 +892,33 @@ var MedEntryInfo = React.createClass({
                                hidden={this.state.alt_hidden && (this.state.is_fhir_med)}/>
                     </div>
                 </div>
+
                 <div className='col-xs-1'>
+                    {/*
+                     This column contains Dosage & Strength input
+                     o  Updates state: dose
+                     */}
                     <div hidden={this.state.not_found === true}>
                         <input
-                            className={'col-xs-12 removePadding ' + ((this.state.dose_discrepancy == false) ? 'valid' : 'invalid')}
+                            className={'col-xs-12 removePadding '}
                             type='text' value={this.state.dose} name='dose'
                             onChange={this.handleChange} onBlur={this.doseFreqValidation}
                             style={{background: 'inherit'}}/>
                     </div>
                 </div>
+
                 <div className='col-xs-2' style={{padding:'0',margin:'0'}}>
+                    {/*
+                     This column contains the Frequency type-ahead input.
+                     o  Created with the React Selectize tool.
+                     o  Updates state: freq
+                     */}
                     <div hidden={this.state.not_found === true}>
                         <SimpleSelect options={options} placeholder='Frequency' className='col-xs-12 removePadding'
                                       style={{width: '100% !important',background:'inherit'}}
                                       onBlur={this.doseFreqValidation}
                                       ref='select'
+                                      onFocus={this.getOffset}
                                       onValueChange={function(freq){
                                       if(freq !== undefined)
                                          self.setState({freq:freq.label});
@@ -891,7 +941,13 @@ var MedEntryInfo = React.createClass({
                         <input type='text' value={this.state.freq} name='freq' hidden/>
                     </div>
                 </div>
+
                 <div className='col-xs-1' style={{padding:'0',margin:'0'}}>
+                    {/*
+                     This column contains Patient Reports Adherence toggle
+                     o  Textarea becomes visible if toggle is set to no
+                     o  Updates state: compliance_bool, noncompliance_note
+                     */}
                     <div hidden={this.state.not_found === true}>
                         <div className='switch switch-blue'>
                             <input id={this.state.med_id + 'yes'} className='switch-input' type='radio'
@@ -914,7 +970,13 @@ var MedEntryInfo = React.createClass({
                               hidden={this.state.compliance_bool}></textarea>
                     </div>
                 </div>
-                <div className='col-xs-1' hidden={this.state.not_found === true}>
+
+                <div className='col-xs-1'>
+                    {/*
+                     This column contains Prescriber toggle
+                     o  Textarea becomes visible if toggle is set to other
+                     o  Updates state: med_bool, prescriber_note
+                     */}
                     <div hidden={this.state.not_found === true}>
                         <div className='switch switch-blue'>
                             <input id={this.state.med_id + 'VA'} className='switch-input' type='radio'
@@ -937,9 +999,15 @@ var MedEntryInfo = React.createClass({
                               hidden={this.state.med_bool}></textarea>
                     </div>
                 </div>
+
                 <div className='col-xs-1' id={'tooltip_'+this.state.med_id} style={{textAlign:'center'}}>
+                    {/*
+                     This column contains discrepancy tooltip
+                     o  Tooltip becomes visible if row has a discrepancy (via Transcript API)
+                     o  Loading wheel becomes visible while the AJAX call to Transcript is executing
+                     */}
                     <div hidden={!this.state.row_discrepancy || !this.state.is_fhir_med || this.state.not_found}>
-                        <button onClick={this.flipDisc} hidden={this.state.not_found}>
+                        <button onClick={this.flipDisc} hidden={this.state.not_found} style={{padding:'0',border:'none',background:'none'}}>
                             <span ref='tipTarget' id={'disc_span_'+this.state.med_id}
                                   style={{color: '#ffcc00',background: 'yellow',padding: '3px'}}
                                   className='glyphicon glyphicon-warning-sign black'></span>
@@ -953,18 +1021,21 @@ var MedEntryInfo = React.createClass({
                     </div>
                     <div className='loader' hidden={this.state.hide_load}><img src='../images/spinner2.gif'/></div>
                 </div>
-                <div className='col-xs-3' hidden={this.state.not_found === true}>
+                {/*
+                 This column contains notes textarea
+                 o  Textarea uses Elastic.js to autosize based upon content.
+                 o  Updates state: note
+                 */}
+                <div className='col-xs-3'>
                     <div>
-                    <textarea type='text' name='note' value={this.state.note}
-                              rows='1' onChange={this.handleChange}
-                              style={{background: 'inherit',resize:'vertical',height:'50px',width:'100%'}}/>
+                    <textarea type='text' name='note' value={this.state.note} onChange={this.handleChange} className={'note'+this.state.med_id}
+                              style={{background:'inherit', resize:'vertical',width:'100%'}}/>
                     </div>
                 </div>
                 <input type='hidden' value={this.state.med_id} name='medication_id'/>
                 <input type='hidden' value={this.state.order_id} name='medication_order_id'/>
             </div>
         );
-
     }
 });
 
