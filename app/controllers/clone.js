@@ -57,7 +57,8 @@ exports.clonePatient = function (req, res) {
 function cloneFhirData(params) {
     var patientId = params.patientId;
     
-    var fhirCloner = new FhirCloner();
+    var fhirBaseUrl = app.config.get('proxy_fhir');
+    var fhirCloner = new FhirCloner(fhirBaseUrl, 20, 20);
     var fhirCloningResultPromise = fhirCloner.clonePatientMain(patientId, null)
         .then(function(oldToNewIdMap) {
             var params = { idMap: oldToNewIdMap};
@@ -69,15 +70,15 @@ function cloneFhirData(params) {
         
     return fhirCloningResultPromise;
 
-    // TODO: remove this stub code
-    params.idMap = {
-        bar: 'bar2',
-        baz: 'baz2',
-        herp: 'herp2',
-        derp: 'derp2'
-    };
-    params.idMap[patientId] = new Date().getTime() + '-' + patientId;
-    return Q.resolve(params);
+    // // TODO: remove this stub code
+    // params.idMap = {
+    //     bar: 'bar2',
+    //     baz: 'baz2',
+    //     herp: 'herp2',
+    //     derp: 'derp2'
+    // };
+    // params.idMap[patientId] = new Date().getTime() + '-' + patientId;
+    // return Q.resolve(params);
 }
 
 // params: {patientId, idMap}
