@@ -59,15 +59,13 @@ function cloneFhirData(params) {
     var patientId = params.patientId;
     var fhirBaseUrl = app.config.get('proxy_fhir');
 
-    var fhirCloner = new FhirCloner(fhirBaseUrl, 20, 20, 'server');
-    return fhirCloner.clonePatientMain(patientId, null)
-        .then(function (idMap) {
-            app.logger.silly('Done cloning patient "%s", idMap:', patientId, JSON.stringify(idMap, null, 2));
-            return {
-                patientId: patientId,
-                idMap: idMap
-            };
-        });
+    var fhirCloner = new FhirCloner(fhirBaseUrl);
+    return fhirCloner.clonePatientMain(patientId).then(function (idMap) {
+        return {
+            patientId: patientId,
+            idMap: idMap
+        };
+    });
 }
 
 // params: {patientId, idMap}
