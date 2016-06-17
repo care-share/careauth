@@ -58,7 +58,7 @@ function cloneFhirData(params) {
     var patientId = params.patientId;
     
     var fhirBaseUrl = app.config.get('proxy_fhir');
-    var fhirCloner = new FhirCloner(fhirBaseUrl, 20, 20);
+    var fhirCloner = new FhirCloner(fhirBaseUrl, 20, 20, "server", "server");
     var fhirCloningResultPromise = fhirCloner.clonePatientMain(patientId, null)
         .then(function(oldToNewIdMap) {
             var params = { idMap: oldToNewIdMap};
