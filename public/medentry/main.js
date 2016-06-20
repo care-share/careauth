@@ -273,9 +273,9 @@ var MedEntryInfoList = React.createClass({
                 <div className='col-sm-12 myContainer'>
                     <div className='panel panel-default' style={{display:'flex',flexDirection:'column',height:'100vh'}}>
                         <div className='panel-heading' style={{padding:'10px 15px 20px'}}>
-                            <h2 className='panel-title'>Please Enter Medications As You Find Them In The Home.
-                                This List Will Be Reconciled With VA Provider Records,
-                                And You May Be Contacted For Clarification Later.</h2>
+                            <h2 className='panel-title'>Please enter medications as you find them in the home.
+                                This list will be reconciled with VA provider records,
+                                you may be contacted for clarification later.</h2>
                         </div>
                         <div className='container-fluid full-width med-list' style={{width:'100%'}}>
                             <div className='row header'>
