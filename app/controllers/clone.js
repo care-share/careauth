@@ -26,6 +26,8 @@ var MedEntry = app.MedEntry;
 var Comm = app.Comm;
 var respond = require('../../lib/utils').respond;
 var dasherize = require('../../lib/utils').dasherize;
+var newUuid = require('../../lib/utils').newUuid;
+var FhirCloner = require('../../lib/fhir_cloner');
 
 // API: POST /clone/patient_id/:patient_id
 // returns: {newPatientId}
@@ -44,27 +46,26 @@ exports.clonePatient = function (req, res) {
             app.logger.debug('clone controller: Successfully cloned patient "%s", new ID "%s"', patientId, newPatientId);
             respond(res, 200, {newPatientId: newPatientId});
         }).catch(function (err) {
-            // if we fail at any step in the above portions, we return an error message
-            // TODO: determine where we failed and remove newly-created records that are incomplete
-            app.logger.error('clone controller: Failed to clone patient "%s":', patientId, err);
-            respond(res, 500);
-        }).done();
+        // if we fail at any step in the above portions, we return an error message
+        // TODO: determine where we failed and remove newly-created records that are incomplete
+        app.logger.error('clone controller: Failed to clone patient "%s":', patientId, err);
+        respond(res, 500);
+    }).done();
 };
 
 // clones FHIR data, returns a map specifying old resource IDs and their new counterparts
 // params: {patientId}
 function cloneFhirData(params) {
     var patientId = params.patientId;
+    var fhirBaseUrl = app.config.get('proxy_fhir');
 
-    // TODO: remove this stub code
-    params.idMap = {
-        bar: 'bar2',
-        baz: 'baz2',
-        herp: 'herp2',
-        derp: 'derp2'
-    };
-    params.idMap[patientId] = new Date().getTime() + '-' + patientId;
-    return Q.resolve(params);
+    var fhirCloner = new FhirCloner(fhirBaseUrl);
+    return fhirCloner.clonePatientMain(patientId).then(function (idMap) {
+        return {
+            patientId: patientId,
+            idMap: idMap
+        };
+    });
 }
 
 // params: {patientId, idMap}
@@ -74,7 +75,7 @@ function cloneMedEntryData(params) {
 
 // params: {patientId, idMap}
 function cloneCommData(params) {
-    return cloneMongoDocs('Comm', params, ['careplan_id','resource_id']);
+    return cloneMongoDocs('Comm', params, ['careplan_id', 'resource_id']);
 }
 
 // params: {patientId, idMap}
@@ -121,11 +122,16 @@ function cloneNominationData(params) {
                 timestamp: changeReq.timestamp
             };
             // populate the list of transformed nominations
-            var populateNominations = function(attr) {
+            var populateNominations = function (attr) {
                 var array = changeReq[attr];
                 for (var j = 0; j < array.length; j++) {
                     var entry = array[j];
                     var resourceId = idMap[entry.resourceId];
+                    if (entry.action === 'create') {
+                        // this resourceId does not exist in FHIR yet, therefore it won't be present in our idMap
+                        // we must generate a brand new UUID for this nomination
+                        resourceId = newUuid(entry.resourceId);
+                    }
                     if (resourceId) {
                         var nomination = cloneObj(baseNomination);
                         nomination.resourceId = resourceId;
